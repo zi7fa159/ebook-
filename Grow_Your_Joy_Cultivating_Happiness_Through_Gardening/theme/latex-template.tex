@@ -1,0 +1,169 @@
+\documentclass{report}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+\usepackage{lmodern}
+\usepackage{tgpagella}
+\usepackage{lato}
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tocbibind}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{etoolbox}
+
+% Define \tightlist if it's not already defined (common Pandoc issue)
+\ifdefined\tightlist\else
+  \newcommand{\tightlist}{}
+\fi
+
+% Color definitions
+\definecolor{DeepForestGreen}{HTML}{228B22}
+\definecolor{EarthyBrown}{HTML}{A0522D}
+\definecolor{SoftYellow}{HTML}{FFFFE0}
+\definecolor{SkyBlue}{HTML}{ADD8E6}
+\definecolor{LinkTeal}{HTML}{008080}
+\definecolor{UrlBlue}{HTML}{0000FF}
+\definecolor{TocForestGreen}{HTML}{228B22}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=LinkTeal,
+    citecolor=LinkTeal,
+    filecolor=LinkTeal,
+    urlcolor=UrlBlue,
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    pdfsubject={Ebook},
+    pdfkeywords={gardening, joy, happiness},
+    bookmarksnumbered=true,
+    bookmarksopen=true,
+    bookmarksopenlevel=2,
+    pdftoolbar=true,
+    pdfmenubar=true,
+    pdffitwindow=false,
+    pdfstartview={FitH},
+    pdfdisplaydoctitle=true
+}
+
+% Page style
+\pagestyle{fancy}
+\fancyhf{}
+% \fancyhead[L]{\textit{$title$}} % Temporarily remove to simplify, might cause issues if $title$ isn't ready
+\fancyhead[R]{\textit{\leftmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Chapter title formatting
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{DeepForestGreen}}
+  {\chaptertitlename\ \thechapter}
+  {20pt}
+  {\Huge\bfseries}
+\titlespacing*{\chapter}{0pt}{50pt}{40pt}
+
+% Section title formatting
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{EarthyBrown}}
+  {\thesection}
+  {1em}
+  {}
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+
+% Subsection title formatting
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection}
+  {1em}
+  {}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% Blockquote styling
+\AtBeginEnvironment{quote}{%
+  \pushQED{\qed}%
+  \small\itshape\color{gray!60!black}%
+  \vspace{0.5em}
+  \noindent\llap{\color{DeepForestGreen}\rule{2pt}{\dimexpr\ht\strutbox+\dp\strutbox\relax}\hspace{0.5em}}%
+}
+\AtEndEnvironment{quote}{\popQED\vspace{0.5em}}
+
+% Listings (code blocks) styling
+\lstdefinestyle{customcode}{
+  backgroundcolor=\color{gray!10},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,
+  breaklines=true,
+  captionpos=b,
+  commentstyle=\color{DeepForestGreen},
+  keywordstyle=\color{blue},
+  stringstyle=\color{purple},
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\tiny\color{gray},
+  rulecolor=\color{black!20},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=2,
+  frame=lines,
+  framesep=5pt,
+  framextopmargin=2pt,
+  framexbottommargin=2pt,
+  aboveskip=1em,
+  belowskip=1em
+}
+\lstset{style=customcode}
+
+% Document start
+\begin{document}
+
+$if(cover-image)$
+  \thispagestyle{empty}
+  \noindent
+  \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio=false]{$cover-image$}
+  \clearpage
+  \thispagestyle{empty}
+$endif$
+
+% Manual title page using Pandoc variables directly
+$if(title)$
+\begin{titlepage}
+    \centering
+    \vspace*{0.1\textheight}
+    {\Huge\bfseries\color{DeepForestGreen} $title$ \par}
+    $if(subtitle)$
+        \vspace{0.05\textheight}
+        {\Large\itshape $subtitle$ \par}
+    $endif$
+    \vspace{0.1\textheight}
+    $if(author)$
+        {\Large $author$ \par}
+    $endif$
+    $if(date)$
+        \vspace{0.02\textheight}
+        {\large $date$ \par}
+    $endif$
+    \vspace{0.05\textheight}
+    \rule{0.8\textwidth}{0.4pt}
+    \vspace{0.3\textheight}
+\end{titlepage}
+$endif$
+
+\tableofcontents
+\newpage
+
+$body$
+
+\end{document}
