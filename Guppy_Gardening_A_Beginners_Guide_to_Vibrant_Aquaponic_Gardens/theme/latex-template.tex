@@ -1,0 +1,166 @@
+% Pandoc LaTeX Template for "Guppy Gardening: A Beginner's Guide to Vibrant Aquaponic Gardens"
+% Based on Theming Strategy from Step 8
+% Uses XeLaTeX
+
+\documentclass[
+    11pt,
+    paper=letter, % US Letter
+    twoside=true, % Two-sided layout
+    open=right, % Chapters start on the right page
+    numbers=enddot, % 1. instead of 1 for sections
+    headinclude=true,
+    footinclude=false,
+    BCOR=12mm, % Binding correction (can be adjusted)
+    titlepage=true,
+    headings=normal, % KOMA-Script heading size
+    listof=totoc, % Add LoF, LoT to TOC
+    bibliography=totoc % Add bibliography to TOC
+]{scrbook}
+
+\usepackage{fontspec}
+\usepackage{setspace}
+\usepackage[english]{babel}
+\usepackage{microtype} % For better typography
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{amsmath, amssymb} % For math symbols, if any
+\usepackage{booktabs} % For professional tables
+\usepackage[
+    colorlinks=true,
+    linkcolor=DarkTeal,
+    urlcolor=DarkTeal,
+    citecolor=DarkOliveGreen
+]{hyperref} % For internal/external links
+\usepackage{geometry}
+\usepackage[automark, headsepline, footsepline]{scrlayer-scrpage} % KOMA-Script headers/footers
+\usepackage{titlesec} % For customizing section titles (can also use KOMA commands)
+\usepackage{csquotes} % Context-sensitive quotes
+\usepackage{caption} % For customizing captions
+\usepackage{float} % Improved float placement, e.g. [H]
+
+% Define Colors (as per Theming Strategy)
+\definecolor{DarkTeal}{HTML}{008080}
+\definecolor{DarkOliveGreen}{HTML}{808000} % For less prominent elements
+\definecolor{MainTextColor}{gray}{0.1} % Very dark gray for body text
+\definecolor{LightGrayBG}{gray}{0.95} % Background for code blocks
+
+% Page Geometry (as per Theming Strategy)
+\geometry{
+    letterpaper,
+    inner=1.25in, % Binding edge
+    outer=1in,
+    top=1in,
+    bottom=1in,
+    headheight=15pt % Adjusted for header content
+}
+
+% Font Setup (as per Theming Strategy)
+\setmainfont{Latin Modern Roman}[
+    Scale = 1.0,
+    Ligatures = TeX
+]
+\setsansfont{Latin Modern Sans}[
+    Scale = MatchLowercase,
+    Ligatures = TeX
+]
+\setmonofont{Latin Modern Mono}[
+    Scale = MatchLowercase,
+    Ligatures = TeX,
+    Contextuals = Alternate % Ensures better spacing for mono fonts
+]
+\color{MainTextColor} % Set default text color
+
+% Line Spacing (as per Theming Strategy)
+\setstretch{1.15} % Equivalent to roughly 1.4-1.5 line spacing for 11pt LM Roman
+
+% Chapter Title Styling (KOMA-Script approach)
+\RedeclareSectionCommand[
+    font=\centering\sffamily\bfseries\huge\color{DarkTeal},
+    beforeskip=2\baselineskip,
+    afterskip=1.5\baselineskip,
+    prefixfont=\sffamily\bfseries\color{DarkTeal},
+    tocentrynumberformat= \bfseries % Chapter numbers bold in TOC
+]{chapter}
+\renewcommand*{\chapterheadstartvskip}{\vspace*{2\baselineskip}}
+\renewcommand*{\chapterheadendvskip}{\vspace{1\baselineskip}\par\noindent\textcolor{DarkTeal}{\rule{\textwidth}{1pt}}\vspace{2\baselineskip}}
+
+% Section Title Styling (using titlesec for more control if needed, or KOMA's \RedeclareSectionCommand)
+\titleformat{\section}{\sffamily\bfseries\Large}{\thesection}{1em}{}
+\titleformat{\subsection}{\sffamily\bfseries\large}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\sffamily\itshape\large}{\thesubsubsection}{1em}{}
+\titlespacing*{\chapter}{0pt}{2\baselineskip}{3\baselineskip}
+\titlespacing*{\section}{0pt}{1.5\baselineskip}{1\baselineskip}
+\titlespacing*{\subsection}{0pt}{1.2\baselineskip}{0.8\baselineskip}
+\titlespacing*{\subsubsection}{0pt}{1\baselineskip}{0.6\baselineskip}
+
+% Headers and Footers (using scrlayer-scrpage)
+\clearpairofpagestyles
+\ohead{\pagemark} % Page number on outer edge of header
+\ihead{\headmark} % Chapter/Section title on inner edge of header
+\setkomafont{pageheadfoot}{\sffamily\small}
+\setkomafont{pagenumber}{\sffamily\small}
+
+% Table of Contents Styling
+\BeforeTOCHead[toc]{{\sffamily\bfseries\Huge\centering Contents\par\vspace{1.5\baselineskip}}}
+\setcounter{tocdepth}{2} % Parts, Chapters, Sections
+
+% Hyperref Setup
+\hypersetup{
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    pdfsubject={A Beginner's Guide to Vibrant Aquaponic Gardens},
+    pdfkeywords={Aquaponics, Guppies, Gardening, Hydroponics, Sustainable, Beginner Guide},
+    breaklinks=true,
+    bookmarksopen=true,
+    bookmarksnumbered=true
+}
+
+% Code Block Styling (Pandoc handles this with --highlight-style)
+% If using minted, it would be configured here.
+% For Pandoc's default, we can define a background for `Verbatim` environment if needed.
+$if(highlighting-macros)$
+    $highlighting-macros$
+$endif$
+% Example of adding a background to Pandoc's verbatim:
+% \usepackage{etoolbox}
+% \BeforeBeginEnvironment{verbatim}{\begingroup\setlength{\parskip}{0pt}\pagebreak[0]\nopagebreak[4]\footnotesize\color{DarkOliveGreen}\colorbox{LightGrayBG}\bgroup\verbun হাইলাইট করা কোড}
+% \AfterEndEnvironment{verbatim}{\egroup\endgroup}
+
+
+% Captions for Figures and Tables
+\captionsetup{
+    font={small,sffamily},
+    labelfont={bf,sffamily},
+    justification=centering
+}
+
+% Title Page (custom definition, Pandoc's $titlepage$ variable is usually for its own)
+% We will rely on Pandoc's metadata for the main title if cover-image is used,
+% or use a custom title page definition if no cover-image from Pandoc.
+% This template assumes Pandoc's variables will populate where needed.
+% For a more elaborate LaTeX title page, one would define it here using \maketitle or custom commands.
+$if(title)$
+\title{$title$$if(subtitle)$\\\large\sffamily $subtitle$$endif$}
+$endif$
+$if(author)$
+\author{$author$}
+$endif$
+$if(date)$
+\date{$date$}
+$endif$
+
+% Start of Document
+\begin{document}
+
+$if(titlepage)$
+    \maketitle % Uses the KOMA-Script maketitle or a custom one if defined
+$endif$
+
+$if(toc)$
+    \tableofcontents
+    \cleardoublepage % Ensure content starts on a right page after TOC
+$endif$
+
+$body$
+
+\end{document}
