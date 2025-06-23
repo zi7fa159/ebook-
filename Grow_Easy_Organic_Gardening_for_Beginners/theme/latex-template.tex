@@ -1,0 +1,256 @@
+% Basic Pandoc LaTeX Template for "Grow Easy: Organic Gardening for Beginners"
+% This template aims for a clean, professional, and nature-inspired theme.
+% It uses xelatex for font flexibility.
+
+\documentclass[11pt, oneside]{book} % Standard book class, 11pt font, one-sided for digital
+
+% --- PACKAGES ---
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage[xetex]{hyperref} % For PDF metadata and links, specify xetex
+\usepackage{fontspec}     % For font selection with XeLaTeX
+\usepackage{titlesec}     % For customizing section titles
+\usepackage{xcolor}       % For color definitions
+\usepackage{fancyhdr}     % For custom headers and footers
+\usepackage{enumitem}     % For customizing lists
+\usepackage{microtype}    % Improves typography (justification, spacing)
+\usepackage{array}        % For more advanced table column formatting, often needed by Pandoc
+\usepackage{longtable}    % For tables that span multiple pages
+\usepackage{booktabs}     % For professional quality tables
+\usepackage{float}        % For better control over figure placement
+\usepackage{csquotes}     % Context sensitive quotation marks
+\usepackage{changepage}   % For adjusting margins for callouts/asides
+\usepackage{lipsum}       % For dummy text (REMOVE FOR FINAL)
+\usepackage{titling}      % For customizing title page
+\usepackage{lettrine}     % For drop caps at chapter start (optional)
+\usepackage{wallpaper}    % For cover image (if not handled by pandoc directly)
+\usepackage{tcolorbox}    % For better shaded boxes / code blocks
+
+% --- PAGE GEOMETRY ---
+% Example for a 6x9 inch book, adjust as needed
+\geometry{
+  paperwidth=6in,
+  paperheight=9in,
+  left=0.75in,
+  right=0.75in,
+  top=0.75in,
+  bottom=0.75in,
+  headheight=14.5pt % Adjust if header is complex
+}
+
+% --- COLOR DEFINITIONS ---
+\definecolor{DarkGreen}{HTML}{4A7856}    % Main theme color (e.g., chapter titles)
+\definecolor{WarmBrown}{HTML}{A0522D}    % Secondary color (e.g., subheadings)
+\definecolor{LightBeige}{HTML}{F5F5DC}   % Background for callouts/tips
+\definecolor{DarkGrayText}{HTML}{333333} % Main body text color
+\definecolor{LightGrayBG}{HTML}{F0F0F0}  % Background for code/example blocks
+
+% --- FONT SELECTION ---
+% Attempt to use specified fonts, with fallbacks to standard LaTeX fonts (Latin Modern)
+% to ensure compilation even if custom fonts are not installed.
+\usepackage{iftex} % Required for \ifXeTeX or \ifLuaTeX
+
+\ifXeTeX
+  \usepackage{fontspec}
+  \AtBeginDocument{\let\fontspec\relax} % Fix for potential conflict with babel/polyglossia if loaded by pandoc
+  \providecommand\setmainfont[1]{\fontspec{#1}}
+  \providecommand\setsansfont[1]{\fontspec{#1}}
+  \providecommand\setmonofont[1]{\fontspec{#1}}
+
+  % Try desired fonts, if not found, fontspec usually falls back, or LaTeX default (Latin Modern) will be used.
+  \setmainfont{Linux Libertine O} [Ligatures=TeX] % Primary choice
+  \setsansfont{Lato} [Scale=MatchLowercase, Ligatures=TeX] % Primary choice
+  \setmonofont{Latin Modern Mono} [Scale=MatchLowercase] % Fallback to standard TeX font for mono
+\else % For pdfLaTeX, use Latin Modern (standard)
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern} % Use Latin Modern fonts
+  % \usepackage{libertine} % Uncomment if libertine is definitely available for pdfLaTeX
+  % \usepackage{lato}      % Uncomment if lato is definitely available for pdfLaTeX
+  % \usepackage{inconsolata} % Uncomment if inconsolata is definitely available for pdfLaTeX
+\fi
+
+% --- DOCUMENT INFORMATION (Pandoc Variables) ---
+% These are typically set by Pandoc using -V or in metadata YAML block
+% \title{$title$}
+% \author{$author$}
+% \date{$date$}
+
+% --- TITLE PAGE CUSTOMIZATION (Using titling package) ---
+% Ensure Pandoc variables are used to set standard LaTeX title commands
+\title{$title$}
+\author{$author$}
+\date{$date$}
+% \pretitle{\begin{center}\Huge\bfseries\sffamily}
+% \posttitle{\par\end{center}\vskip 0.5em}
+% \preauthor{\begin{center}\Large\mdseries\sffamily}
+% \postauthor{\par\end{center}\vskip 0.5em}
+% \predate{\begin{center}\large\mdseries\sffamily}
+% \postdate{\par\end{center}\vskip 3em}
+% Using default \maketitle behavior after setting \title, \author, \date
+
+% --- CHAPTER AND SECTION TITLE STYLING (Using titlesec) ---
+\titleformat{\chapter}[display]
+  {\normalfont\Huge\bfseries\sffamily\color{DarkGreen}} % Format: sans-serif, dark green
+  {\chaptertitlename\ \thechapter} % "Chapter X"
+  {20pt} % Separation between "Chapter X" and title
+  {\Huge\centering} % Title text format (centered)
+  [\vspace{10pt}\titlerule\vspace{10pt}] % Rule below title
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\sffamily\color{WarmBrown}} % Format: sans-serif, warm brown
+  {\thesection}
+  {1em}
+  {}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\sffamily\color{DarkGrayText}} % Format: sans-serif
+  {\thesubsection}
+  {1em}
+  {}
+
+\titlespacing*{\chapter}{0pt}{0pt}{40pt} % Spacing around chapter title (left, before, after)
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% --- HEADERS AND FOOTERS (Using fancyhdr) ---
+\pagestyle{fancy}
+\fancyhf{} % Clear all header and footer fields
+\fancyhead[LE,RO]{\sffamily\small\thepage} % Page number on Left (Even) and Right (Odd) outer edge
+\fancyhead[RE]{\sffamily\small\leftmark} % Chapter title on Right (Even) inner edge
+\fancyhead[LO]{\sffamily\small\rightmark} % Section title on Left (Odd) inner edge
+\renewcommand{\headrulewidth}{0.4pt} % Rule below header
+\renewcommand{\footrulewidth}{0pt}  % No rule above footer
+
+% Adjust leftmark and rightmark for book class (chapter/section)
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+
+% --- LIST CUSTOMIZATION (Using enumitem) ---
+% Pandoc often uses \tightlist for compact lists. Define it to avoid errors if not defined by Pandoc's chain.
+% This effectively lets enumitem control list spacing.
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\setlist[itemize,1]{label=\textcolor{DarkGreen}{\textbullet}} % Green bullets
+\setlist[itemize,2]{label=\textcolor{WarmBrown}{\textendash}}
+\setlist[enumerate,1]{label=\arabic*.}
+\setlist[enumerate,2]{label=\alph*)}
+
+% --- HYPERREF SETUP ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=WarmBrown,      % Color of internal links
+    citecolor=DarkGreen,      % Color of citations
+    urlcolor=DarkGreen,       % Color of external links
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    pdfsubject={$subject$}, % Optional: Add subject if available
+    pdfkeywords={$keywords$}, % Optional: Add keywords if available
+    pdflang={$lang$},         % Optional: Add language if available
+    bookmarksopen=true,
+    bookmarksnumbered=true,
+    breaklinks=true           % Allow links to break over lines
+}
+
+% --- TABLE OF CONTENTS STYLING ---
+\usepackage{tocbasic} % For more control over ToC
+\DeclareTOCStyleEntry[
+  entrynumberformat=\bfseries,
+  dynnumwidth, % Dynamically adjust number width
+  numsep=1em,
+  raggedentrytext % Allow text to wrap naturally
+]{tocline}{chapter}
+
+\DeclareTOCStyleEntry[
+  indent=1.5em, % Indent sections
+  numwidth=2.3em, % Adjust if section numbers are long
+  raggedentrytext
+]{tocline}{section}
+
+% --- CODE BLOCKS / VERBATIM ---
+% Pandoc usually handles this with its own verbatim environment or looks for a 'Shaded' environment.
+% We define 'Shaded' using tcolorbox for better control and appearance.
+\definecolor{shadecolor}{gray}{0.9} % Light gray background for shaded environments
+
+% Define the Shaded environment using tcolorbox
+% This will be used by Pandoc for fenced code blocks if not using minted.
+\newtcolorbox{Shaded}{
+  breakable, % Allows the box to break across pages
+  colback=shadecolor, % Background color
+  colframe=DarkGrayText, % Frame color (optional, can be same as colback or different)
+  arc=0mm, % Sharp corners
+  boxrule=0.5pt, % Frame thickness (optional)
+  left=2mm, right=2mm, top=2mm, bottom=2mm % Padding
+}
+
+% --- GRAPHICS PATH ---
+% If you have images in a specific folder (e.g., 'images/')
+\ifx\graphicspath\undefined\else
+  \graphicspath{{images/}{./}} % Pandoc often sets this
+\fi
+
+% --- DROP CAPS (Optional, using lettrine) ---
+% Example: \lettrine[lines=3, findent=5pt, nindent=0pt]{L}{orem} ipsum...
+% You would need to manually add this to the start of chapters in Markdown,
+% or use a Lua filter. For simplicity, this is often omitted unless specifically requested.
+
+% --- COVER IMAGE ---
+% Pandoc can include a cover image using the `cover-image` metadata field.
+% If you want to typeset it with LaTeX directly (e.g., for a full-page cover as first page):
+% \newcommand{\makecover}{%
+%   \thispagestyle{empty}%
+%   \AddToShipoutPicture*{\BackgroundPic}% Add picture to background
+%   \centering
+%   % You might add title/author text over the image here if needed
+%   % \vspace*{0.2\paperheight} % Adjust vertical spacing
+%   % {\Huge\sffamily\bfseries\color{white} $title$ \par}
+%   % \vspace*{0.1\paperheight}
+%   % {\Large\sffamily\color{white} $author$ \par}
+%   \cleardoublepage%
+% }
+% \newcommand*{\BackgroundPic}{%
+%   \put(0,0){%
+%     \parbox[b][\paperheight]{\paperwidth}{%
+%       \vfill
+%       \centering
+%       % Assuming cover.png is in the same directory or graphicspath
+%       \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio=false]{$cover-image$}%
+%       \vfill
+%     }%
+%   }%
+% }
+% Note: Pandoc's native cover image handling is usually simpler.
+
+% --- START OF DOCUMENT ---
+\begin{document}
+
+% --- FRONTMATTER ---
+\frontmatter % Roman page numbering, chapters not numbered
+
+% Custom Title Page (if not using Pandoc's default)
+% Check Pandoc documentation for how it handles title pages with custom templates.
+% If $titlepage$ is true, Pandoc inserts its own title page.
+% If you want full control, you might need to set `titlepage: false` in YAML
+% and build it here.
+$if(title)$
+  \maketitle % Uses the titling package customizations
+$endif$
+
+$if(toc)$
+  \tableofcontents
+  \cleardoublepage % Ensure main matter starts on a recto page
+$endif$
+
+% --- MAINMATTER ---
+\mainmatter % Arabic page numbering, chapters numbered
+
+$body$ % This is where Pandoc inserts the converted Markdown content
+
+% --- BACKMATTER ---
+\backmatter % Chapters not numbered (e.g., for Appendix, Bibliography)
+
+% Example: If you have appendices, they would go here.
+% Pandoc handles this with header attributes: # Appendix A {-}
+% Or by using `\appendix` command if writing raw LaTeX.
+
+\end{document}
