@@ -1,0 +1,184 @@
+% Preamble
+\documentclass[11pt, a5paper, twoside]{book} % A5 paper, 11pt font, book class
+
+% Packages for encoding, fonts, and language
+\usepackage[utf8]{inputenc}
+\usepackage{fontspec} % Allows use of OpenType and TrueType fonts
+\usepackage{xunicode} % Provides extended Unicode support for XeLaTeX / LuaLaTeX
+\usepackage{polyglossia} % For language support, replaces babel for XeLaTeX
+\setdefaultlanguage{english}
+
+% Page Geometry
+\usepackage[
+    a5paper,
+    margin=1in, % 1-inch margins on all sides
+    headheight=13.6pt % Adjusted for fancyhdr
+]{geometry}
+
+% Typography - Font selection (Ensure these fonts are installed on the system)
+% TeX Gyre Pagella is a Palatino clone, Lato is a sans-serif, Inconsolata for mono
+\setmainfont{TeX Gyre Pagella}
+\setsansfont{Lato}
+\setmonofont{Inconsolata} % Or Fira Code, DejaVu Sans Mono, etc.
+
+% Colors
+\usepackage{xcolor}
+\definecolor{CornflowerBlue}{HTML}{6495ED} % A professional blue
+\definecolor{LightGray}{RGB}{240,240,240}
+
+% Headers and Footers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{} % Clear all header and footer fields
+\fancyhead[LE,RO]{\nouppercase{\leftmark}} % Chapter title on Left (Even) and Right (Odd) in book style
+\fancyfoot[LE,RO]{\thepage} % Page number on Left (Even) and Right (Odd)
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt} % No footer rule
+
+% Chapter and Section Styling
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\sffamily\color{CornflowerBlue}} % Chapter title format: Lato, huge, bold, blue
+  {\chaptertitlename\ \thechapter} % "Chapter X"
+  {20pt} % Space between "Chapter X" and title
+  {\Huge\sffamily} % Title text format
+\titlespacing*{\chapter}{0pt}{-30pt}{40pt} % Adjust spacing around chapter titles (less space before)
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\sffamily\color{black}} % Section title: Lato, Large, bold, black
+  {\thesection}
+  {1em}
+  {}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\sffamily\color{black}} % Subsection title: Lato, large, bold, black
+  {\thesubsection}
+  {1em}
+  {}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\sffamily\color{black}} % Subsubsection title: Lato, normal, bold, black
+  {\thesubsubsection}
+  {1em}
+  {}
+
+% Table of Contents Styling
+\usepackage{tocloft}
+\renewcommand{\cftchapfont}{\sffamily\bfseries}
+\renewcommand{\cftsecfont}{\sffamily}
+\renewcommand{\cftsubsecfont}{\sffamily}
+\setlength{\cftbeforechapskip}{0.5em}
+
+% Code Listings
+\usepackage{listings}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{LightGray},
+    commentstyle=\color{green!60!black},
+    keywordstyle=\color{blue!70!black}\bfseries,
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{purple!80!black},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=tb, % Top and bottom frame lines
+    framerule=0.4pt,
+    rulecolor=\color{black!30!white},
+    aboveskip=1em,
+    belowskip=1em,
+    morekeywords={const, let, var, function, return, if, else, for, while, class, import, export, async, await, true, false, null, undefined, document, window, console, alert, prompt, getElementById, querySelector, addEventListener} % Add more JS keywords
+}
+\lstset{style=mystyle, language=JavaScript, highlightstyle=tango} % tango is specified by pandoc, can be overridden
+
+% Graphics and Figures
+\usepackage{graphicx}
+\usepackage{float} % For better control over float placement (e.g., [H] for here)
+\graphicspath{{./images/}} % Path for images, relative to where pandoc is run
+\usepackage[font=small\sffamily,labelfont=bf]{caption} % Figure and Table caption styling
+
+% Hyperlinks (for TOC, URLs)
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=CornflowerBlue,
+    urlcolor=CornflowerBlue,
+    citecolor=CornflowerBlue,
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    pdfsubject={$title$}
+}
+
+% For the title page - using a simple approach Pandoc can leverage
+% Pandoc will use these variables: $title$, $author$, $date$
+% The cover image is handled via a pandoc variable as well.
+\usepackage{titling} % For more control over the title section
+
+% Custom title page if Pandoc's default is not sufficient
+% This template assumes Pandoc's default title page generation will be used initially.
+% If cover-image is provided to Pandoc, it usually handles it well.
+% For a more complex title page, you might need to define \maketitle explicitly
+% or use a package like `titlepage`.
+
+% Pandoc specific variables (some might be set via command line)
+% \title{$title$}
+% \author{$author$}
+% \date{$date$}
+
+% Microtype for better typography (subtle adjustments to spacing, protrusion, expansion)
+\usepackage{microtype}
+
+% For placeholder text (Lorem Ipsum) - useful for testing layout
+\usepackage{lipsum} % Remove for final version
+
+% For proper handling of quotes
+\usepackage{csquotes}
+
+% Book specific settings
+\usepackage{emptypage} % Ensure blank pages are truly blank (no headers/footers)
+\usepackage{lettrine} % For drop caps if desired for chapter beginnings (optional)
+
+% Adjust paragraph spacing and indentation
+\setlength{\parindent}{1em} % Standard paragraph indentation
+\setlength{\parskip}{0pt plus 2pt} % A little flexible space between paragraphs
+
+% Make parts start on new right-hand pages
+\let\oldpart\part
+\renewcommand{\part}[1]{\cleardoublepage\oldpart{#1}}
+
+
+% If a cover image is specified using the `cover-image` variable in Pandoc,
+% it usually tries to fit it on the first page.
+% To ensure it's on its own page before the title:
+\ifdefined\coverimage
+\newcommand{\makecover}{%
+  \thispagestyle{empty}%
+  \cleardoublepage%
+  \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio=false]{$coverimage$}%
+  \cleardoublepage%
+}
+\fi
+
+\begin{document}
+
+% Cover image (if variable is set by Pandoc)
+\ifdefined\coverimage
+  \makecover
+\fi
+
+% Title page (Pandoc populates this from metadata)
+\maketitle
+
+% Table of Contents
+\cleardoublepage % Start TOC on a new right-hand page
+\phantomsection % Ensure hyperref link for TOC is correct
+\tableofcontents
+
+% Main content (Pandoc inserts this)
+$body$
+
+\end{document}
