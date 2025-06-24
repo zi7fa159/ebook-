@@ -1,0 +1,323 @@
+/* General Styles */
+body {
+    font-family: 'Lato', Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6; /* Light calming background for overall page */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    color: #2c3e50; /* Dark blue-grey for headings */
+}
+
+p {
+    margin-bottom: 1em;
+    font-size: 1.05em; /* Slightly larger for readability */
+}
+
+a {
+    color: #3498db; /* Standard link blue */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* FullPage.js Section Styling */
+.section {
+    text-align: left;
+    padding: 20px 40px 80px 40px; /* Add bottom padding for nav buttons */
+    background-color: #ffffff; /* White background for content sections */
+    box-sizing: border-box;
+    overflow-y: auto; /* Allow scrolling within a section if content overflows */
+}
+
+.section .fp-scrollable {
+    padding-bottom: 60px; /* Ensure space for nav buttons if content scrolls */
+}
+
+
+.section h1 {
+    font-size: 2.2em;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: #2980b9; /* Calming blue for lesson titles */
+}
+
+.section h2 {
+    font-size: 1.8em;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: #16a085; /* Calming green for subheadings */
+}
+
+.section ul, .section ol {
+    margin-bottom: 1em;
+    padding-left: 20px;
+}
+
+.section li {
+    margin-bottom: 0.5em;
+}
+
+.section strong {
+    color: #2c3e50;
+}
+
+.section .actionable-steps {
+    background-color: #e8f6f3;
+    border-left: 4px solid #1abc9c;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 4px;
+}
+
+.section .actionable-steps h3 {
+    margin-top: 0;
+    color: #16a085;
+}
+
+/* Progress Bar */
+#progress-bar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0; /* Light grey background for the container */
+    z-index: 100; /* Ensure it's above fullPage.js content */
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%; /* Initial width */
+    background-color: #27ae60; /* Green progress color */
+    transition: width 0.3s ease-in-out;
+}
+
+/* Custom Navigation Buttons */
+#custom-navigation {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    gap: 15px;
+}
+
+.nav-button {
+    padding: 12px 25px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1em;
+    color: white;
+    background-color: #3498db; /* Blue for navigation */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.nav-button:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+}
+
+.nav-button:disabled {
+    background-color: #bdc3c7; /* Grey when disabled */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+#prev-lesson {
+    /* Specific styles if needed */
+}
+
+#next-lesson {
+    background-color: #2ecc71; /* Green for next, more prominent */
+}
+
+#next-lesson:hover {
+    background-color: #27ae60; /* Darker green on hover */
+}
+
+/* Quiz Styling */
+.quiz-container {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9; /* Slightly different background for quiz */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.quiz-container h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.quiz-question {
+    margin-bottom: 25px;
+}
+
+.quiz-question p {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.quiz-options label {
+    display: block;
+    margin-bottom: 8px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.quiz-options label:hover {
+    background-color: #eaf2f8;
+}
+
+.quiz-options input[type="radio"] {
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.quiz-feedback {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.quiz-feedback.correct {
+    background-color: #d4efdf; /* Light green for correct */
+    color: #145a32;
+    border-left: 4px solid #27ae60;
+}
+
+.quiz-feedback.incorrect {
+    background-color: #fdedec; /* Light red for incorrect */
+    color: #c0392b;
+    border-left: 4px solid #e74c3c;
+}
+
+#submit-quiz-button {
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 20px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1em;
+    color: white;
+    background-color: #e67e22; /* Orange for submit */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#submit-quiz-button:hover {
+    background-color: #d35400; /* Darker orange */
+}
+
+#submit-quiz-button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+
+/* Placeholder image styling (if any images are added later) */
+.content-image-placeholder {
+    display: block;
+    width: 80%;
+    max-width: 400px; /* Limit max width of placeholders */
+    height: auto;
+    margin: 20px auto; /* Center placeholders */
+    background-color: #ecf0f1; /* Light grey for placeholder */
+    border: 1px dashed #bdc3c7; /* Dashed border */
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .section {
+        padding: 15px 20px 70px 20px; /* Adjust padding for smaller screens */
+    }
+    .section h1 {
+        font-size: 1.8em;
+    }
+    .section h2 {
+        font-size: 1.5em;
+    }
+    #custom-navigation {
+        bottom: 10px; /* Closer to bottom */
+        gap: 10px;
+    }
+    .nav-button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        font-size: 15px; /* Adjust base font for very small screens */
+    }
+    .section {
+        padding: 10px 15px 60px 15px;
+    }
+    .section h1 {
+        font-size: 1.6em;
+    }
+    .section h2 {
+        font-size: 1.3em;
+    }
+    p {
+        font-size: 1em;
+    }
+    #progress-bar-container {
+        height: 6px;
+    }
+}
+
+/* Specific styles for index.html (copied from its inline styles for consistency if needed, but better to keep separate or use common classes) */
+/* Styles for index.html are primarily in index.html itself for simplicity as it's static */
+/* However, if common elements are shared, they can be defined here */
+.container { /* Used in index.html */
+    width: 80%;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+/* Ensure fullPage.js related styles don't conflict if this CSS is loaded on index.html too */
+.fp-enabled body, .fp-enabled html {
+    margin: 0;
+    padding: 0;
+    overflow:hidden; /* Important for fullPage.js */
+}
