@@ -1,0 +1,242 @@
+```latex
+% Pandoc LaTeX Template for "Mastering Time Management: A Step-by-Step Guide"
+% AI Publishing Pro
+
+\documentclass[11pt, report, a4paper]{article} % Using 'report' document class for Part/Chapter structure
+
+% --- PACKAGE IMPORTS ---
+\usepackage{geometry}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage[svgnames]{xcolor} % Using svgnames for more color options like DarkBlue
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{booktabs} % For professional tables
+\usepackage{array}
+\usepackage{makeidx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{listings} % For code blocks
+\usepackage{enumitem} % For customizing lists
+\usepackage{titling} % For customizing title page elements
+\usepackage{etoolbox} % For conditional logic and hooks
+\usepackage{tocloft} % For customizing TOC appearance
+\usepackage{microtype} % Improves typography (justification, spacing)
+\usepackage{setspace} % For line spacing control (e.g., \onehalfspacing)
+\usepackage{lettrine} % For drop caps if desired (optional)
+\usepackage[framemethod=TikZ]{mdframed} % For styled blockquotes/boxes
+
+% --- METADATA (Passed from Pandoc command line) ---
+% These will be populated by Pandoc using -V flags
+% \title{$title$}
+% \author{$author$}
+% \date{$date$}
+
+% --- GEOMETRY & PAGE LAYOUT ---
+\geometry{a4paper, margin=1in} % 1-inch margins on all sides
+
+% --- FONT SETUP ---
+% Using Latin Modern fonts as specified in the plan
+\setmainfont{$mainfont$}[Ligatures=TeX]
+\setsansfont{$sansfont$}[Ligatures=TeX]
+\setmonofont{$monofont$}[Scale=0.9] % Scale monospaced font slightly for better visual balance
+
+% --- COLOR PALETTE ---
+\definecolor{primaryAccent}{HTML}{2c3e50} % Dark Blue for accents
+\definecolor{lightGray}{HTML}{f0f0f0}   % Light gray for code block backgrounds
+\definecolor{mediumGray}{HTML}{cccccc}  % Medium gray for rules/borders
+
+% --- LINE SPACING ---
+\onehalfspacing % 1.5 line spacing for body text
+
+% --- HEADERS AND FOOTERS ---
+\pagestyle{fancy}
+\fancyhf{} % Clear default headers/footers
+\fancyhead[L]{\nouppercase{\leftmark}} % Chapter title on the left (for 'report' class, \leftmark is chapter)
+\fancyhead[R]{Mastering Time Management} % Book title segment on the right
+\fancyfoot[C]{\thepage} % Page number in the center of the footer
+\renewcommand{\headrulewidth}{0.4pt} % Thin rule under the header
+\renewcommand{\footrulewidth}{0pt}    % No rule above the footer
+
+% --- TITLE PAGE CUSTOMIZATION (Text-based Cover) ---
+\pretitle{
+    \begin{center}
+    \vspace*{2cm} % Space from top
+    \fontsize{36pt}{40pt}\selectfont\bfseries\sffamily % Large, bold, sans-serif for title
+}
+\posttitle{
+    \par\vspace{0.5cm} % Space after title
+    \fontsize{18pt}{22pt}\selectfont\sffamily % Medium, sans-serif for subtitle (if provided by Pandoc)
+    \ifdef{\subtitle}{\subtitle}{}
+    \par\vspace{1.5cm} % Space after subtitle
+}
+\preauthor{
+    \fontsize{14pt}{16pt}\selectfont\sffamily % Smaller, sans-serif for author
+}
+\postauthor{
+    \par\vspace{0.5cm} % Space after author
+    \fontsize{12pt}{14pt}\selectfont\sffamily % Date font
+    \ifdef{\date}{\date}{}} % Date if provided
+\postdate{\end{center}\vfill\newpage} % End title page elements, fill rest of page, start new page
+
+% --- TABLE OF CONTENTS CUSTOMIZATION ---
+\setcounter{tocdepth}{$toc-depth$} % Control depth of TOC (from Pandoc)
+\renewcommand{\cftpartpresnum}{\bfseries Part } % Style "Part I"
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftsecfont}{}
+\renewcommand{\cftsubsecfont}{}
+\renewcommand{\cftchappagefont}{\bfseries}
+\cftsetpnumwidth{2.5em} % Width for page numbers in TOC
+
+% --- CHAPTER AND SECTION TITLE STYLING ---
+% Using titlesec package for customization
+% For 'report' class, \part, \chapter, \section, \subsection, etc. are available
+
+% Part styling
+\titleformat{\part}[display]
+  {\normalfont\huge\bfseries\sffamily\centering}
+  {\partname\ \thepart}
+  {20pt}
+  {\Huge\centering}
+\titlespacing*{\part}{0pt}{50pt}{40pt}
+
+% Chapter styling
+\titleformat{\chapter}[display]
+  {\normalfont\LARGE\bfseries\sffamily} % Font: Large, Bold, Sans-serif
+  {\chaptertitlename\ \thechapter} % "Chapter X"
+  {20pt} % Space between "Chapter X" and title
+  {\LARGE\bfseries\sffamily} % Title font
+\titlespacing*{\chapter}{0pt}{35pt}{25pt} % Left, before, after spacing
+
+% Section styling
+\titleformat{\section}
+  {\normalfont\Large\bfseries\sffamily} % Font: Large, Bold, Sans-serif
+  {\thesection} % Section number
+  {1em} % Space between number and title
+  {}
+\titlespacing*{\section}{0pt}{20pt}{10pt}
+
+% Subsection styling
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\sffamily} % Font: large, Bold, Sans-serif
+  {\thesubsection} % Subsection number
+  {1em} % Space
+  {}
+\titlespacing*{\subsection}{0pt}{15pt}{8pt}
+
+% Subsubsection styling
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\sffamily}
+  {\thesubsubsection}
+  {1em}
+  {}
+\titlespacing*{\subsubsection}{0pt}{12pt}{6pt}
+
+
+% --- LIST STYLING (ENUMITEM) ---
+\setlist{nosep} % Remove extra vertical spacing in lists
+\setlist[itemize,1]{label=\textbullet}
+\setlist[itemize,2]{label=--}
+\setlist[enumerate,1]{label=\arabic*.}
+\setlist[enumerate,2]{label=\alph*)}
+
+
+% --- BLOCKQUOTES STYLING (MDFRAMED) ---
+\newmdenv[
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  innerrightmargin=10pt,
+  innerleftmargin=10pt,
+  linecolor=primaryAccent,
+  linewidth=1.5pt,
+  leftline=true,
+  rightline=false,
+  topline=false,
+  bottomline=false,
+  skipabove=\baselineskip,
+  skipbelow=\baselineskip,
+  font=\itshape % Italicized text for blockquotes
+]{customblockquote}
+
+\renewenvironment{quote}{\begin{customblockquote}}{\end{customblockquote}}
+
+
+% --- CODE BLOCKS STYLING (LISTINGS) ---
+% Pandoc uses its own highlighting mechanism by default when --highlight-style is used.
+% This section is more for if we wanted to override with `listings` directly.
+% For now, relying on Pandoc's pygments or other styles.
+% Basic listings setup (can be expanded if Pandoc's highlighting isn't sufficient)
+\lstset{
+  backgroundcolor=\color{lightGray},
+  basicstyle=\footnotesize\ttfamily,
+  breaklines=true,
+  frame=tb, % Top and bottom frame lines
+  numbers=left,
+  numberstyle=\tiny\color{DarkGray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{ForestGreen},
+  stringstyle=\color{purple},
+  tabsize=2,
+  captionpos=b, % Caption below the code block
+  emphstyle=\bfseries, % Style for emphasized keywords
+  % Add more language-specific settings or general styling as needed
+}
+% If Pandoc is used with --listings, it will insert its own \begin{lstlisting} environment.
+% The \lstset options above will apply.
+
+% --- TABLE STYLING ---
+% Booktabs provides \toprule, \midrule, \bottomrule for professional tables
+% Pandoc's default table output works well with booktabs
+
+% --- FIGURE AND TABLE CAPTIONS ---
+\usepackage[font=small,labelfont=bf,skip=5pt]{caption} % Small font, bold label, space below caption
+
+% --- HYPERLINKS (IF URLS ARE PRESENT) ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryAccent,
+    urlcolor=primaryAccent,
+    citecolor=primaryAccent,
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    pdfsubject={$subtitle$} % Or another relevant subject
+}
+
+% --- PARAGRAPH INDENTATION AND SPACING ---
+\setlength{\parindent}{1em} % Standard paragraph indentation
+\setlength{\parskip}{0pt}   % No extra space between paragraphs (rely on indent)
+
+% --- MICROTYPE ADJUSTMENTS (Already loaded) ---
+% Microtype will automatically improve justification and spacing.
+% Default settings are usually good.
+
+% --- NUMBER SECTIONS (Handled by Pandoc's --number-sections) ---
+
+% --- DOCUMENT START ---
+\begin{document}
+
+% --- TITLE PAGE GENERATION ---
+% Pandoc will insert title, author, date here based on metadata if not using \maketitle
+% Our custom titling setup above handles this
+\maketitle
+\ifdef{\thanks}{\thanksfoot{}} % For \thanks if used in metadata
+
+% --- TABLE OF CONTENTS ---
+\pagenumbering{roman} % Roman numerals for front matter
+\tableofcontents
+\cleardoublepage % Ensure main content starts on a right-hand page
+\pagenumbering{arabic} % Arabic numerals for main content
+
+% --- MAIN DOCUMENT CONTENT (From Markdown files) ---
+$body$ % This is where Pandoc inserts the converted Markdown content
+
+% --- INDEX (If generated) ---
+\ifdefined\makeindex
+\printindex
+\fi
+
+\end{document}
+```
