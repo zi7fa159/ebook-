@@ -1,0 +1,78 @@
+This is a placeholder for the reference.docx file.
+
+**Key Styles and Properties to be defined within the actual DOCX:**
+
+**Page Setup:**
+*   Size: 6x9 inches
+*   Margins: Mirror Margins
+    *   Top: 0.75"
+    *   Bottom: 0.75"
+    *   Inside: 0.75"
+    *   Outside: 0.5"
+*   Header: 0.5" (Novel Title on even pages, Chapter Title on odd pages)
+*   Footer: 0.5" (Page number centered)
+*   Layout: Different odd and even pages.
+
+**Paragraph Styles:**
+*   **Normal (Body Text):**
+    *   Font: Liberation Sans, 11pt
+    *   Alignment: Justified
+    *   Line Spacing: 1.5 lines
+    *   Indentation: First line by 0.25"
+    *   Spacing: Before: 0pt, After: 0pt
+    *   **Widow/Orphan control: Enabled**
+*   **First Paragraph (After Heading/Break):**
+    *   Based on Normal, but no first-line indent.
+    *   **Widow/Orphan control: Enabled**
+*   **Heading 1 (Chapter Title):**
+    *   Font: Roboto Condensed, 24pt, Bold
+    *   Alignment: Center
+    *   Spacing: Before: 72pt (or enough to start lower on page), After: 24pt
+    *   Page Break Before: Enabled
+    *   **Keep with next: Enabled**
+    *   **Widow/Orphan control: Enabled**
+    *   Outline Level: 1
+*   **Heading 2 (Section Break/Internal Heading):**
+    *   Font: Roboto Condensed, 16pt, Bold
+    *   Alignment: Left
+    *   Spacing: Before: 18pt, After: 6pt
+    *   **Keep with next: Enabled**
+    *   **Widow/Orphan control: Enabled**
+    *   Outline Level: 2
+*   **Block Text (Quotes, Excerpts):**
+    *   Font: Liberation Sans, 10pt, Italic
+    *   Indentation: Left: 0.5", Right: 0.5"
+    *   Line Spacing: Single
+    *   Spacing: Before: 6pt, After: 6pt
+    *   **Widow/Orphan control: Enabled**
+    *   **Keep lines together: Enabled**
+*   **SCP_Document_Excerpt:**
+    *   Font: Courier New, 10pt
+    *   Alignment: Left
+    *   Line Spacing: Single
+    *   Indentation: Left: 0.25", Right: 0.25"
+    *   Spacing: Before: 6pt, After: 6pt
+    *   Border: Box (thin line)
+    *   Shading: Light gray (e.g., 5-10%)
+    *   **Widow/Orphan control: Enabled**
+    *   **Keep lines together: Enabled**
+*   **List Paragraph:**
+    *   Based on Normal
+    *   Appropriate indentation for bullets/numbers.
+    *   **Widow/Orphan control: Enabled**
+    *   **Keep lines together: Enabled (for multi-line list items)**
+
+**Text-Based Title Page Elements (Formatted within Word using Text Boxes or Frames if needed for precise layout over simple paragraphs):**
+*   **Novel_Title_Main:** Roboto Condensed, 48pt, Centered
+*   **Novel_Subtitle:** Roboto Condensed, 24pt, Centered
+*   **Author_Name:** Liberation Sans, 18pt, Centered
+
+**Table of Contents:**
+*   Styles for TOC 1, TOC 2 defined to match Heading 1, Heading 2 fonts but smaller sizes.
+*   Dot leaders.
+
+**General:**
+*   All chapter starts will be on an odd page (recto).
+*   No hyphenation preferred for cleaner look, or very restricted.
+
+This document serves as the blueprint for Pandoc's DOCX generation. The actual styles would be configured directly in a Word document saved as `reference.docx`.
