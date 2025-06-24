@@ -1,0 +1,413 @@
+/* General Body Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f7f6; /* Light background for index */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    color: #003366; /* Dark Blue for headings */
+}
+
+a {
+    color: #007bff; /* Primary Blue */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Index Page Specific Styles (index.html) --- */
+.index-header {
+    background-color: #003366; /* Dark Blue */
+    color: #fff;
+    padding: 2em 1em;
+    text-align: center;
+}
+
+.index-header h1 {
+    margin: 0;
+    font-size: 2.5em;
+    color: #fff;
+}
+
+.index-header .subtitle {
+    font-size: 1.2em;
+    color: #e0e0e0;
+    margin-top: 0.5em;
+}
+
+.index-main {
+    max-width: 900px;
+    margin: 2em auto;
+    padding: 0 1em;
+}
+
+.index-main section {
+    background-color: #fff;
+    margin-bottom: 2em;
+    padding: 1.5em;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.index-main h2 {
+    margin-top: 0;
+    color: #005A9C; /* Slightly lighter blue for section titles */
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.3em;
+    margin-bottom: 0.75em;
+}
+
+.lesson-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.lesson-list li {
+    margin-bottom: 0.75em;
+    font-size: 1.1em;
+}
+
+.lesson-list li a {
+    padding: 0.5em;
+    display: block;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.lesson-list li a:hover {
+    background-color: #e9ecef;
+    text-decoration: none;
+}
+
+.start-course-section {
+    text-align: center;
+    padding: 2em 0;
+}
+
+.start-button {
+    background-color: #28a745; /* Green for action */
+    color: #fff;
+    padding: 0.8em 2em;
+    font-size: 1.2em;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.start-button:hover {
+    background-color: #218838; /* Darker Green */
+    text-decoration: none;
+}
+
+.index-footer {
+    text-align: center;
+    padding: 1.5em 1em;
+    background-color: #343a40; /* Dark Grey */
+    color: #fff;
+    font-size: 0.9em;
+}
+
+/* --- Course Page Specific Styles (course.html) --- */
+
+/* FullPage.js section styling */
+.section {
+    text-align: left;
+    display: flex; /* Use flexbox for centering content */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    padding: 20px; /* Add some padding around the content wrapper */
+    box-sizing: border-box; /* Ensure padding doesn't add to width/height */
+    overflow: hidden; /* Prevent internal scrollbars within sections */
+}
+
+.section .fp-tableCell { /* Override fullpage.js vertical centering if needed, using flex instead */
+    display: block;
+    height: auto;
+    vertical-align: baseline;
+}
+
+.content-wrapper {
+    max-width: 800px; /* Max width for content */
+    width: 90%; /* Responsive width */
+    margin: 0 auto; /* Center the content block */
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent white for content readability */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    max-height: calc(100vh - 80px); /* Max height, considering padding and potential nav bars */
+    overflow-y: auto; /* Allow vertical scroll ONLY IF content overflows this wrapper */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Ensure fullPage.js sections themselves don't get scrollbars due to content-wrapper */
+.fp-section, .fp-slide, .fp-tableCell {
+    height: 100vh !important; /* Force full viewport height */
+}
+.fp-scrollable .fp-scroller { /* If scrollOverflow: true were used, this would be relevant */
+    height: 100% !important;
+}
+
+
+.content-wrapper h1 { /* Introduction title */
+    font-size: 2.2em;
+    color: #003366;
+    text-align: center;
+    margin-bottom: 0.8em;
+}
+
+.content-wrapper h2 { /* Lesson titles */
+    font-size: 1.8em;
+    color: #005A9C;
+    margin-top: 0;
+    margin-bottom: 0.7em;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.3em;
+}
+
+.content-wrapper p, .content-wrapper ul, .content-wrapper ol {
+    margin-bottom: 1em;
+    font-size: 1em; /* Base font size for readability */
+    color: #333;
+    word-break: break-word; /* Help prevent overflow from long strings */
+}
+
+.content-wrapper ul, .content-wrapper ol {
+    padding-left: 20px;
+}
+
+.content-wrapper strong {
+    font-weight: 700;
+    color: #004880;
+}
+
+/* Quiz Container Styling */
+.quiz-container {
+    margin-top: 25px;
+    padding: 20px;
+    background-color: #f8f9fa; /* Light grey background for quizzes */
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.quiz-container h3 {
+    font-size: 1.4em;
+    color: #003366;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.quiz-container .question {
+    margin-bottom: 20px;
+}
+
+.quiz-container .question p {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.quiz-container label {
+    display: block;
+    margin-bottom: 8px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.quiz-container label:hover {
+    background-color: #e9ecef;
+}
+
+.quiz-container input[type="radio"] {
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.quiz-container .feedback {
+    margin-top: 5px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.feedback.correct {
+    color: #28a745; /* Green for correct */
+}
+
+.feedback.incorrect {
+    color: #dc3545; /* Red for incorrect */
+}
+
+label.correct-answer {
+    background-color: #d4edda; /* Light green for correct selected */
+    border-color: #c3e6cb;
+}
+label.incorrect-answer {
+    background-color: #f8d7da; /* Light red for incorrect selected */
+    border-color: #f5c6cb;
+}
+label.reveal-correct { /* To show the actual correct answer if user was wrong */
+    background-color: #d1ecf1 !important;
+    border-color: #bee5eb !important;
+    color: #0c5460 !important;
+}
+
+
+.submit-quiz-button {
+    background-color: #007bff; /* Primary Blue */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s;
+}
+
+.submit-quiz-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.submit-quiz-button:not(:disabled):hover {
+    background-color: #0056b3;
+}
+
+/* Progress Bar */
+#progressBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    z-index: 100; /* High z-index to stay on top */
+}
+
+#progressBarFill {
+    width: 0%;
+    height: 100%;
+    background-color: #28a745; /* Green for progress */
+    transition: width 0.3s ease-out;
+}
+
+/* Navigation Buttons */
+.nav-button {
+    position: fixed;
+    bottom: 20px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 100; /* Ensure they are above section content */
+    font-size: 1em;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+#prevButton {
+    left: 20px;
+}
+
+#nextButton {
+    right: 20px;
+}
+
+.nav-button:hover {
+    background-color: #0056b3;
+}
+
+.nav-button:disabled {
+    background-color: #cccccc;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .index-header h1 {
+        font-size: 2em;
+    }
+    .index-header .subtitle {
+        font-size: 1em;
+    }
+    .index-main {
+        margin: 1em auto;
+    }
+
+    .content-wrapper {
+        padding: 15px;
+        max-height: calc(100vh - 60px); /* Adjust for smaller screens */
+    }
+    .content-wrapper h1 { font-size: 1.8em; }
+    .content-wrapper h2 { font-size: 1.5em; }
+    .content-wrapper p, .content-wrapper ul, .content-wrapper ol { font-size: 0.95em; }
+
+    .quiz-container { padding: 15px; }
+    .quiz-container h3 { font-size: 1.2em; }
+    .quiz-container label { padding: 8px; font-size: 0.9em; }
+
+    .nav-button {
+        padding: 8px 12px;
+        font-size: 0.9em;
+        bottom: 10px;
+    }
+    #prevButton { left: 10px; }
+    #nextButton { right: 10px; }
+    #progressBar { height: 6px; }
+}
+
+@media (max-width: 480px) {
+    .index-header h1 {
+        font-size: 1.6em;
+    }
+    .index-header .subtitle {
+        font-size: 0.9em;
+    }
+    .index-main section {
+        padding: 1em;
+    }
+    .lesson-list li {
+        font-size: 1em;
+    }
+    .start-button {
+        font-size: 1em;
+        padding: 0.7em 1.5em;
+    }
+
+    .content-wrapper {
+        width: 95%;
+        padding: 10px;
+        max-height: calc(100vh - 50px); /* Further adjust for very small screens */
+    }
+    .content-wrapper h1 { font-size: 1.5em; }
+    .content-wrapper h2 { font-size: 1.3em; }
+    .content-wrapper p, .content-wrapper ul, .content-wrapper ol { font-size: 0.9em; }
+
+    .quiz-container h3 { font-size: 1.1em; }
+    .quiz-container label { font-size: 0.85em; }
+    .submit-quiz-button { font-size: 0.9em; padding: 8px 15px; }
+}
+
+/* Hide fullpage.js default navigation arrows if they appear */
+.fp-controlArrow {
+    display: none !important;
+}
+
+/* Ensure body has no scroll for fullpage.js */
+html, body {
+    overflow: hidden !important;
+    height: 100% !important;
+}
