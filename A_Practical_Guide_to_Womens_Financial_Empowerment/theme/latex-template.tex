@@ -1,0 +1,212 @@
+%----------------------------------------------------------------------------------------
+% LATEX TEMPLATE FOR PANDOC EBOOK CONVERSION
+%----------------------------------------------------------------------------------------
+
+\documentclass[$if(fontsize)$ $fontsize$, $endif$$if(mainfont)$ mainfont="$mainfont$", $endif$$if(sansfont)$ sansfont="$sansfont$", $endif$$if(monofont)$ monofont="$monofont$", $endif$]{$documentclass$}
+
+% --- PACKAGE IMPORTS ---
+\usepackage{iftex}
+\ifPDFTeX
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    \usepackage{textcomp} % provide euro and other symbols
+\else % Assume XeLaTeX or LuaLaTeX
+    \usepackage{fontspec}
+    \defaultfontfeatures{Ligatures=TeX}
+\fi
+
+\usepackage{lmodern} % Default to Latin Modern fonts if specific fonts not set by Pandoc
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{booktabs} % For professional table rules
+\usepackage{array}    % For better column formatting in tables
+\usepackage{float}    % For better figure/table placement control
+\usepackage{fancyhdr} % For custom headers and footers
+\usepackage{titlesec} % For customizing chapter and section titles
+\usepackage{enumitem} % For customizing lists
+\usepackage{xcolor}   % For color definitions
+\usepackage{sectsty}  % To change font styles for sections
+\usepackage[normalem]{ulem} % For underline, etc.
+\usepackage{microtype} % Improves typography (justification, spacing)
+\usepackage{geometry} % For page margins
+\usepackage{titling}  % For customizing title page elements
+\usepackage{hyperref} % For internal links and TOC, should be loaded late
+
+% --- COLOR DEFINITIONS ---
+% Example: define an accent color
+% \definecolor{AccentColor}{HTML}{2A9D8F} % A muted teal
+
+% --- PAGE GEOMETRY ---
+$if(geometry)$
+\geometry{$geometry$}
+$else$
+\geometry{margin=1in} % Default if not specified
+$endif$
+
+% --- HYPERREF SETUP ---
+\hypersetup{
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    pdfsubject={$subject$}, % Optional: can be same as title or a short description
+    pdfkeywords={$keywords$}, % Optional
+    colorlinks=true,
+    linkcolor=black, % Or your AccentColor
+    citecolor=black, % Or your AccentColor
+    urlcolor=blue,   % Or your AccentColor
+    breaklinks=true
+}
+
+% --- TYPOGRAPHY AND SPACING ---
+\setlength{\parskip}{0.5em} % Space between paragraphs
+\setlength{\parindent}{0pt}   % No indent for paragraphs
+
+% --- FONT SELECTION (FALLBACKS IF NOT PROVIDED BY PANDOC VARS) ---
+$if(mainfont)$
+    % mainfont is set by Pandoc -V mainfont="Font Name"
+$else$
+    \setmainfont{Latin Modern Roman}
+$endif$
+$if(sansfont)$
+    % sansfont is set by Pandoc -V sansfont="Font Name"
+$else$
+    \setsansfont{Latin Modern Sans}
+$endif$
+$if(monofont)$
+    % monofont is set by Pandoc -V monofont="Font Name"
+$else$
+    \setmonofont{Latin Modern Mono}
+$endif$
+
+% --- HEADERS AND FOOTERS ---
+\pagestyle{fancy}
+\fancyhf{} % Clear all header and footer fields
+\fancyhead[LE,RO]{\nouppercase{\leftmark}} % Chapter title on left (even) and right (odd) for report/book
+\fancyhead[RE,LO]{} % Empty
+\fancyfoot[C]{\thepage} % Page number in the center of thefooter
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt} % No foot rule
+
+% For report/book class, chapter mark needs to be defined
+\ifdefined\chaptermark
+    \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\fi
+\ifdefined\sectionmark
+    \renewcommand{\sectionmark}[1]{\markright{\thesection\quad#1}}
+\fi
+
+% --- TITLE PAGE CUSTOMIZATION ---
+% Removing complex pre/post titling commands for debugging
+% \pretitle{
+%     \begin{center}
+%     \vspace*{\stretch{1}} % Pushes content down
+%     \Huge\sffamily\bfseries % Sans-serif, bold for title
+% }
+% \posttitle{
+%     \par\normalfont\normalsize % Reset font
+%     \vspace{0.5em} % Space after title
+%     $if(subtitle)$
+%         \Large\itshape $subtitle$ \par % Italic subtitle
+%         \vspace{1.5em} % Space after subtitle
+%     $endif$
+% }
+% \preauthor{
+%     \large \normalfont % Normal font for author
+% }
+% \postauthor{
+%     \par
+%     \vspace{0.5em} % Space after author
+% }
+% \predate{
+%     \normalsize \normalfont % Normal font for date
+% }
+% \postdate{
+%     \vspace*{\stretch{2}} % Pushes content further down, ensuring it's well-spaced
+%     \end{center}
+%     \cleardoublepage % Start next content on a new page
+% }
+% Standard titling package variables if needed
+$if(subtitle)$
+\newcommand{\subtitletext}{$subtitle$}
+$endif$
+
+% --- CHAPTER AND SECTION TITLE STYLING ---
+\titleformat{\chapter}[display]
+  {\normalfont\huge\sffamily\bfseries} % Sans-serif, bold for chapter titles
+  {\chaptertitlename\ \thechapter}
+  {20pt}
+  {\Huge}
+\titlespacing*{\chapter}{0pt}{50pt}{40pt} % left, before-sep, after-sep
+
+\titleformat{\section}
+  {\normalfont\Large\sffamily\bfseries} % Sans-serif, bold for section titles
+  {\thesection}
+  {1em}
+  {}
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+
+\titleformat{\subsection}
+  {\normalfont\large\sffamily\bfseries\itshape} % Sans-serif, bold, italic for subsection
+  {\thesubsection}
+  {1em}
+  {}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\sffamily\bfseries\itshape} % Sans-serif, bold, italic for subsubsection
+  {\thesubsubsection}
+  {1em}
+  {}
+\titlespacing*{\subsubsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% --- LIST STYLING (Optional: Adjust if needed) ---
+% \setlist{itemsep=0.2em, topsep=0.5em} % Example: adjust spacing for lists
+
+% --- BLOCKQUOTE STYLING ---
+\renewenvironment{quote}
+  {\list{}{\rightmargin\leftmargin\topsep=0.5em\itemsep=0em}\item\relax\small\itshape} % Smaller, italic
+  {\endlist}
+
+% --- TABLE OF CONTENTS STYLING (Optional) ---
+% \usepackage{tocloft}
+% \renewcommand{\cftchapfont}{\sffamily\bfseries}
+% \renewcommand{\cftsecfont}{\sffamily}
+
+% --- PANDOC HIGHLIGHTING ---
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+% --- PANDOC SPECIFIC COMMANDS (like \tightlist) ---
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% --- DOCUMENT START ---
+\begin{document}
+
+% --- TITLE PAGE ---
+% Explicitly set title, author, date using Pandoc variables
+\title{$title$}
+\author{$author$}
+\date{$date$}
+\maketitle
+\thispagestyle{empty} % No header/footer on the title page itself
+\cleardoublepage
+
+% --- TABLE OF CONTENTS ---
+$if(toc)$
+{
+  \hypersetup{linkcolor=black} % Ensure TOC links are black
+  \setcounter{tocdepth}{$toc-depth$}
+  \tableofcontents
+  \cleardoublepage
+}
+$endif$
+
+% --- MAIN DOCUMENT BODY ---
+$body$
+
+% --- DOCUMENT END ---
+\end{document}
