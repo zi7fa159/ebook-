@@ -1,0 +1,403 @@
+[
+  {
+    "filename": "001-understanding-asynchronous-javascript.md",
+    "title": "Understanding Asynchronous JavaScript: Callbacks, Promises, and Async/Await"
+  },
+  {
+    "filename": "002-javascript-es6-features-you-should-use.md",
+    "title": "Top ES6+ Features Every JavaScript Developer Should Master"
+  },
+  {
+    "filename": "003-demystifying-closures-in-javascript.md",
+    "title": "Demystifying Closures in JavaScript: A Practical Guide"
+  },
+  {
+    "filename": "004-javascript-this-keyword-explained.md",
+    "title": "The `this` Keyword in JavaScript: A Comprehensive Explanation"
+  },
+  {
+    "filename": "005-prototypal-inheritance-in-javascript.md",
+    "title": "JavaScript Prototypal Inheritance: A Deep Dive"
+  },
+  {
+    "filename": "006-javascript-error-handling-try-catch-finally.md",
+    "title": "Effective Error Handling in JavaScript with Try, Catch, and Finally"
+  },
+  {
+    "filename": "007-working-with-json-in-javascript.md",
+    "title": "Working with JSON Data in JavaScript: Parse and Stringify"
+  },
+  {
+    "filename": "008-javascript-dom-manipulation-basics.md",
+    "title": "JavaScript DOM Manipulation: A Beginner's Guide"
+  },
+  {
+    "filename": "009-javascript-event-handling-deep-dive.md",
+    "title": "Mastering Event Handling in JavaScript: Listeners and Propagation"
+  },
+  {
+    "filename": "010-javascript-modules-import-export.md",
+    "title": "Organizing Your Code with JavaScript Modules: Import and Export"
+  },
+  {
+    "filename": "011-javascript-data-types-primitive-and-object.md",
+    "title": "JavaScript Data Types: Primitive vs. Object Types Explained"
+  },
+  {
+    "filename": "012-scope-and-scope-chain-in-javascript.md",
+    "title": "Understanding Scope and Scope Chain in JavaScript"
+  },
+  {
+    "filename": "013-javascript-hoisting-explained.md",
+    "title": "JavaScript Hoisting: Variables and Functions Under the Hood"
+  },
+  {
+    "filename": "014-strict-mode-in-javascript-use-strict.md",
+    "title": "Using Strict Mode ('use strict') in JavaScript for Better Code"
+  },
+  {
+    "filename": "015-javascript-equality-comparisons-double-vs-triple-equals.md",
+    "title": "JavaScript Equality: == vs === (Double vs Triple Equals)"
+  },
+  {
+    "filename": "016-javascript-loops-for-while-do-while-for-of-for-in.md",
+    "title": "Mastering Loops in JavaScript: for, while, do...while, for...of, for...in"
+  },
+  {
+    "filename": "017-javascript-array-methods-foreach-map-filter-reduce.md",
+    "title": "Essential JavaScript Array Methods: forEach, map, filter, reduce"
+  },
+  {
+    "filename": "018-javascript-array-methods-find-findindex-some-every.md",
+    "title": "Advanced JavaScript Array Methods: find, findIndex, some, every"
+  },
+  {
+    "filename": "019-javascript-object-methods-keys-values-entries.md",
+    "title": "Working with Objects: Object.keys, Object.values, Object.entries"
+  },
+  {
+    "filename": "020-javascript-spread-syntax-and-rest-parameters.md",
+    "title": "JavaScript Spread Syntax (...) and Rest Parameters Explained"
+  },
+  {
+    "filename": "021-javascript-destructuring-arrays-and-objects.md",
+    "title": "Elegant Code with JavaScript Destructuring: Arrays and Objects"
+  },
+  {
+    "filename": "022-javascript-template-literals-tagged-templates.md",
+    "title": "JavaScript Template Literals and Tagged Templates"
+  },
+  {
+    "filename": "023-javascript-classes-constructors-inheritance.md",
+    "title": "Object-Oriented JavaScript with Classes, Constructors, and Inheritance"
+  },
+  {
+    "filename": "024-javascript-symbols-unique-identifiers.md",
+    "title": "Understanding Symbols in JavaScript: Unique Identifiers"
+  },
+  {
+    "filename": "025-javascript-iterators-and-generators.md",
+    "title": "JavaScript Iterators and Generators: Custom Iteration Logic"
+  },
+  {
+    "filename": "026-javascript-promises-in-depth.md",
+    "title": "JavaScript Promises In-Depth: Chaining and Error Handling"
+  },
+  {
+    "filename": "027-javascript-async-await-simplified.md",
+    "title": "Simplifying Asynchronous Code with JavaScript Async/Await"
+  },
+  {
+    "filename": "028-javascript-fetch-api-making-http-requests.md",
+    "title": "Using the Fetch API in JavaScript for HTTP Requests"
+  },
+  {
+    "filename": "029-javascript-regular-expressions-basics.md",
+    "title": "Introduction to Regular Expressions (RegExp) in JavaScript"
+  },
+  {
+    "filename": "030-javascript-web-storage-localstorage-sessionstorage.md",
+    "title": "JavaScript Web Storage: localStorage and sessionStorage"
+  },
+  {
+    "filename": "031-javascript-cookies-managing-browser-cookies.md",
+    "title": "Managing Browser Cookies with JavaScript"
+  },
+  {
+    "filename": "032-javascript-timers-settimeout-setinterval.md",
+    "title": "JavaScript Timers: setTimeout and setInterval Explained"
+  },
+  {
+    "filename": "033-javascript-higher-order-functions.md",
+    "title": "Understanding Higher-Order Functions in JavaScript"
+  },
+  {
+    "filename": "034-javascript-currying-and-partial-application.md",
+    "title": "Functional JavaScript: Currying and Partial Application"
+  },
+  {
+    "filename": "035-javascript-memoization-for-performance.md",
+    "title": "Improving Performance with Memoization in JavaScript"
+  },
+  {
+    "filename": "036-javascript-event-loop-and-concurrency-model.md",
+    "title": "The JavaScript Event Loop and Concurrency Model"
+  },
+  {
+    "filename": "037-javascript-call-apply-bind-methods.md",
+    "title": "Mastering `call`, `apply`, and `bind` in JavaScript"
+  },
+  {
+    "filename": "038-javascript-object-prototypes-vs-class-syntax.md",
+    "title": "JavaScript Prototypes vs. Class Syntax: A Comparison"
+  },
+  {
+    "filename": "039-javascript-truthy-and-falsy-values.md",
+    "title": "Truthy and Falsy Values in JavaScript: A Comprehensive Guide"
+  },
+  {
+    "filename": "040-javascript-type-coercion-and-conversion.md",
+    "title": "Understanding Type Coercion and Conversion in JavaScript"
+  },
+  {
+    "filename": "041-javascript-bitwise-operators.md",
+    "title": "Exploring Bitwise Operators in JavaScript"
+  },
+  {
+    "filename": "042-javascript-immediately-invoked-function-expressions-iife.md",
+    "title": "JavaScript IIFE (Immediately Invoked Function Expressions)"
+  },
+  {
+    "filename": "043-javascript-design-patterns-singleton.md",
+    "title": "JavaScript Design Patterns: The Singleton Pattern"
+  },
+  {
+    "filename": "044-javascript-design-patterns-factory.md",
+    "title": "JavaScript Design Patterns: The Factory Pattern"
+  },
+  {
+    "filename": "045-javascript-design-patterns-observer.md",
+    "title": "JavaScript Design Patterns: The Observer Pattern"
+  },
+  {
+    "filename": "046-javascript-design-patterns-module.md",
+    "title": "JavaScript Design Patterns: The Module Pattern"
+  },
+  {
+    "filename": "047-javascript-web-workers-for-background-tasks.md",
+    "title": "Using Web Workers for Background Tasks in JavaScript"
+  },
+  {
+    "filename": "048-javascript-service-workers-offline-capabilities.md",
+    "title": "Introduction to Service Workers: Offline Capabilities and More"
+  },
+  {
+    "filename": "049-javascript-indexeddb-client-side-database.md",
+    "title": "Working with IndexedDB: A Client-Side Database in JavaScript"
+  },
+  {
+    "filename": "050-javascript-canvas-api-for-2d-graphics.md",
+    "title": "Drawing with JavaScript: Introduction to the Canvas API"
+  },
+  {
+    "filename": "051-javascript-svg-manipulation.md",
+    "title": "Manipulating SVG with JavaScript for Dynamic Graphics"
+  },
+  {
+    "filename": "052-javascript-geolocation-api.md",
+    "title": "Using the Geolocation API in JavaScript"
+  },
+  {
+    "filename": "053-javascript-drag-and-drop-api.md",
+    "title": "Implementing Drag and Drop Functionality with JavaScript"
+  },
+  {
+    "filename": "054-javascript-history-api-spa-navigation.md",
+    "title": "Navigating SPAs with the JavaScript History API"
+  },
+  {
+    "filename": "055-javascript-web-audio-api.md",
+    "title": "Introduction to the Web Audio API in JavaScript"
+  },
+  {
+    "filename": "056-javascript-internationalization-i18n-api.md",
+    "title": "JavaScript Internationalization (i18n) API"
+  },
+  {
+    "filename": "057-javascript-webassembly-wasm-integration.md",
+    "title": "Integrating WebAssembly (Wasm) with JavaScript"
+  },
+  {
+    "filename": "058-javascript-security-best-practices-xss-csrf.md",
+    "title": "JavaScript Security Best Practices: Preventing XSS and CSRF"
+  },
+  {
+    "filename": "059-javascript-performance-optimization-techniques.md",
+    "title": "Key JavaScript Performance Optimization Techniques"
+  },
+  {
+    "filename": "060-javascript-memory-management-and-garbage-collection.md",
+    "title": "JavaScript Memory Management and Garbage Collection"
+  },
+  {
+    "filename": "061-javascript-debugging-techniques-devtools.md",
+    "title": "Effective JavaScript Debugging with Browser DevTools"
+  },
+  {
+    "filename": "062-javascript-unit-testing-with-jest-mocha.md",
+    "title": "Unit Testing JavaScript: Introduction to Jest and Mocha"
+  },
+  {
+    "filename": "063-javascript-end-to-end-testing-cypress-puppeteer.md",
+    "title": "End-to-End Testing in JavaScript with Cypress or Puppeteer"
+  },
+  {
+    "filename": "064-javascript-code-quality-linters-formatters-eslint-prettier.md",
+    "title": "Maintaining JavaScript Code Quality with ESLint and Prettier"
+  },
+  {
+    "filename": "065-javascript-build-tools-webpack-parcel-rollup.md",
+    "title": "Understanding JavaScript Build Tools: Webpack, Parcel, Rollup"
+  },
+  {
+    "filename": "066-javascript-package-managers-npm-yarn.md",
+    "title": "JavaScript Package Managers: npm vs. Yarn"
+  },
+  {
+    "filename": "067-javascript-frameworks-overview-react-angular-vue.md",
+    "title": "Overview of JavaScript Frameworks: React, Angular, Vue"
+  },
+  {
+    "filename": "068-getting-started-with-react-js.md",
+    "title": "Getting Started with React.js: Components and State"
+  },
+  {
+    "filename": "069-getting-started-with-angular.md",
+    "title": "Getting Started with Angular: Modules and Components"
+  },
+  {
+    "filename": "070-getting-started-with-vue-js.md",
+    "title": "Getting Started with Vue.js: Instances and Templates"
+  },
+  {
+    "filename": "071-nodejs-introduction-for-javascript-developers.md",
+    "title": "Node.js: Server-Side JavaScript for Beginners"
+  },
+  {
+    "filename": "072-nodejs-npm-managing-dependencies.md",
+    "title": "Managing Dependencies in Node.js with npm"
+  },
+  {
+    "filename": "073-nodejs-file-system-module.md",
+    "title": "Working with the File System in Node.js (fs module)"
+  },
+  {
+    "filename": "074-nodejs-http-module-creating-a-server.md",
+    "title": "Creating a Simple HTTP Server with Node.js (http module)"
+  },
+  {
+    "filename": "075-nodejs-express-js-framework-basics.md",
+    "title": "Building Web Apps with Express.js in Node.js"
+  },
+  {
+    "filename": "076-typescript-introduction-for-javascript-developers.md",
+    "title": "Introduction to TypeScript for JavaScript Developers"
+  },
+  {
+    "filename": "077-typescript-basic-types-and-interfaces.md",
+    "title": "TypeScript: Basic Types and Interfaces"
+  },
+  {
+    "filename": "078-typescript-classes-and-generics.md",
+    "title": "Working with Classes and Generics in TypeScript"
+  },
+  {
+    "filename": "079-javascript-accessibility-a11y-basics.md",
+    "title": "Web Accessibility (a11y) Basics for JavaScript Developers"
+  },
+  {
+    "filename": "080-javascript-seo-best-practices.md",
+    "title": "JavaScript SEO: Best Practices for Search Engine Visibility"
+  },
+  {
+    "filename": "081-javascript-progressive-web-apps-pwa-fundamentals.md",
+    "title": "Progressive Web Apps (PWA) Fundamentals with JavaScript"
+  },
+  {
+    "filename": "082-javascript-api-interaction-rest-graphql.md",
+    "title": "Interacting with APIs in JavaScript: REST and GraphQL"
+  },
+  {
+    "filename": "083-javascript-real-time-communication-websockets.md",
+    "title": "Real-Time Communication with WebSockets in JavaScript"
+  },
+  {
+    "filename": "084-javascript-data-structures-arrays-objects.md",
+    "title": "Common JavaScript Data Structures: Arrays and Objects"
+  },
+  {
+    "filename": "085-javascript-data-structures-maps-sets.md",
+    "title": "ES6 Data Structures: Map and Set in JavaScript"
+  },
+  {
+    "filename": "086-javascript-data-structures-linked-lists.md",
+    "title": "Implementing Linked Lists in JavaScript"
+  },
+  {
+    "filename": "087-javascript-data-structures-trees-binary-search-trees.md",
+    "title": "Understanding Trees and Binary Search Trees in JavaScript"
+  },
+  {
+    "filename": "088-javascript-algorithms-sorting-bubble-merge-quick.md",
+    "title": "JavaScript Sorting Algorithms: Bubble, Merge, and Quick Sort"
+  },
+  {
+    "filename": "089-javascript-algorithms-searching-binary-search.md",
+    "title": "JavaScript Searching Algorithms: Linear and Binary Search"
+  },
+  {
+    "filename": "090-javascript-functional-programming-pure-functions-immutability.md",
+    "title": "Functional Programming in JavaScript: Pure Functions and Immutability"
+  },
+  {
+    "filename": "091-javascript-reactive-programming-rxjs-overview.md",
+    "title": "Introduction to Reactive Programming with RxJS in JavaScript"
+  },
+  {
+    "filename": "092-javascript-state-management-redux-vuex-context-api.md",
+    "title": "State Management in JavaScript: Redux, Vuex, Context API"
+  },
+  {
+    "filename": "093-javascript-animation-css-transitions-js-animations.md",
+    "title": "Web Animation with JavaScript: CSS Transitions vs. JS Animations"
+  },
+  {
+    "filename": "094-javascript-best-practices-code-style-readability.md",
+    "title": "JavaScript Best Practices for Code Style and Readability"
+  },
+  {
+    "filename": "095-javascript-common-mistakes-and-how-to-avoid-them.md",
+    "title": "Common JavaScript Mistakes and How to Avoid Them"
+  },
+  {
+    "filename": "096-the-future-of-javascript-ecmascript-proposals.md",
+    "title": "The Future of JavaScript: Upcoming ECMAScript Proposals"
+  },
+  {
+    "filename": "097-javascript-and-the-jamstack.md",
+    "title": "Understanding JavaScript's Role in the JAMstack"
+  },
+  {
+    "filename": "098-serverless-functions-with-javascript-nodejs.md",
+    "title": "Writing Serverless Functions with JavaScript and Node.js"
+  },
+  {
+    "filename": "099-javascript-for-iot-johnny-five.md",
+    "title": "Exploring JavaScript for IoT: Introduction to Johnny-Five"
+  },
+  {
+    "filename": "100-javascript-career-paths-and-learning-resources.md",
+    "title": "JavaScript Career Paths and Essential Learning Resources"
+  }
+]
+```

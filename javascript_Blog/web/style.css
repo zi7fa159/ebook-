@@ -1,0 +1,94 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+}
+main {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 1rem;
+    gap: 1rem;
+}
+#post-list-container {
+    flex: 0 0 250px; /* Fixed width sidebar */
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow-y: auto; /* Make sidebar scrollable if content overflows */
+    max-height: 80vh; /* Limit sidebar height */
+}
+#post-list {
+    list-style: none;
+    padding: 0;
+}
+#post-list li {
+    margin-bottom: 0.5rem;
+}
+#post-list li a {
+    text-decoration: none;
+    color: #007bff;
+    display: block;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+#post-list li a:hover, #post-list li a.active {
+    background-color: #e9ecef;
+}
+#post-display {
+    flex: 1;
+    min-width: 300px; /* Ensure content area is not too small */
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative; /* For button positioning */
+}
+#post-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+    border-radius: 4px;
+}
+#post-content pre {
+    background-color: #eee;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+#copy-markdown-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    position: sticky; /* Sticky positioning */
+    bottom: 1rem;
+    left: 100%; /* Move to the right edge */
+    transform: translateX(-100%); /* Adjust for button width */
+    margin-top: 1rem; /* Space from content */
+}
+#copy-markdown-btn:hover {
+    background-color: #218838;
+}
+/* Basic responsive adjustments */
+@media (max-width: 768px) {
+    main {
+        flex-direction: column;
+    }
+    #post-list-container {
+        flex: auto;
+        max-height: 40vh; /* Shorter sidebar on small screens */
+    }
+}
