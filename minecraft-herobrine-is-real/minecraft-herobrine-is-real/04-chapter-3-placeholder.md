@@ -1,0 +1,2 @@
+# Chapter 3 Placeholder
+This is placeholder content for chapter 3. Full content would be generated in a complete run.
