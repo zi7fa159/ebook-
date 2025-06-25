@@ -1,0 +1,250 @@
+/* web/style.css (Enhanced for Better UI) */
+
+/* --- Base and Typography --- */
+:root {
+    --bg-color: #f7f7f7;
+    --surface-color: #ffffff;
+    --text-color: #212529;
+    --text-color-muted: #6c757d;
+    --accent-color: #0d6efd;
+    --accent-color-hover: #0b5ed7;
+    --border-color: #dee2e6;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+header {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    padding: 1rem 2rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 700;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+/* --- Main Layout --- */
+main {
+    display: flex;
+    height: calc(100vh - 65px); /* Full height minus header */
+}
+
+#sidebar {
+    width: 320px;
+    background-color: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+#sidebar h2 {
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+#search-input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+}
+
+#post-list-container { /* This element is effectively the #post-list in the HTML, or its direct parent. Keeping this for compatibility. */
+    overflow-y: auto;
+}
+
+#post-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto; /* Ensure the list itself is scrollable */
+}
+
+#post-list li a {
+    text-decoration: none;
+    color: var(--text-color);
+    display: block;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+#post-list li a:hover {
+    background-color: var(--bg-color);
+}
+
+#post-list li a.active {
+    background-color: var(--accent-color);
+    color: #ffffff;
+}
+
+.no-results {
+    color: var(--text-color-muted);
+    font-style: italic;
+    padding: 1rem;
+}
+
+/* --- Content Area --- */
+#content-area {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    position: relative;
+}
+
+#post-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+#post-content h1, #post-content h2, #post-content h3, #post-content h4, #post-content h5, #post-content h6 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+}
+#post-content h1 { font-size: 2.25rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
+#post-content h2 { font-size: 1.75rem; }
+#post-content h3 { font-size: 1.5rem; }
+#post-content h4 { font-size: 1.25rem; }
+
+
+#post-content p {
+    margin-bottom: 1.25rem;
+}
+
+#post-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 2rem auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+#post-content pre {
+    background-color: #2b2b2b;
+    color: #f8f8f2;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+}
+
+#post-content code {
+    background-color: #e9ecef;
+    color: #c7254e; /* A common color for inline code */
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#post-content pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: inherit; /* Ensure preformatted code uses the pre's font size */
+}
+
+#post-content blockquote {
+    border-left: 4px solid var(--accent-color);
+    padding-left: 1rem;
+    margin-left: 0;
+    color: var(--text-color-muted);
+    font-style: italic;
+}
+
+#post-content ul, #post-content ol {
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+}
+
+#post-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* --- UI Elements --- */
+.loading-indicator {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--text-color-muted);
+    padding: 3rem;
+}
+
+#copy-markdown-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+#copy-markdown-btn:hover {
+    background-color: var(--accent-color-hover);
+    transform: translateY(-2px);
+}
+
+#copy-markdown-btn.copied {
+    background-color: #198754; /* Green for success */
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 992px) {
+    main {
+        flex-direction: column;
+        height: auto;
+    }
+
+    #sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 40vh; /* Make sidebar scrollable but not full height */
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    #content-area {
+        padding: 1.5rem;
+    }
+
+    #copy-markdown-btn {
+        position: sticky; /* Makes it stick to the bottom of the content area on scroll */
+        float: right; /* Aligns it to the right */
+        margin-top: 1rem; /* Adds some space above it */
+        /* bottom and right properties are not needed for sticky in this context */
+    }
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCP Foundation Blog Index</title>
+    <!-- Link to Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <!-- CDN for a lightweight client-side Markdown parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/lib/marked.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>SCP Foundation Blog</h1>
+    </header>
+    <main>
+        <aside id="sidebar">
+            <h2>All Posts</h2>
+            <input type="text" id="search-input" placeholder="Filter posts...">
+            <ul id="post-list">
+                <!-- Post titles will be loaded here by JavaScript -->
+            </ul>
+        </aside>
+        <section id="content-area">
+            <article id="post-display">
+                <div id="post-content">
+                    <p>Select a post from the left to view its content.</p>
+                    <p>Make sure you're running a local web server (e.g., Python's `http.server`) from the project's root directory for the posts to load correctly.</p>
+                </div>
+            </article>
+            <button id="copy-markdown-btn" style="display:none;">Copy Markdown</button>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
