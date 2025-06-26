@@ -1,0 +1,59 @@
+\documentclass[$if(fontsize)$$fontsize$$endif$]{$documentclass$}
+
+\usepackage{iftex}
+\ifxetex
+    \usepackage{fontspec}
+    \defaultfontfeatures{Ligatures=TeX}
+    \setmainfont{$mainfont$}
+    \setsansfont{$sansfont$}
+    \setmonofont{$monofont$}[Scale=MatchLowercase]
+\else\ifluatex
+    \usepackage{fontspec}
+    \defaultfontfeatures{Ligatures=TeX}
+    \setmainfont{$mainfont$}
+    \setsansfont{$sansfont$}
+    \setmonofont{$monofont$}[Scale=MatchLowercase]
+\else
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    \usepackage{lmodern}
+\fi
+\fi
+
+$if(geometry)$
+\usepackage{geometry}
+\geometry{$geometry$}
+$endif$
+
+% Define \tightlist if Pandoc uses it
+\providecommand{\tightlist}{%
+    \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% Add packages for tables
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{calc}
+\usepackage{booktabs}
+
+% Add package for symbols like \square
+\usepackage{amssymb} % Provides \square, etc.
+
+$if(title)$
+\title{$title$}
+\author{$author$}
+\date{$date$}
+$endif$
+
+\begin{document}
+$if(title)$
+\maketitle
+$endif$
+
+$if(toc)$
+\tableofcontents
+\newpage
+$endif$
+
+$body$
+
+\end{document}

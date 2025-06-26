@@ -1,0 +1,17 @@
+---
+title: "Atomic Productivity: Mastering Habits, Focus, and Time for Lifelong Success"
+author: "AI Publishing Pro"
+date: "June 2025"
+subtitle: "Your Comprehensive Guide to Unlocking Peak Performance and Achieving Lasting Results"
+documentclass: report # Standard LaTeX class
+fontsize: 11pt        # Common font size
+mainfont: "Latin Modern Roman" # Ensure these fonts are available via texlive-fonts-recommended
+sansfont: "Latin Modern Sans"
+monofont: "Latin Modern Mono"
+geometry: "margin=1in" # Standard 1-inch margins
+toc: true
+toc-depth: 3 # Table of contents depth
+number-sections: true # Number sections, subsections, etc.
+highlight-style: pygments # Syntax highlighting style for code blocks
+linestretch: 1.3 # Line spacing for readability
+---

@@ -1,0 +1,261 @@
+% Pandoc LaTeX Template for "Atomic Productivity" eBook
+% Based on the theming strategy for a $27 commercial product.
+
+\documentclass[$if(fontsize)$$fontsize$$endif$]{$documentclass$} % Simplified from full, matches working minimal
+\usepackage{iftex}
+
+% --- Language and Font Encoding ---
+\ifxetex
+    \usepackage{fontspec}
+    \defaultfontfeatures{Ligatures=TeX}
+    $if(mainfont)$ \setmainfont{$mainfont$}$endif$
+    $if(sansfont)$ \setsansfont{$sansfont$}$endif$
+    $if(monofont)$ \setmonofont{$monofont$}[Scale=MatchLowercase]$endif$
+\else\ifluatex
+    \usepackage{fontspec}
+    \defaultfontfeatures{Ligatures=TeX}
+    $if(mainfont)$ \setmainfont{$mainfont$}$endif$
+    $if(sansfont)$ \setsansfont{$sansfont$}$endif$
+    $if(monofont)$ \setmonofont{$monofont$}[Scale=MatchLowercase]$endif$
+\else
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    $if(mainfont)$ % Attempt to use Latin Modern if available
+        \usepackage{lmodern}
+    $endif$
+    $if(sansfont)$ % Fallback, lmodern provides sans
+    $endif$
+    $if(monofont)$ % Fallback, lmodern provides mono
+    $endif$
+\fi
+
+% --- Page Layout and Geometry ---
+\usepackage{geometry}
+$if(geometry)$
+\geometry{$geometry$}
+$else$
+\geometry{margin=1in} % Default if not specified
+$endif$
+
+% --- Typography ---
+$if(linestretch)$
+\usepackage{setspace}
+\setstretch{$linestretch$}
+$else$
+\usepackage{setspace}
+\setstretch{1.3} % Default line spacing if not specified
+$endif$
+
+\usepackage{textcase} % For \MakeTextUppercase
+
+% --- Colors ---
+\usepackage{xcolor}
+\definecolor{DarkGray}{HTML}{333333}
+\definecolor{LightGray}{HTML}{f0f0f0}
+\definecolor{RuleColor}{HTML}{cccccc}
+
+% --- Headings Styling ---
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\sffamily\color{DarkGray}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{30pt}{20pt} % Spacing before and after chapter title
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\sffamily\color{DarkGray}}
+  {\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{2.5ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\sffamily\color{DarkGray}}
+  {\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{2ex plus .5ex minus .2ex}{1ex plus .2ex}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\itshape\sffamily\color{DarkGray}}
+  {\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{1.5ex plus .5ex minus .2ex}{0.8ex plus .2ex}
+
+% Add a rule after chapter titles
+\usepackage{etoolbox}
+\patchcmd{\chapter}{\thispagestyle{plain}}{\thispagestyle{fancy}}{}{} % Ensure fancyhdr on chapter pages
+\apptocmd{\chapter}{\par\noindent\textcolor{RuleColor}{\rule{\linewidth}{0.4pt}}\par\vspace{10pt}}{}{}
+
+
+% --- Table of Contents Styling ---
+\usepackage{tocbasic}
+\DeclareTOCStyleEntry[
+  dynnumwidth, % calculate width of numbers dynamically
+  numsep=1em, % set separation between number and text
+  entryformat=\sffamily, % Font for entries
+  pagenumberformat=\sffamily % Font for page numbers
+]{tocline}{chapter}
+
+\DeclareTOCStyleEntry[
+  dynnumwidth,
+  numsep=1.5em, % Indent sections more
+  entryformat=\sffamily,
+  pagenumberformat=\sffamily
+]{tocline}{section}
+
+\DeclareTOCStyleEntry[
+  dynnumwidth,
+  numsep=2em, % Indent subsections more
+  entryformat=\sffamily,
+  pagenumberformat=\sffamily
+]{tocline}{subsection}
+
+
+% --- Header and Footer ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{} % Clear all header and footer fields
+\fancyhead[LE,RO]{\sffamily\scriptsize\nouppercase{\leftmark}} % Chapter on Left (Even), Section on Right (Odd)
+\fancyhead[RE,LO]{\sffamily\scriptsize\nouppercase{\rightmark}}
+\fancyfoot[C]{\sffamily\scriptsize\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{ % Style for chapter starting pages, etc.
+  \fancyhf{}
+  \fancyfoot[C]{\sffamily\scriptsize\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+% --- Title Page (Text-Based Cover) ---
+% This will be primarily driven by Pandoc metadata, but we can add styling here.
+% The actual content (title, subtitle, author) comes from 00-title.md and Pandoc vars.
+\newcommand{\makecover}{
+    \thispagestyle{empty}
+    \newgeometry{margin=1in} % Ensure full margins for cover page
+    \begin{titlepage}
+        \centering
+        \vspace*{\stretch{1.5}} % Push content down a bit
+
+        {\sffamily\bfseries\Huge\MakeTextUppercase{$title$}\par}
+        \vspace{0.5cm}
+        {\sffamily\LARGE $subtitle$\par}
+
+        \vspace{\stretch{1}}
+
+        {\sffamily\Large $author$\par}
+        \vspace{0.25cm}
+        {\sffamily\normalsize $date$\par}
+
+        \vspace*{\stretch{2}}
+    \end{titlepage}
+    \restoregeometry % Restore original geometry after cover page
+    \cleardoublepage
+    \pagestyle{fancy} % Ensure subsequent pages use fancy style
+}
+
+% --- Blockquotes ---
+\usepackage{mdframed}
+\surroundwithmdframed[
+  backgroundcolor=LightGray,
+  linecolor=LightGray,
+  linewidth=0pt,
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  skipabove=\medskipamount,
+  skipbelow=\medskipamount
+]{quotation}
+\surroundwithmdframed[
+  backgroundcolor=LightGray,
+  linecolor=LightGray,
+  linewidth=0pt,
+  innertopmargin=10pt,
+  innerbottommargin=10pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  skipabove=\medskipamount,
+  skipbelow=\medskipamount
+]{quote}
+
+% --- Code Blocks ---
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+% --- Links ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    $if(pdfsubject)$pdfsubject={$pdfsubject$},$endif$
+    $if(pdfkeywords)$pdfkeywords={$pdfkeywords$},$endif$
+    $if(pdflang)$pdflang={$pdflang$},$endif$
+    breaklinks=true % Allow links to break across lines
+}
+\urlstyle{same} % Use the same font for URLs as for the surrounding text
+
+% --- Lists ---
+\usepackage{enumitem}
+\setlist{nosep} % Remove extra vertical spacing in lists, or use itemsep for fine control
+\providecommand{\tightlist}{% Reduces spacing in lists made by Pandoc
+    \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% --- Table Styling ---
+\usepackage{booktabs} % For professional looking tables
+\usepackage{longtable} % For tables that span multiple pages
+\usepackage{array}     % For more table options
+\usepackage{calc}      % For calculations in column widths
+
+% --- Graphics ---
+\usepackage{graphicx}
+\ifpdf
+    \DeclareGraphicsExtensions{.pdf,.png,.jpg,.jpeg}
+\else
+    \DeclareGraphicsExtensions{.eps}
+\fi
+
+% --- Other useful packages ---
+\usepackage{amsmath} % For math
+\usepackage{amsfonts}
+\usepackage{amssymb} % For symbols like \square
+\usepackage{microtype} % Improves typography (spacing, kerning)
+
+% --- Pandoc specific variables and fallbacks ---
+$if(toc)$
+% \usepackage{tocloft} % Using tocbacis instead, as per earlier design
+\setcounter{tocdepth}{$toc-depth$}
+$endif$
+
+$if(numbersections)$
+\setcounter{secnumdepth}{5} % Number sections down to subsubsection or further if needed
+$else$
+\setcounter{secnumdepth}{0}
+$endif$
+
+$if(lang)$
+\usepackage[$lang$]{babel}
+$endif$
+
+% --- Document Start ---
+\begin{document}
+
+% --- Title Page / Cover ---
+$if(title)$
+    \makecover
+$endif$
+
+% --- Table of Contents ---
+$if(toc)$
+{
+\hypersetup{linkcolor=black} % Make ToC links black
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+\cleardoublepage
+}
+$endif$
+
+% --- Main Content ---
+$body$
+
+\end{document}
