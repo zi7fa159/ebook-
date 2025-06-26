@@ -1,0 +1,244 @@
+\documentclass[11pt, oneside]{book} % Corrected class
+\usepackage{fontspec}
+
+% --- CORE PACKAGES from original template ---
+\usepackage{geometry} % For page dimensions and margins
+\usepackage{iftex}    % Conditional compilation for different TeX engines
+\usepackage{hyperref} % For clickable links (TOC, URLs)
+% fontspec is already loaded
+\usepackage{titlesec} % For customizing chapter and section titles
+\usepackage{titletoc} % For customizing table of contents
+\usepackage{fancyhdr} % For custom headers and footers
+\usepackage{graphicx} % For including images (though cover is text-based)
+\usepackage{amsmath, amssymb} % For mathematical symbols if needed
+\usepackage{booktabs} % For professional quality tables
+\usepackage{longtable} % For tables that span multiple pages
+\usepackage{array}    % For more control over table column formatting
+\usepackage{enumitem} % For customizing lists (itemize, enumerate)
+\usepackage{microtype} % For improved typography (micro-adjustments)
+\usepackage{xcolor}   % For defining and using colors
+\usepackage{etoolbox} % For programming hooks and patches
+\usepackage{setspace} % For line spacing control (e.g., onehalfspacing)
+\usepackage{sectsty}  % To apply font styles to section headings
+\usepackage{wallpaper} % For potential subtle background on title page if desired (not used by default)
+\usepackage{ragged2e} % For RaggedRight, RaggedLeft, Centering environments
+\usepackage{lettrine} % For drop caps at chapter beginnings (optional, can be added)
+\usepackage{framed} % For code block background
+% --- END OF CORE PACKAGES ---
+
+\setmainfont{$mainfont$}[Ligatures=TeX] % Added Ligatures=TeX back
+
+% Define \tightlist if Pandoc uses it (often for compact lists)
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% --- ENGINE SPECIFIC SETUP ---
+\ifxetex
+    % XeLaTeX specific settings
+    \usepackage{polyglossia} % Modern multilingual support for XeLaTeX
+    \setdefaultlanguage{english}
+\else
+    \ifluatex
+        % LuaLaTeX specific settings
+        \usepackage{polyglossia} % Modern multilingual support for LuaLaTeX
+        \setdefaultlanguage{english}
+    \else
+        % pdfLaTeX specific settings (fallback, though xelatex is preferred)
+        \usepackage[utf8]{inputenc}
+        \usepackage[T1]{fontenc}
+        \usepackage[english]{babel}
+    \fi
+\fi
+% --- END ENGINE SPECIFIC SETUP ---
+
+% --- COLOR DEFINITIONS (Subtle & Professional Palette) ---
+\definecolor{ebookPrimary}{HTML}{2A3B4C} % Deep Navy/Charcoal
+\definecolor{ebookSecondary}{HTML}{4A5B6C} % Lighter shade of primary
+\definecolor{ebookAccent}{HTML}{1ABC9C} % Teal/Turquoise accent
+\definecolor{ebookText}{HTML}{333333}   % Dark Gray for body text
+\definecolor{ebookLightText}{HTML}{FDFDFD} % Light text for dark backgrounds
+\definecolor{ebookRule}{HTML}{DDDDDD}    % Light gray for rules/lines
+\definecolor{codebackground}{HTML}{F5F5F5} % Light gray for code blocks
+% --- END COLOR DEFINITIONS ---
+
+% --- TYPOGRAPHY (Using Latin Modern as robust default) ---
+% \setmainfont{$mainfont$}[Ligatures=TeX] % Already set
+\setsansfont{$sansfont$}[Ligatures=TeX]
+\setmonofont{$monofont$}[Scale=0.9] % Scale monospaced font slightly
+% --- END TYPOGRAPHY ---
+
+% --- PAGE GEOMETRY & SPACING ---
+\geometry{
+    paperwidth=6in, paperheight=9in, % Standard ebook/trade paperback size
+    left=0.75in, right=0.75in,
+    top=0.75in, bottom=0.75in,
+    headheight=15pt % Ensure enough space for header
+}
+\onehalfspacing % Slightly more than single spacing for readability
+% --- END PAGE GEOMETRY & SPACING ---
+
+% --- HEADERS & FOOTERS (Fancyhdr) ---
+\pagestyle{fancy}
+\fancyhf{} % Clear all header and footer fields
+\fancyhead[LE,RO]{\small\nouppercase{\leftmark}} % Chapter title on left (even) / right (odd) for book class
+\fancyhead[RE,LO]{\small\nouppercase{\rightmark}}% Section title on right (even) / left (odd) for book class
+\fancyfoot[C]{\thepage} % Page number centered in footer
+\renewcommand{\headrulewidth}{0.4pt} % Subtle line under header
+\renewcommand{\footrulewidth}{0pt}   % No line above footer
+\fancypagestyle{plain}{ % For chapter starting pages & title page
+    \fancyhf{} % Clear header/footer
+    \fancyfoot[C]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+}
+% --- END HEADERS & FOOTERS ---
+
+% --- CHAPTER & SECTION TITLE STYLING (titlesec) ---
+% Chapter styling
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries\color{ebookPrimary}} % Format for \chapter command
+    {\filcenter\chaptertitlename\ \thechapter} % Label (e.g., "Chapter 1") - filcenter for centering
+    {20pt} % Vertical space between label and title
+    {\filcenter\Huge} % Format for the chapter title itself - filcenter for centering
+    [\vspace{20pt}\titlerule\vspace{20pt}] % Code after title (e.g., a rule)
+
+% Section styling
+\titleformat{\section}
+    {\normalfont\Large\bfseries\color{ebookSecondary}}
+    {\thesection}
+    {1em}
+    {}
+% Subsection styling
+\titleformat{\subsection}
+    {\normalfont\large\bfseries\color{ebookText}}
+    {\thesubsection}
+    {1em}
+    {}
+% Subsubsection styling
+\titleformat{\subsubsection}
+    {\normalfont\normalsize\bfseries\color{ebookText}}
+    {\thesubsubsection}
+    {1em}
+    {}
+
+% Spacing after titles
+\titlespacing*{\chapter}{0pt}{20pt}{40pt} % left, before, after
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\subsubsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+% --- END CHAPTER & SECTION TITLE STYLING ---
+
+% --- TABLE OF CONTENTS STYLING (titletoc) ---
+\contentsmargin{2.55em}
+\titlecontents{chapter}[1.5em]
+    {\vspace{10pt}\bfseries\color{ebookPrimary}}
+    {\contentslabel[\thecontentslabel]{1.5em}}
+    {\hspace*{-1.5em}}
+    {\titlerule*[0.5pc]{.}\contentspage}
+
+\titlecontents{section}[3.8em] % 1.5em (chapter) + 2.3em
+    {\small\color{ebookSecondary}}
+    {\contentslabel[\thecontentslabel]{2.3em}}
+    {\hspace*{2.3em}} % Adjust this to align with chapter numbers if needed
+    {\titlerule*[0.5pc]{.}\contentspage}
+
+\titlecontents{subsection}[7.0em] % 3.8em (section) + 3.2em
+    {\small\color{ebookText}}
+    {\contentslabel[\thecontentslabel]{3.2em}}
+    {\hspace*{3.2em}} % Adjust this
+    {\titlerule*[0.5pc]{.}\contentspage}
+% For report/book class, part is also available
+\titlecontents{part}[0em]
+    {\vspace{20pt}\Large\bfseries\color{ebookPrimary}\filcenter}
+    {\partname\ \thecontentslabel:\quad}
+    {}
+    {\filcenter\contentspage}
+% --- END TABLE OF CONTENTS STYLING ---
+
+% --- LIST STYLING (enumitem) ---
+\setlist[itemize,1]{label=\textcolor{ebookAccent}{\textbullet}, leftmargin=*}
+\setlist[itemize,2]{label=\textcolor{ebookSecondary}{\textendash}, leftmargin=*}
+\setlist[enumerate,1]{label=\arabic*., leftmargin=*}
+\setlist[enumerate,2]{label=\alph*), leftmargin=*}
+% --- END LIST STYLING ---
+
+% --- HYPERLINKS (hyperref) ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=ebookPrimary,
+    citecolor=ebookAccent,
+    urlcolor=ebookAccent,
+    pdftitle={$title$},
+    pdfauthor={$author$},
+    pdfsubject={$subtitle$}, % Using subtitle for pdfsubject
+    pdfkeywords={}, % Can add keywords
+    breaklinks=true % Allow links to break over lines
+}
+% --- END HYPERLINKS ---
+
+% --- CODE BLOCKS (Pandoc handles this with --highlight-style) ---
+% Default Pandoc handling is usually good.
+% For custom background for code blocks:
+% \usepackage{framed} % Already in core packages
+\BeforeBeginEnvironment{Shaded}{\definecolor{shadecolor}{named}{codebackground}\begin{snugshade}}
+\AfterEndEnvironment{Shaded}{\end{snugshade}}
+% --- END CODE BLOCKS ---
+
+% --- BLOCKQUOTES ---
+% Define a custom environment for blockquotes if Pandoc's default is not sufficient
+% For example, using the quote or quotation environment, possibly with some styling
+\renewenvironment{quote}
+    {\list{}{\rightmargin\leftmargin\topsep=0.5em\itemindent=-0.5em}
+     \item\relax\small\itshape\color{ebookSecondary}}
+    {\endlist}
+% --- END BLOCKQUOTES ---
+
+% --- DOCUMENT START ---
+\begin{document}
+
+% Standard \maketitle will be used FOR NOW, but we will insert custom title page content manually.
+% Pandoc will pass -V title, -V author, -V date to this.
+% The $subtitle$ from -M subtitle will be available for hyperref pdfsubject AND our manual title page.
+
+% --- CUSTOM TITLE PAGE CONTENT INSERTED DIRECTLY ---
+  \begin{titlepage}%
+    % \ThisCenterWallPaper{1.0}{Atomic_Productivity_Mastering_Habits_Focus_and_Time_for_Lifelong_Success/theme/title_page_background.png} % Optional: uncomment for subtle background
+    \newgeometry{left=1in, right=1in, top=1in, bottom=1in} % Custom geometry for title page
+    \pagestyle{empty}%
+    \centering % Center all content on the title page
+    \vspace*{\stretch{1.5}} % Push content down
+    {\Huge\bfseries\color{ebookPrimary} $title$} % Book Title
+    $if(subtitle)$
+      \par\vspace{1.5em}%
+      {\Large\color{ebookSecondary}\textit{$subtitle$}}% Subtitle
+    $endif$
+    \par\vspace{3em}
+    \noindent\rule{\linewidth}{0.8pt} % Horizontal rule
+    \par\vspace{3em}
+    {\Large\color{ebookText} By}
+    \par\vspace{1em}
+    {\huge\bfseries\color{ebookPrimary} $author$} % Author Name
+    \vspace*{\stretch{2}} % More space at the bottom
+    $if(date)$
+      {\large\color{ebookSecondary} $date$}% Date
+    $endif$
+    \par\vspace{1em}
+    %{\small\color{ebookText} Publisher Name Here} % Optional Publisher Name
+    \restoregeometry % Restore original page geometry after title page
+  \end{titlepage}%
+  \cleardoublepage%
+  \setcounter{page}{1}% % Reset page numbering for TOC/main content
+  \pagestyle{fancy}% Reset to fancy for main content
+% --- END OF CUSTOM TITLE PAGE CONTENT ---
+
+\pagenumbering{roman} % Roman numerals for front matter
+
+$if(toc)$
+\tableofcontents
+\cleardoublepage
+$endif$
+
+\pagenumbering{arabic} % Arabic numerals for main content
+$body$
+
+\end{document}
