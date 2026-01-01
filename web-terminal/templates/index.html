@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VPS Terminal</title>
+    <!-- Load xterm.js CSS from CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <style>
+        /* Reset margins and padding */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Dark background for the terminal */
+        body {
+            background: #1e1e1e;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Terminal container fills the viewport */
+        #terminal {
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
+</head>
+<body>
+    <!-- Terminal will be rendered here -->
+    <div id="terminal"></div>
+
+    <!-- Load xterm.js library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <!-- Load xterm.js fit addon from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <!-- Load Socket.IO client library from CDN -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+
+    <script>
+        // Initialize the terminal with custom settings
+        const term = new Terminal({
+            cursorBlink: true,      // Blinking cursor
+            fontSize: 14,           // Font size
+            // Monospace font stack for terminal-like appearance
+            fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+            // Dark theme colors
+            theme: {
+                background: '#1e1e1e',
+                foreground: '#ffffff'
+            }
+        });
+
+        // Load the fit addon to auto-size the terminal
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+
+        // Open the terminal in the div element
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();
+
+        // Initialize Socket.IO connection to the server
+        const socket = io();
+
+        // Handle successful connection
+        socket.on('connect', () => {
+            term.write('\r\n*** Connected ***\r\n');
+            // Send initial terminal size to server
+            socket.emit('resize', { rows: term.rows, cols: term.cols });
+        });
+
+        // Handle incoming terminal output from server
+        socket.on('pty-output', (data) => {
+            term.write(data.output);
+        });
+
+        // Send keyboard input to the server
+        term.onData((data) => {
+            socket.emit('pty-input', { input: data });
+        });
+
+        // Handle window resize events
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+            socket.emit('resize', { rows: term.rows, cols: term.cols });
+        });
+
+        // Optional: Fit terminal when it becomes visible
+        // (useful if terminal starts in a hidden tab)
+        setTimeout(() => {
+            fitAddon.fit();
+            socket.emit('resize', { rows: term.rows, cols: term.cols });
+        }, 1000);
+    </script>
+</body>
+</html>
