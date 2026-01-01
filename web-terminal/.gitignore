@@ -1,0 +1,12 @@
+# Ignore log files
+*.log
+
+# Ignore archives
+*.zip
+*.tgz
+
+# Ignore binaries
+ngrok
+
+# Ignore Python virtual environment
+venv/
