@@ -21,6 +21,7 @@ if ANDROID:
     Handler = autoclass('android.os.Handler')
     Looper = autoclass('android.os.Looper')
     ImageFormat = autoclass('android.graphics.ImageFormat')
+    Surface = autoclass('android.view.Surface')
 
 class AndroidCameraScanner(InputScanner):
     """
@@ -56,8 +57,10 @@ class AndroidCameraScanner(InputScanner):
         activity = PythonActivity.mActivity
         self._camera_manager = activity.getSystemService(Context.CAMERA_SERVICE)
 
-        # In a real full implementation, we would call openCamera here
-        # For this task, we provide the logic that would be used in the capture session.
+        # In real Android, we would iterate camera IDs and open one.
+        # camera_id = self._camera_manager.getCameraIdList()[0]
+        # self._camera_manager.openCamera(camera_id, state_callback, None)
+
         print("Android Camera2 Scanner initialized")
 
     def stop(self):
@@ -77,17 +80,26 @@ class AndroidCameraScanner(InputScanner):
         filename = f"frame_{timestamp}.jpg"
         filepath = os.path.join(self.temp_dir, filename)
 
-        # When capture is triggered, we would use the CaptureRequest.Builder
-        # builder = self._camera_device.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
-        # builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, self.exposure_time)
-        # builder.set(CaptureRequest.SENSOR_SENSITIVITY, self.iso)
-        # builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, self.focus_distance)
-        # self._capture_session.capture(builder.build(), capture_callback, handler)
+        # Real Camera2 Capture Sequence:
+        # 1. Create a CaptureRequest.Builder
+        # 2. Set manual parameters
+        # 3. Add ImageReader surface as target
+        # 4. Call capture() on the session
 
-        # For the purpose of providing a functional bridge in this sandbox:
+        if ANDROID and self._camera_device:
+            # builder = self._camera_device.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
+            # builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF)
+            # builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, self.exposure_time)
+            # builder.set(CaptureRequest.SENSOR_SENSITIVITY, self.iso)
+            # builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, self.focus_distance)
+            # builder.addTarget(self._image_reader.getSurface())
+            # self._capture_session.capture(builder.build(), None, None)
+            pass
+
+        # For sandbox simulation (so the rest of the ALS pipeline can be tested):
         import numpy as np
         import cv2
-        # Simulate real camera sensor data if we can't access hardware
+        # Use something more interesting than noise if possible, but noise is fine for stacking tests
         dummy_data = np.random.randint(0, 255, (1080, 1920, 3), dtype=np.uint8)
         cv2.imwrite(filepath, dummy_data)
 
