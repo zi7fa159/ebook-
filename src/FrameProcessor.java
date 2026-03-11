@@ -21,6 +21,7 @@ public class FrameProcessor {
     private boolean showStack = false;
     private int width, height;
     private int frameLimit = 0;
+    private int currentMethod = 0;
 
     // Using two buffers for efficient handover from Camera thread
     private short[][] rawBufferPool = new short[2][];
@@ -62,6 +63,7 @@ public class FrameProcessor {
     }
 
     public void setStackMethod(int method) {
+        this.currentMethod = method;
         stackEngine.setStackMethod(method);
     }
 
@@ -115,7 +117,7 @@ public class FrameProcessor {
         processingHandler.post(() -> {
             if (currentState == State.PAUSED) {
                 if (showStack) {
-                    renderer.updateStack(stackEngine.getStackBuffer(), width, height);
+                    renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
                 } else {
                     renderer.updateLive(currentRaw, width, height);
                 }
@@ -162,7 +164,7 @@ public class FrameProcessor {
             stackEngine.addFrame(currentRaw, dx, dy);
 
             if (showStack) {
-                renderer.updateStack(stackEngine.getStackBuffer(), width, height);
+                renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
             } else {
                 renderer.updateLive(currentRaw, width, height);
             }

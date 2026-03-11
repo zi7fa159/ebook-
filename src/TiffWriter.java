@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
  * A simple 16-bit Greyscale TIFF writer for astrophotography results.
  */
 public class TiffWriter {
-    public static void saveTiff16Color(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, int blackLevel) throws IOException {
+    public static void saveTiff16Color(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, int blackLevel, int frameCount, boolean isSum) throws IOException {
         try (FileOutputStream out = new FileOutputStream(path)) {
             // TIFF Header (Little Endian)
             out.write(new byte[]{0x49, 0x49, 0x2A, 0x00});
@@ -24,9 +24,11 @@ public class TiffWriter {
             byte[] ifdOffsetBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ifdOffset).array();
             out.write(ifdOffsetBytes);
 
+            float effectiveBlack = isSum ? (blackLevel * frameCount) : blackLevel;
+
             float maxVal = 0;
             for (float f : data) {
-                float v = f - blackLevel;
+                float v = f - effectiveBlack;
                 if (v > maxVal) maxVal = v;
             }
             if (maxVal == 0) maxVal = 1;
@@ -43,11 +45,11 @@ public class TiffWriter {
                     int bx = (x / 2) * 2;
                     int by = (y / 2) * 2;
 
-                    float r = (data[by * width + bx] - blackLevel) * rGain;
-                    float g1 = (data[by * width + (bx + 1)] - blackLevel) * gGain;
-                    float g2 = (data[(by + 1) * width + bx] - blackLevel) * gGain;
+                    float r = (data[by * width + bx] - effectiveBlack) * rGain;
+                    float g1 = (data[by * width + (bx + 1)] - effectiveBlack) * gGain;
+                    float g2 = (data[(by + 1) * width + bx] - effectiveBlack) * gGain;
                     float g = (g1 + g2) / 2.0f;
-                    float b = (data[(by + 1) * width + (bx + 1)] - blackLevel) * bGain;
+                    float b = (data[(by + 1) * width + (bx + 1)] - effectiveBlack) * bGain;
 
                     bb.putShort((short) Math.min(65535, (int)(Math.max(0, r / maxVal) * 65535)));
                     bb.putShort((short) Math.min(65535, (int)(Math.max(0, g / maxVal) * 65535)));

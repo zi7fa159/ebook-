@@ -15,43 +15,46 @@ public class FrameAligner {
             return new Point(0, 0);
         }
 
-        // Simplistic ALS translation alignment:
-        // Find the most frequent displacement vector between pairs of stars.
-        // For a 1:1 clone, we can try to match the brightest stars.
+        // Optimized displacement histogram approach
+        // Max expected shift is say 200 pixels in downscaled coords
+        int limit = 200;
+        int size = limit * 2 + 1;
+        int[] hist = new int[size * size];
 
-        int bestDx = 0;
-        int bestDy = 0;
-        int maxVotes = 0;
-
-        // Compare each current star with reference stars and find common dx, dy
-        // To be efficient, we use a small tolerance
-        int tolerance = 2;
-
-        for (Point c : currentStars) {
-            for (Point r : referenceStars) {
+        for (Point r : referenceStars) {
+            for (Point c : currentStars) {
                 int dx = r.x - c.x;
                 int dy = r.y - c.y;
 
+                if (Math.abs(dx) <= limit && Math.abs(dy) <= limit) {
+                    hist[(dy + limit) * size + (dx + limit)]++;
+                }
+            }
+        }
+
+        int maxVotes = 0;
+        int bestDx = 0;
+        int bestDy = 0;
+
+        // Find peak in histogram with a small 3x3 window to handle slight noise/centroiding jitter
+        for (int y = 1; y < size - 1; y++) {
+            for (int x = 1; x < size - 1; x++) {
                 int votes = 0;
-                for (Point c2 : currentStars) {
-                    for (Point r2 : referenceStars) {
-                        if (Math.abs((r2.x - c2.x) - dx) <= tolerance &&
-                            Math.abs((r2.y - c2.y) - dy) <= tolerance) {
-                            votes++;
-                        }
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        votes += hist[(y + dy) * size + (x + dx)];
                     }
                 }
-
                 if (votes > maxVotes) {
                     maxVotes = votes;
-                    bestDx = dx;
-                    bestDy = dy;
+                    bestDx = x - limit;
+                    bestDy = y - limit;
                 }
-
-                if (maxVotes > 10) break; // Optimization
             }
-            if (maxVotes > 10) break;
         }
+
+        // If very few stars match, assume no movement to avoid jumping on noise
+        if (maxVotes < 3) return new Point(0, 0);
 
         return new Point(bestDx, bestDy);
     }

@@ -505,9 +505,9 @@ public class MainActivity extends Activity {
                 File dngFile = new File(path, "A2LS_Raw_" + ts + ".dng");
 
                 addLog("Saving TIFF...");
-                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel);
+                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameProcessor.getFrameCount(), spinMethod.getSelectedItemPosition() == 1);
                 addLog("Saving PNG...");
-                savePngOptimized(pngFile, buffer, w, h, maxVal);
+                savePngOptimized(pngFile, buffer, w, h, maxVal, frameProcessor.getFrameCount(), spinMethod.getSelectedItemPosition() == 1);
 
                 addLog("Saving DNG...");
                 saveDng(dngFile);
@@ -539,19 +539,20 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void savePngOptimized(File file, float[] buffer, int w, int h, float maxVal) throws IOException {
+    private void savePngOptimized(File file, float[] buffer, int w, int h, float maxVal, int frameCount, boolean isSum) throws IOException {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         int[] rowPixels = new int[w];
+        float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int bx = (x / 2) * 2;
                 int by = (y / 2) * 2;
-                float r = (buffer[by * w + bx] - currentBlackLevel) * currentRGain;
-                float g1 = (buffer[by * w + (bx + 1)] - currentBlackLevel) * currentGGain;
-                float g2 = (buffer[(by + 1) * w + bx] - currentBlackLevel) * currentGGain;
+                float r = (buffer[by * w + bx] - effectiveBlack) * currentRGain;
+                float g1 = (buffer[by * w + (bx + 1)] - effectiveBlack) * currentGGain;
+                float g2 = (buffer[(by + 1) * w + bx] - effectiveBlack) * currentGGain;
                 float g = (g1 + g2) / 2.0f;
-                float b = (buffer[(by + 1) * w + (bx + 1)] - currentBlackLevel) * currentBGain;
+                float b = (buffer[(by + 1) * w + (bx + 1)] - effectiveBlack) * currentBGain;
 
                 int ri = Math.min(255, (int) (Math.max(0, r / maxVal) * 255));
                 int gi = Math.min(255, (int) (Math.max(0, g / maxVal) * 255));

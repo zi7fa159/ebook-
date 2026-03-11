@@ -28,6 +28,8 @@ public class Renderer {
     private int blackLevel = 64;
     private float whiteLevel = 1023.0f;
     private int frameCount = 0;
+    private int currentStackFrames = 1;
+    private boolean isSumStacking = false;
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
@@ -61,10 +63,14 @@ public class Renderer {
     }
 
     public synchronized void updateLive(short[] rawBuffer, int width, int height) {
+        this.currentStackFrames = 1;
+        this.isSumStacking = false;
         processAndDraw(null, rawBuffer, width, height);
     }
 
-    public synchronized void updateStack(float[] stackBuffer, int width, int height) {
+    public synchronized void updateStack(float[] stackBuffer, int width, int height, int n, boolean isSum) {
+        this.currentStackFrames = n;
+        this.isSumStacking = isSum;
         processAndDraw(stackBuffer, null, width, height);
     }
 
@@ -80,6 +86,10 @@ public class Renderer {
             argbBuffer = new int[sw * sh];
         }
 
+        // Effective black level for summed stacks
+        float effectiveBlack = isSumStacking ? (blackLevel * currentStackFrames) : blackLevel;
+        float effectiveWhite = isSumStacking ? (whiteLevel * currentStackFrames) : whiteLevel;
+
         // Brightness scaling for preview
         float scale;
         float maxObserved = 0;
@@ -88,20 +98,30 @@ public class Renderer {
             int sampleCount = 0;
             float sum = 0;
             int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
-            for (int i = 0; i < len; i += 2000) {
+            for (int i = 0; i < len; i += 4000) { // Sparse sampling
                 float val = (stackBuffer != null) ? stackBuffer[i] : (rawBuffer[i] & 0xFFFF);
                 if (val > maxObserved) maxObserved = val;
                 sum += val;
                 sampleCount++;
             }
             avg = sum / sampleCount;
-            float robustMax = (maxObserved + avg * 10) / 11.0f;
-            scale = 255.0f / (Math.max(1, robustMax - blackLevel));
+
+            // ALS-style stretch: Map background to ~15% grey
+            // Background is roughly 'avg'.
+            // Stretch factor = Target / (Background - Black)
+            // Target is say 40 out of 255
+            float background = avg;
+            float signalRange = Math.max(1, background - effectiveBlack);
+            scale = 40.0f / signalRange;
+
+            // Clamp scale so we don't over-amplify noise if it's pure black
+            if (scale > 10.0f) scale = 10.0f;
+
             if (frameCount % 30 == 0) {
-                Log.d(TAG, "AutoScale: max=" + maxObserved + " avg=" + avg + " robustMax=" + robustMax + " scale=" + scale + " bl=" + blackLevel);
+                Log.d(TAG, "AutoScale: max=" + maxObserved + " avg=" + avg + " effBl=" + effectiveBlack + " scale=" + scale);
             }
         } else {
-            scale = 255.0f / (Math.max(1, (whitePoint - blackPoint) * whiteLevel));
+            scale = 255.0f / (Math.max(1, (whitePoint - blackPoint) * effectiveWhite));
         }
 
         if (stackBuffer == null && rawBuffer != null) {
@@ -112,7 +132,7 @@ public class Renderer {
         frameCount++;
 
         // Simple Debayering for live preview (pattern aware)
-        float manualBlackOffset = useAutoStretch ? 0 : blackPoint * whiteLevel;
+        float manualBlackOffset = useAutoStretch ? 0 : blackPoint * effectiveWhite;
         boolean isFastLive = (stackBuffer == null);
 
         for (int y = 0; y < sh; y++) {
@@ -144,9 +164,9 @@ public class Renderer {
                     else { r = v11; g = (v01+v10)/2f; b = v00; }
                 }
 
-                r = (r - blackLevel - manualBlackOffset) * redGain;
-                g = (g - blackLevel - manualBlackOffset) * greenGain;
-                b = (b - blackLevel - manualBlackOffset) * blueGain;
+                r = (r - effectiveBlack - manualBlackOffset) * redGain;
+                g = (g - effectiveBlack - manualBlackOffset) * greenGain;
+                b = (b - effectiveBlack - manualBlackOffset) * blueGain;
 
                 int ri, gi, bi;
                 if (isFastLive) {
