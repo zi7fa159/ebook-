@@ -26,6 +26,7 @@ public class CameraController {
 
     private long exposureTimeNs = 1_000_000_000L; // 1s
     private int iso = 800;
+    private float focusDistance = 0.0f; // Infinity
 
     public interface FrameCallback {
         void onFrameReceived(ImageReader reader);
@@ -37,7 +38,7 @@ public class CameraController {
         this.context = context;
     }
 
-    public void openCamera(FrameCallback callback) {
+    public void openCamera(FrameCallback callback, SessionCallback sessionCallback) {
         if (cameraDevice != null) return;
         this.frameCallback = callback;
         startBackgroundThread();
@@ -67,7 +68,7 @@ public class CameraController {
                 @Override
                 public void onOpened(CameraDevice camera) {
                     cameraDevice = camera;
-                    createCaptureSession();
+                    createCaptureSession(sessionCallback);
                 }
 
                 @Override
@@ -90,12 +91,13 @@ public class CameraController {
         void onReady();
     }
 
-    private void createCaptureSession() {
+    private void createCaptureSession(SessionCallback sessionCallback) {
         try {
             cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
                     captureSession = session;
+                    if (sessionCallback != null) sessionCallback.onReady();
                 }
 
                 @Override
@@ -116,7 +118,7 @@ public class CameraController {
             builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
             builder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
             builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
-            builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, 0.0f); // Infinity
+            builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
 
             builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNs);
             builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
@@ -144,6 +146,10 @@ public class CameraController {
 
     public void setIso(int iso) {
         this.iso = iso;
+    }
+
+    public void setFocus(float distance) {
+        this.focusDistance = distance;
     }
 
     private void startBackgroundThread() {

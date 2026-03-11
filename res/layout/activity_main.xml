@@ -9,77 +9,84 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Top Status Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#AA000000"
+        android:padding="8dp"
+        android:gravity="center_vertical">
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Frames: 0 | Time: 00:00"
+            android:textColor="#00FF00"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/sensorInfoText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Res: ... | Temp: ..."
+            android:textColor="#FFFFFF"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- Bottom Control Panel -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="vertical"
-        android:background="#88000000"
-        android:padding="16dp">
+        android:background="#CC000000"
+        android:padding="12dp">
 
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Frames: 0"
-            android:textColor="#FFFFFF" />
-
+        <!-- Info Row -->
         <TextView
             android:id="@+id/infoText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Exp: 1.0s | ISO: 800"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Exposure"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
-        <SeekBar
-            android:id="@+id/exposureSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="30" />
+            android:text="Exp: 1.0s | ISO: 800 | Focus: Inf"
+            android:textColor="#FFFF00"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="ISO"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
-        <SeekBar
-            android:id="@+id/isoSeekBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <Button
-                android:id="@+id/btnStart"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Start" />
-
-            <Button
-                android:id="@+id/btnStop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Stop"
-                android:enabled="false" />
-
-            <Button
-                android:id="@+id/btnSave"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Save" />
+        <!-- Exposure Control -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:layout_width="60dp" android:layout_height="wrap_content" android:text="EXP" android:textColor="#FFFFFF" android:textSize="12sp" />
+            <SeekBar android:id="@+id/exposureSeekBar" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:max="30" />
         </LinearLayout>
+
+        <!-- ISO Control -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:layout_width="60dp" android:layout_height="wrap_content" android:text="ISO" android:textColor="#FFFFFF" android:textSize="12sp" />
+            <SeekBar android:id="@+id/isoSeekBar" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:max="64" />
+        </LinearLayout>
+
+        <!-- Focus Control -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:layout_width="60dp" android:layout_height="wrap_content" android:text="FOCUS" android:textColor="#FFFFFF" android:textSize="12sp" />
+            <SeekBar android:id="@+id/focusSeekBar" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:max="100" />
+        </LinearLayout>
+
+        <!-- Buttons Grid -->
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:alignmentMode="alignBounds"
+            android:useDefaultMargins="true"
+            android:layout_marginTop="8dp">
+
+            <Button android:id="@+id/btnStart" android:text="START" android:backgroundTint="#228B22" />
+            <Button android:id="@+id/btnStop" android:text="STOP" android:enabled="false" android:backgroundTint="#B22222" />
+            <Button android:id="@+id/btnReset" android:text="RESET" />
+            <Button android:id="@+id/btnSave" android:text="SAVE TIFF" android:layout_columnSpan="2" android:layout_gravity="fill_horizontal" />
+            <ToggleButton android:id="@+id/toggleStretch" android:textOn="STRETCH ON" android:textOff="STRETCH OFF" android:checked="true" />
+
+        </GridLayout>
     </LinearLayout>
 
 </RelativeLayout>
