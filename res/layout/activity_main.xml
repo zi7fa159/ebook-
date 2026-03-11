@@ -2,14 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#FF000000">
 
     <TextureView
         android:id="@+id/preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top Overlay: Status and Log -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,17 +21,16 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="READY TO STACK"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:text="READY"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/frame_counter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0 Frames"
-            android:textColor="#00FF00"
+            android:textColor="#FF00FF00"
             android:textSize="14sp" />
     </LinearLayout>
 
@@ -45,7 +43,6 @@
         android:progress="0"
         android:max="100" />
 
-    <!-- Right Overlay: System Logs -->
     <ScrollView
         android:id="@+id/log_scroll"
         android:layout_width="150dp"
@@ -54,18 +51,16 @@
         android:layout_alignParentRight="true"
         android:layout_marginTop="50dp"
         android:layout_marginRight="10dp"
-        android:background="#60000000"
-        android:visibility="gone">
+        android:background="#60000000">
         <TextView
             android:id="@+id/log_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:textColor="#AAAAAA"
+            android:textColor="#FFAAAAAA"
             android:textSize="9sp" />
     </ScrollView>
 
-    <!-- Bottom Controls -->
     <LinearLayout
         android:id="@+id/bottom_panel"
         android:layout_width="match_parent"
@@ -75,7 +70,6 @@
         android:padding="16dp"
         android:background="#CC000000">
 
-        <!-- Values Display (Clickable for Manual Entry) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -91,13 +85,12 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:clickable="true"
-                android:focusable="true"
                 android:background="?android:attr/selectableItemBackground">
-                <TextView android:text="EXP" android:textColor="#888" android:textSize="10sp" />
-                <TextView android:id="@+id/val_exp" android:text="1s" android:textColor="#FFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:text="EXP" android:textColor="#FF888888" android:textSize="10sp" />
+                <TextView android:id="@+id/val_exp" android:text="1s" android:textColor="#FFFFFFFF" android:textSize="18sp" />
             </LinearLayout>
 
-            <View android:layout_width="1dp" android:layout_height="30dp" android:background="#444" />
+            <View android:layout_width="1dp" android:layout_height="30dp" android:background="#FF444444" />
 
             <LinearLayout
                 android:id="@+id/ctrl_iso"
@@ -107,13 +100,12 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:clickable="true"
-                android:focusable="true"
                 android:background="?android:attr/selectableItemBackground">
-                <TextView android:text="ISO" android:textColor="#888" android:textSize="10sp" />
-                <TextView android:id="@+id/val_iso" android:text="800" android:textColor="#FFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:text="ISO" android:textColor="#FF888888" android:textSize="10sp" />
+                <TextView android:id="@+id/val_iso" android:text="800" android:textColor="#FFFFFFFF" android:textSize="18sp" />
             </LinearLayout>
 
-            <View android:layout_width="1dp" android:layout_height="30dp" android:background="#444" />
+            <View android:layout_width="1dp" android:layout_height="30dp" android:background="#FF444444" />
 
             <LinearLayout
                 android:id="@+id/ctrl_focus"
@@ -123,14 +115,12 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:clickable="true"
-                android:focusable="true"
                 android:background="?android:attr/selectableItemBackground">
-                <TextView android:text="FOCUS" android:textColor="#888" android:textSize="10sp" />
-                <TextView android:id="@+id/val_focus" android:text="INF" android:textColor="#FFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:text="FOCUS" android:textColor="#FF888888" android:textSize="10sp" />
+                <TextView android:id="@+id/val_focus" android:text="INF" android:textColor="#FFFFFFFF" android:textSize="18sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Action Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -142,27 +132,30 @@
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="CLR"
-                android:backgroundTint="#444"
+                android:background="#FF444444"
+                android:textColor="#FFFFFFFF"
                 android:textSize="12sp" />
 
-            <Space android:layout_width="20dp" android:layout_height="wrap_content" />
+            <View android:layout_width="20dp" android:layout_height="1dp" />
 
             <Button
                 android:id="@+id/btn_main_action"
                 android:layout_width="100dp"
                 android:layout_height="60dp"
                 android:text="START"
-                android:backgroundTint="#FF4444"
+                android:background="#FFFF4444"
+                android:textColor="#FFFFFFFF"
                 android:textStyle="bold" />
 
-            <Space android:layout_width="20dp" android:layout_height="wrap_content" />
+            <View android:layout_width="20dp" android:layout_height="1dp" />
 
             <Button
                 android:id="@+id/btn_save"
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="SAVE"
-                android:backgroundTint="#444"
+                android:background="#FF444444"
+                android:textColor="#FFFFFFFF"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
