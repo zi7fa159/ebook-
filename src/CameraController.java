@@ -12,24 +12,34 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class CameraController {
     private final Context context;
     private CameraDevice cameraDevice;
     private CameraCaptureSession captureSession;
-    private ImageReader imageReader;
+    private ImageReader yuvReader;
+    private ImageReader rawReader;
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
 
-    private long exposureTimeNs = 1_000_000_000L; // 1s
+    private long exposureTimeNs = 1_000_000_000L; // 1s default
     private int iso = 800;
     private float focusDistance = 0.0f; // Infinity
 
+    private Range<Long> exposureRange;
+    private Range<Integer> isoRange;
+    private float minFocusDistance;
+    private boolean isRawSupported = false;
+
     public interface FrameCallback {
-        void onFrameReceived(ImageReader reader);
+        void onYuvFrameReceived(ImageReader reader);
+        void onRawFrameReceived(ImageReader reader);
     }
 
     private FrameCallback frameCallback;
@@ -57,12 +67,43 @@ public class CameraController {
 
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            Size largest = map.getOutputSizes(ImageFormat.YUV_420_888)[0];
 
-            imageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YUV_420_888, 5);
-            imageReader.setOnImageAvailableListener(reader -> {
-                if (frameCallback != null) frameCallback.onFrameReceived(reader);
+            // Get ranges
+            exposureRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
+            isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
+            minFocusDistance = characteristics.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+
+            int[] caps = characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES);
+            for (int cap : caps) {
+                if (cap == CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW) {
+                    isRawSupported = true;
+                    break;
+                }
+            }
+
+            // Find ~3MP size for YUV
+            Size[] yuvSizes = map.getOutputSizes(ImageFormat.YUV_420_888);
+            Size yuvSize = yuvSizes[0]; // Default to largest
+            for (Size s : yuvSizes) {
+                int mp = (s.getWidth() * s.getHeight()) / 1_000_000;
+                if (mp >= 3 && mp <= 5) {
+                    yuvSize = s;
+                    break;
+                }
+            }
+
+            yuvReader = ImageReader.newInstance(yuvSize.getWidth(), yuvSize.getHeight(), ImageFormat.YUV_420_888, 3);
+            yuvReader.setOnImageAvailableListener(reader -> {
+                if (frameCallback != null) frameCallback.onYuvFrameReceived(reader);
             }, backgroundHandler);
+
+            if (isRawSupported) {
+                Size rawSize = map.getOutputSizes(ImageFormat.RAW_SENSOR)[0];
+                rawReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(), ImageFormat.RAW_SENSOR, 2);
+                rawReader.setOnImageAvailableListener(reader -> {
+                    if (frameCallback != null) frameCallback.onRawFrameReceived(reader);
+                }, backgroundHandler);
+            }
 
             manager.openCamera(cameraId, new CameraDevice.StateCallback() {
                 @Override
@@ -74,6 +115,7 @@ public class CameraController {
                 @Override
                 public void onDisconnected(CameraDevice camera) {
                     camera.close();
+                    cameraDevice = null;
                 }
 
                 @Override
@@ -93,7 +135,11 @@ public class CameraController {
 
     private void createCaptureSession(SessionCallback sessionCallback) {
         try {
-            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
+            List<Surface> surfaces = new ArrayList<>();
+            surfaces.add(yuvReader.getSurface());
+            if (rawReader != null) surfaces.add(rawReader.getSurface());
+
+            cameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
                     captureSession = session;
@@ -112,7 +158,10 @@ public class CameraController {
         if (cameraDevice == null || captureSession == null) return;
         try {
             CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
-            builder.addTarget(imageReader.getSurface());
+            builder.addTarget(yuvReader.getSurface());
+            // Optionally add RAW if wanted, but for live stacking we just need YUV
+            // If user wants to save RAW, we might need a separate burst or include it.
+            // For now, let's keep it YUV-only for the repeating request to save bandwidth.
 
             builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
             builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
@@ -122,9 +171,25 @@ public class CameraController {
 
             builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNs);
             builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
-            builder.set(CaptureRequest.SENSOR_FRAME_DURATION, exposureTimeNs + 100_000_000L);
+            builder.set(CaptureRequest.SENSOR_FRAME_DURATION, exposureTimeNs + 10_000_000L);
 
             captureSession.setRepeatingRequest(builder.build(), null, backgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void captureSingleRaw() {
+        if (cameraDevice == null || captureSession == null || rawReader == null) return;
+        try {
+            CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
+            builder.addTarget(rawReader.getSurface());
+            builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+            builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNs);
+            builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
+            builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
+
+            captureSession.capture(builder.build(), null, backgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -141,15 +206,23 @@ public class CameraController {
     }
 
     public void setExposure(long ns) {
-        this.exposureTimeNs = ns;
+        if (exposureRange != null) {
+            this.exposureTimeNs = Math.max(exposureRange.getLower(), Math.min(exposureRange.getUpper(), ns));
+        } else {
+            this.exposureTimeNs = ns;
+        }
     }
 
     public void setIso(int iso) {
-        this.iso = iso;
+        if (isoRange != null) {
+            this.iso = Math.max(isoRange.getLower(), Math.min(isoRange.getUpper(), iso));
+        } else {
+            this.iso = iso;
+        }
     }
 
     public void setFocus(float distance) {
-        this.focusDistance = distance;
+        this.focusDistance = Math.max(0.0f, Math.min(minFocusDistance, distance));
     }
 
     private void startBackgroundThread() {
@@ -159,7 +232,10 @@ public class CameraController {
     }
 
     public void close() {
+        stopCapture();
         if (cameraDevice != null) cameraDevice.close();
+        if (yuvReader != null) yuvReader.close();
+        if (rawReader != null) rawReader.close();
         if (backgroundThread != null) {
             backgroundThread.quitSafely();
             try {
@@ -169,4 +245,9 @@ public class CameraController {
             }
         }
     }
+
+    public Range<Long> getExposureRange() { return exposureRange; }
+    public Range<Integer> getIsoRange() { return isoRange; }
+    public float getMinFocusDistance() { return minFocusDistance; }
+    public boolean isRawSupported() { return isRawSupported; }
 }

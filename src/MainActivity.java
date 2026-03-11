@@ -12,8 +12,13 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.SeekBar;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -34,9 +39,15 @@ public class MainActivity extends Activity implements CameraController.FrameCall
     private boolean isStacking = false;
     private List<StarDetector.Star> referenceStars;
 
-    private TextView statusText, infoText, sensorInfoText;
-    private Button btnStart, btnStop, btnSave, btnReset;
+    private TextView statusText, timerText, sensorInfoText;
+    private Button btnStart, btnStop, btnSave, btnReset, btnApply, btnCloseMenu;
+    private ImageButton btnMenu;
     private ToggleButton toggleStretch;
+    private View menuLayout;
+    private EditText editExposure, editISO, editFocus;
+    private Spinner spinnerAlgo;
+    private CheckBox checkAlign;
+
     private int width, height;
 
     private Timer timer;
@@ -47,22 +58,34 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, 101);
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 101);
         }
 
         statusText = findViewById(R.id.statusText);
-        infoText = findViewById(R.id.infoText);
+        timerText = findViewById(R.id.timerText);
         sensorInfoText = findViewById(R.id.sensorInfoText);
         btnStart = findViewById(R.id.btnStart);
         btnStop = findViewById(R.id.btnStop);
         btnSave = findViewById(R.id.btnSave);
         btnReset = findViewById(R.id.btnReset);
+        btnMenu = findViewById(R.id.btnMenu);
+        btnApply = findViewById(R.id.btnApply);
+        btnCloseMenu = findViewById(R.id.btnCloseMenu);
         toggleStretch = findViewById(R.id.toggleStretch);
+        menuLayout = findViewById(R.id.menuLayout);
 
-        SeekBar exposureSeekBar = findViewById(R.id.exposureSeekBar);
-        SeekBar isoSeekBar = findViewById(R.id.isoSeekBar);
-        SeekBar focusSeekBar = findViewById(R.id.focusSeekBar);
+        editExposure = findViewById(R.id.editExposure);
+        editISO = findViewById(R.id.editISO);
+        editFocus = findViewById(R.id.editFocus);
+        spinnerAlgo = findViewById(R.id.spinnerAlgo);
+        checkAlign = findViewById(R.id.checkAlign);
+
+        String[] algos = {"AVERAGE", "ADDITIVE"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, algos);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerAlgo.setAdapter(adapter);
 
         cameraController = new CameraController(this);
         starDetector = new StarDetector();
@@ -80,82 +103,63 @@ public class MainActivity extends Activity implements CameraController.FrameCall
             public void surfaceDestroyed(SurfaceHolder holder) {}
         });
 
-        if (surfaceView.getHolder().getSurface().isValid()) {
-            openCamera();
-        }
+        btnMenu.setOnClickListener(v -> menuLayout.setVisibility(View.VISIBLE));
+        btnCloseMenu.setOnClickListener(v -> menuLayout.setVisibility(View.GONE));
+
+        btnApply.setOnClickListener(v -> {
+            try {
+                float expS = Float.parseFloat(editExposure.getText().toString());
+                int iso = Integer.parseInt(editISO.getText().toString());
+                float focus = Float.parseFloat(editFocus.getText().toString());
+
+                cameraController.setExposure((long)(expS * 1_000_000_000L));
+                cameraController.setIso(iso);
+                cameraController.setFocus(focus);
+
+                if (stackEngine != null) {
+                    stackEngine.setMode(StackEngine.Mode.valueOf(spinnerAlgo.getSelectedItem().toString()));
+                }
+
+                sensorInfoText.setText(String.format("Exposure: %.2fs | ISO: %d | Focus: %.1f", expS, iso, focus));
+
+                cameraController.startCapture();
+                Toast.makeText(this, "Settings Applied", Toast.LENGTH_SHORT).show();
+                menuLayout.setVisibility(View.GONE);
+            } catch (Exception e) {
+                Toast.makeText(this, "Invalid Input", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         btnStart.setOnClickListener(v -> {
             isStacking = true;
             referenceStars = null;
-            if (stackEngine != null) stackEngine.reset();
+            if (stackEngine != null) {
+                stackEngine.reset();
+                stackEngine.setMode(StackEngine.Mode.valueOf(spinnerAlgo.getSelectedItem().toString()));
+            }
             btnStart.setEnabled(false);
             btnStop.setEnabled(true);
             startTime = System.currentTimeMillis();
             startTimer();
-            cameraController.startCapture();
+            statusText.setText("Status: Stacking...");
         });
 
         btnStop.setOnClickListener(v -> {
             isStacking = false;
             stopTimer();
-            cameraController.stopCapture();
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
+            statusText.setText("Status: Stopped");
         });
 
         btnReset.setOnClickListener(v -> {
             if (stackEngine != null) stackEngine.reset();
             referenceStars = null;
             startTime = System.currentTimeMillis();
-            updateStatusText(0);
+            updateTimerText(0);
         });
 
         btnSave.setOnClickListener(v -> saveStackedImage());
-
-        exposureSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                long exposureNs = (progress + 1) * 1_000_000_000L;
-                cameraController.setExposure(exposureNs);
-                updateInfoText(progress + 1, isoSeekBar.getProgress() * 100 + 100, focusSeekBar.getProgress() / 10.0f);
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        isoSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                int iso = progress * 100 + 100;
-                cameraController.setIso(iso);
-                updateInfoText(exposureSeekBar.getProgress() + 1, iso, focusSeekBar.getProgress() / 10.0f);
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        focusSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float dist = progress / 10.0f;
-                cameraController.setFocus(dist);
-                updateInfoText(exposureSeekBar.getProgress() + 1, isoSeekBar.getProgress() * 100 + 100, dist);
-                if (!isStacking) cameraController.startCapture(); // Update focus live
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        // Initial defaults
-        exposureSeekBar.setProgress(0); // 1s
-        isoSeekBar.setProgress(7); // ISO 800
-        focusSeekBar.setProgress(0); // Inf
     }
 
     private void openCamera() {
@@ -167,14 +171,10 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         });
     }
 
-    private void updateInfoText(long expS, int iso, float focus) {
-        infoText.setText("Exp: " + expS + "s | ISO: " + iso + " | Focus: " + (focus == 0 ? "Inf" : focus));
-    }
-
-    private void updateStatusText(int frames) {
+    private void updateTimerText(int frames) {
         long elapsed = isStacking ? (System.currentTimeMillis() - startTime) / 1000 : 0;
         String time = String.format("%02d:%02d", elapsed / 60, elapsed % 60);
-        statusText.setText("Frames: " + frames + " | Time: " + time);
+        timerText.setText("Stacked: " + frames + " | Time: " + time);
     }
 
     private void startTimer() {
@@ -184,7 +184,7 @@ public class MainActivity extends Activity implements CameraController.FrameCall
             @Override
             public void run() {
                 runOnUiThread(() -> {
-                    if (isStacking) updateStatusText(stackEngine != null ? stackEngine.getFrameCount() : 0);
+                    if (isStacking) updateTimerText(stackEngine != null ? stackEngine.getFrameCount() : 0);
                 });
             }
         }, 1000, 1000);
@@ -198,7 +198,7 @@ public class MainActivity extends Activity implements CameraController.FrameCall
     }
 
     @Override
-    public void onFrameReceived(ImageReader reader) {
+    public void onYuvFrameReceived(ImageReader reader) {
         Image image = null;
         try {
             image = reader.acquireLatestImage();
@@ -217,34 +217,43 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         Image.Plane yPlane = image.getPlanes()[0];
         ByteBuffer yBuffer = yPlane.getBuffer();
         int rowStride = yPlane.getRowStride();
+
+        // Efficiently copy Y data
         byte[] yData = new byte[yBuffer.remaining()];
         yBuffer.get(yData);
 
         if (isStacking) {
-            List<StarDetector.Star> currentStars = starDetector.detectStars(yData, width, height, rowStride);
             float dx = 0, dy = 0;
-
-            if (referenceStars == null) {
-                referenceStars = currentStars;
-                stackEngine.addFrame(yData, rowStride, 0, 0);
-            } else {
-                FrameAligner.Translation t = frameAligner.align(referenceStars, currentStars);
-                if (t != null) {
-                    dx = t.dx;
-                    dy = t.dy;
-                    stackEngine.addFrame(yData, rowStride, dx, dy);
+            if (checkAlign.isChecked()) {
+                List<StarDetector.Star> currentStars = starDetector.detectStars(yData, width, height, rowStride);
+                if (referenceStars == null) {
+                    if (currentStars.size() >= 8) {
+                        referenceStars = currentStars;
+                    }
                 } else {
-                    // Could not align
+                    FrameAligner.Translation t = frameAligner.align(referenceStars, currentStars);
+                    if (t != null) {
+                        dx = t.dx;
+                        dy = t.dy;
+                    } else {
+                        // Discard frame or keep last alignment? Requirement says discard.
+                        image.close();
+                        runOnUiThread(() -> statusText.setText("Status: Align Failed (Skipped)"));
+                        return;
+                    }
                 }
             }
 
+            stackEngine.addFrame(yData, rowStride, dx, dy);
+            runOnUiThread(() -> statusText.setText("Status: Stacking..."));
             renderer.render(stackEngine.getStackBuffer(), width, height, toggleStretch.isChecked());
         } else {
             // Preview only
             float[] previewBuffer = new float[width * height];
-            for (int i = 0; i < width * height; i++) {
-                int yIdx = (i / width) * rowStride + (i % width);
-                previewBuffer[i] = (yData[yIdx] & 0xFF);
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    previewBuffer[y * width + x] = (yData[y * rowStride + x] & 0xFF);
+                }
             }
             renderer.render(previewBuffer, width, height, toggleStretch.isChecked());
         }
@@ -252,14 +261,22 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         image.close();
     }
 
+    @Override
+    public void onRawFrameReceived(ImageReader reader) {
+        Image image = reader.acquireLatestImage();
+        if (image != null) {
+            // Save RAW DNG if requested (Not implemented in live pipeline as per instructions)
+            image.close();
+        }
+    }
+
     private void saveStackedImage() {
-        if (stackEngine == null || stackEngine.getFrameCount() == 0 || width == 0) return;
+        if (stackEngine == null || stackEngine.getFrameCount() == 0) return;
 
         float[] buffer = stackEngine.getStackBuffer().clone();
-        Toast.makeText(this, "Saving TIFF...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Saving 16-bit TIFF...", Toast.LENGTH_SHORT).show();
 
         new Thread(() -> {
-            // Save as 16-bit Grayscale TIFF
             ContentValues values = new ContentValues();
             String filename = "AstroStack_" + System.currentTimeMillis() + ".tif";
             values.put(MediaStore.Images.Media.DISPLAY_NAME, filename);
@@ -278,45 +295,47 @@ public class MainActivity extends Activity implements CameraController.FrameCall
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                String msg = e.getMessage();
-                runOnUiThread(() -> Toast.makeText(this, "Error: " + msg, Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, "Save Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
 
     private void write16BitTiff(OutputStream out, float[] buffer, int width, int height) throws Exception {
-        // Simple Little-Endian TIFF Header for 16-bit grayscale
-        // Header (8 bytes)
-        out.write(new byte[]{0x49, 0x49, 0x2A, 0x00}); // II, 42
+        // Little-Endian TIFF Header
+        out.write(new byte[]{0x49, 0x49, 0x2A, 0x00});
         int pixelDataSize = width * height * 2;
         int ifdOffset = 8 + pixelDataSize;
-        out.write(new byte[]{(byte)(ifdOffset & 0xFF), (byte)((ifdOffset >> 8) & 0xFF),
-                             (byte)((ifdOffset >> 16) & 0xFF), (byte)((ifdOffset >> 24) & 0xFF)});
+
+        out.write((ifdOffset & 0xFF));
+        out.write(((ifdOffset >> 8) & 0xFF));
+        out.write(((ifdOffset >> 16) & 0xFF));
+        out.write(((ifdOffset >> 24) & 0xFF));
 
         // Pixel Data
         for (float val : buffer) {
-            int v = (int)(val * 257.01f); // Scale 0-255 to 0-65535
+            int v = (int)(val * 257.0f); // Scale 0-255 to 0-65535
             if (v > 65535) v = 65535;
             if (v < 0) v = 0;
             out.write(v & 0xFF);
             out.write((v >> 8) & 0xFF);
         }
 
-        // IFD (Image File Directory)
-        short numEntries = 8;
+        // IFD
+        short numEntries = 9;
         out.write(numEntries & 0xFF);
         out.write((numEntries >> 8) & 0xFF);
 
-        writeTIFFEntry(out, (short)256, (short)4, 1, width);         // Width
-        writeTIFFEntry(out, (short)257, (short)4, 1, height);        // Height
-        writeTIFFEntry(out, (short)258, (short)3, 1, 16);            // BitsPerSample
-        writeTIFFEntry(out, (short)259, (short)3, 1, 1);             // Compression (None)
-        writeTIFFEntry(out, (short)262, (short)3, 1, 1);             // PhotometricInterpretation (BlackIsZero)
-        writeTIFFEntry(out, (short)273, (short)4, 1, 8);             // StripOffsets
-        writeTIFFEntry(out, (short)278, (short)4, 1, height);        // RowsPerStrip
-        writeTIFFEntry(out, (short)279, (short)4, 1, pixelDataSize); // StripByteCounts
+        writeTIFFEntry(out, (short)256, (short)4, 1, width);
+        writeTIFFEntry(out, (short)257, (short)4, 1, height);
+        writeTIFFEntry(out, (short)258, (short)3, 1, 16);
+        writeTIFFEntry(out, (short)259, (short)3, 1, 1);
+        writeTIFFEntry(out, (short)262, (short)3, 1, 1);
+        writeTIFFEntry(out, (short)273, (short)4, 1, 8);
+        writeTIFFEntry(out, (short)277, (short)3, 1, 1);
+        writeTIFFEntry(out, (short)278, (short)4, 1, height);
+        writeTIFFEntry(out, (short)279, (short)4, 1, pixelDataSize);
 
-        out.write(new byte[]{0, 0, 0, 0}); // Next IFD offset
+        out.write(new byte[]{0, 0, 0, 0});
     }
 
     private void writeTIFFEntry(OutputStream out, short tag, short type, int count, int val) throws Exception {
@@ -326,11 +345,6 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         out.write((count >> 16) & 0xFF); out.write((count >> 24) & 0xFF);
         out.write(val & 0xFF); out.write((val >> 8) & 0xFF);
         out.write((val >> 16) & 0xFF); out.write((val >> 24) & 0xFF);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
     }
 
     @Override

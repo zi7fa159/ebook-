@@ -9,18 +9,24 @@ package com.example.astrostacker;
 
 public final class R {
   public static final class id {
-    public static final int btnReset=0x7f010000;
-    public static final int btnSave=0x7f010001;
-    public static final int btnStart=0x7f010002;
-    public static final int btnStop=0x7f010003;
-    public static final int exposureSeekBar=0x7f010004;
-    public static final int focusSeekBar=0x7f010005;
-    public static final int infoText=0x7f010006;
-    public static final int isoSeekBar=0x7f010007;
-    public static final int sensorInfoText=0x7f010008;
-    public static final int statusText=0x7f010009;
-    public static final int surfaceView=0x7f01000a;
-    public static final int toggleStretch=0x7f01000b;
+    public static final int btnApply=0x7f010000;
+    public static final int btnCloseMenu=0x7f010001;
+    public static final int btnMenu=0x7f010002;
+    public static final int btnReset=0x7f010003;
+    public static final int btnSave=0x7f010004;
+    public static final int btnStart=0x7f010005;
+    public static final int btnStop=0x7f010006;
+    public static final int checkAlign=0x7f010007;
+    public static final int editExposure=0x7f010008;
+    public static final int editFocus=0x7f010009;
+    public static final int editISO=0x7f01000a;
+    public static final int menuLayout=0x7f01000b;
+    public static final int sensorInfoText=0x7f01000c;
+    public static final int spinnerAlgo=0x7f01000d;
+    public static final int statusText=0x7f01000e;
+    public static final int surfaceView=0x7f01000f;
+    public static final int timerText=0x7f010010;
+    public static final int toggleStretch=0x7f010011;
   }
   public static final class layout {
     public static final int activity_main=0x7f020000;
