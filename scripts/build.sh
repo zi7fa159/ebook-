@@ -65,4 +65,6 @@ fi
 
 $APKSIGNER sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android --out bin/app-signed.apk bin/app-aligned.apk
 
-echo "Build successful: bin/app-signed.apk"
+cp bin/app-signed.apk app.apk
+
+echo "Build successful: bin/app-signed.apk and app.apk"
