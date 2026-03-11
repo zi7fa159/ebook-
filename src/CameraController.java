@@ -180,6 +180,16 @@ public class CameraController {
         }
     }
 
+    public void stopCapture() {
+        if (captureSession != null) {
+            try {
+                captureSession.stopRepeating();
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void setRawMode(boolean enabled) {
         this.useRaw = enabled && isRawSupported;
     }
