@@ -31,10 +31,31 @@ public class Renderer {
             if (stackBuffer[i] > maxVal) maxVal = stackBuffer[i];
         }
 
-        for (int i = 0; i < stackBuffer.length; i++) {
-            int val = (int) ((stackBuffer[i] / maxVal) * 255);
-            if (val > 255) val = 255;
-            argbBuffer[i] = 0xFF000000 | (val << 16) | (val << 8) | val;
+        // Crude Debayering for live preview (assuming RGGB pattern)
+        // R G
+        // G B
+        for (int y = 0; y < height; y += 2) {
+            for (int x = 0; x < width; x += 2) {
+                // RGGB positions
+                float r = stackBuffer[y * width + x];
+                float g1 = stackBuffer[y * width + (x + 1)];
+                float g2 = stackBuffer[(y + 1) * width + x];
+                float b = stackBuffer[(y + 1) * width + (x + 1)];
+
+                float g = (g1 + g2) / 2.0f;
+
+                int ri = Math.min(255, (int) ((r / maxVal) * 255));
+                int gi = Math.min(255, (int) ((g / maxVal) * 255));
+                int bi = Math.min(255, (int) ((b / maxVal) * 255));
+
+                int color = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
+
+                // Set 2x2 block to the same color for speed in preview
+                argbBuffer[y * width + x] = color;
+                argbBuffer[y * width + (x + 1)] = color;
+                argbBuffer[(y + 1) * width + x] = color;
+                argbBuffer[(y + 1) * width + (x + 1)] = color;
+            }
         }
 
         previewBitmap.setPixels(argbBuffer, 0, width, 0, 0, width, height);

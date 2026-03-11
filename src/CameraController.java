@@ -29,6 +29,7 @@ public class CameraController {
     private int iso = 800;
     private String cameraId;
     private Size rawSize;
+    private CameraCharacteristics characteristics;
 
     private volatile FrameProcessor frameProcessor;
 
@@ -57,6 +58,7 @@ public class CameraController {
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
                     cameraId = id;
+                this.characteristics = characteristics;
                     StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                     if (map != null) {
                         Size[] rawSizes = map.getOutputSizes(ImageFormat.RAW_SENSOR);
@@ -78,11 +80,13 @@ public class CameraController {
                 rawImageReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(), ImageFormat.RAW_SENSOR, 3);
                 rawImageReader.setOnImageAvailableListener(reader -> {
                     FrameProcessor fp = frameProcessor;
+                    Image img = reader.acquireLatestImage();
+                    if (img == null) return;
+
                     if (fp != null) {
-                        fp.processFrame(reader.acquireLatestImage());
+                        fp.processFrame(img);
                     } else {
-                        Image img = reader.acquireLatestImage();
-                        if (img != null) img.close();
+                        img.close();
                     }
                 }, backgroundHandler);
 
@@ -160,5 +164,15 @@ public class CameraController {
 
     public Size getRawSize() {
         return rawSize;
+    }
+
+    public CameraCharacteristics getCharacteristics() {
+        return characteristics;
+    }
+
+    public int getBayerPattern() {
+        if (characteristics == null) return -1;
+        Integer pattern = characteristics.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+        return pattern != null ? pattern : -1;
     }
 }

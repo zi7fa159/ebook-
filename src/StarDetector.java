@@ -25,8 +25,9 @@ public class StarDetector {
         // 2. Simple 3x3 or 5x5 check
 
         int step = 4; // Skip some pixels for speed during initial scan
-        for (int y = step; y < height - step; y += step) {
-            for (int x = step; x < width - step; x += step) {
+        int radius = 5;
+        for (int y = radius; y < height - radius; y += step) {
+            for (int x = radius; x < width - radius; x += step) {
                 int val = grayData[y * width + x] & 0xFF;
                 if (val > threshold) {
                     if (isLocalMaximum(grayData, x, y, 5)) {

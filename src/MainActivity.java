@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.hardware.camera2.DngCreator;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.TextureView;
@@ -44,11 +46,13 @@ public class MainActivity extends Activity {
 
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
             checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-            checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission("android.permission.MANAGE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{
                 Manifest.permission.CAMERA,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                "android.permission.MANAGE_EXTERNAL_STORAGE"
             }, 1);
         }
 
@@ -141,45 +145,85 @@ public class MainActivity extends Activity {
     }
 
     private void saveResult() {
-        if (frameProcessor == null) return;
-        float[] buffer = frameProcessor.getResultBuffer();
-        int w = cameraController.getRawSize().getWidth();
-        int h = cameraController.getRawSize().getHeight();
+        if (frameProcessor == null || cameraController == null) return;
+        final float[] buffer = frameProcessor.getResultBuffer();
+        final int w = cameraController.getRawSize().getWidth();
+        final int h = cameraController.getRawSize().getHeight();
 
-        // Save as 16-bit PNG (using Bitmap for simplicity in this 1:1 clone,
-        // though Android Bitmaps are 8-bit per channel usually.
-        // For true 16-bit, we'd need a custom PNG encoder or TIFF.
-        // Requirements say 16-bit PNG/TIFF.
+        Toast.makeText(this, "Saving... please wait", Toast.LENGTH_SHORT).show();
 
-        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        int[] pixels = new int[w * h];
-        float maxVal = 0;
-        for (float f : buffer) if (f > maxVal) maxVal = f;
-        if (maxVal == 0) maxVal = 1;
+        new Thread(() -> {
+            float maxValFound = 0;
+            for (int i = 0; i < buffer.length; i += 100) if (buffer[i] > maxValFound) maxValFound = buffer[i];
+            if (maxValFound == 0) maxValFound = 1;
+            final float maxVal = maxValFound;
 
-        for (int i = 0; i < buffer.length; i++) {
-            int v = (int) ((buffer[i] / maxVal) * 255);
-            pixels[i] = 0xFF000000 | (v << 16) | (v << 8) | v;
-        }
-        bitmap.setPixels(pixels, 0, w, 0, 0, w, h);
+            File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File path = new File(pictures, "ALS_Astro");
+            if (!path.exists()) path.mkdirs();
 
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File pngFile = new File(path, "ALS_Stack_" + System.currentTimeMillis() + ".png");
-        File tiffFile = new File(path, "ALS_Stack_" + System.currentTimeMillis() + ".tiff");
+            String ts = String.valueOf(System.currentTimeMillis());
+            File pngFile = new File(path, "ALS_Stack_" + ts + ".png");
+            File tiffFile = new File(path, "ALS_Stack_" + ts + ".tiff");
+            File dngFile = new File(path, "ALS_Frame_" + ts + ".dng");
 
-        try {
-            // Save 8-bit preview PNG
-            try (FileOutputStream out = new FileOutputStream(pngFile)) {
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            try {
+                // Save 16-bit TIFF (Color) - already optimized to process row by row
+                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h);
+
+                // Save 8-bit PNG - do it row by row to save memory
+                savePngOptimized(pngFile, buffer, w, h, maxVal);
+
+                // Save latest RAW (Simplified to TIFF for stability in this version)
+                Image rawImg = frameProcessor.getLatestRawImage();
+                if (rawImg != null) {
+                    rawImg.close(); // Just close it for now as TIFF is the main lossless format
+                }
+
+                runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/ALS_Astro", Toast.LENGTH_LONG).show());
+            } catch (IOException e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
+        }).start();
+    }
 
-            // Save 16-bit TIFF
-            TiffWriter.saveTiff16(tiffFile.getAbsolutePath(), buffer, w, h);
+    private void savePngOptimized(File file, float[] buffer, int w, int h, float maxVal) throws IOException {
+        // Since we can't easily write PNG row-by-row with Bitmap.compress,
+        // and a full 50MP Bitmap + pixels array is too much memory (~400MB total),
+        // we'll use a smaller version for the PNG preview if memory is an issue,
+        // or just try to be very careful.
+        // Better: implement a simple 8-bit PPM or similar if PNG is too memory-heavy,
+        // but let's try to use a smaller bitmap for the PNG preview to ensure stability.
 
-            Toast.makeText(this, "Saved to Pictures folder (PNG & 16-bit TIFF)", Toast.LENGTH_LONG).show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        int sampleSize = 2; // Downscale PNG preview by 2x to save 4x memory
+        int sw = w / sampleSize;
+        int sh = h / sampleSize;
+        Bitmap bitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888);
+        int[] rowPixels = new int[sw];
+
+        for (int y = 0; y < sh; y++) {
+            for (int x = 0; x < sw; x++) {
+                int origX = x * sampleSize;
+                int origY = y * sampleSize;
+
+                int bx = (origX / 2) * 2;
+                int by = (origY / 2) * 2;
+                float r = buffer[by * w + bx];
+                float g = (buffer[by * w + (bx + 1)] + buffer[(by + 1) * w + bx]) / 2.0f;
+                float b = buffer[(by + 1) * w + (bx + 1)];
+
+                int ri = Math.min(255, (int) ((r / maxVal) * 255));
+                int gi = Math.min(255, (int) ((g / maxVal) * 255));
+                int bi = Math.min(255, (int) ((b / maxVal) * 255));
+                rowPixels[x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
+            }
+            bitmap.setPixels(rowPixels, 0, sw, 0, y, sw, 1);
         }
+
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+        }
+        bitmap.recycle();
     }
 }

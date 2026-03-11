@@ -23,6 +23,7 @@ public class FrameProcessor {
     private short[][] rawBufferPool = new short[2][];
     private int poolIdx = 0;
     private byte[] grayBuffer;
+    private Image latestRawImage;
 
     public FrameProcessor(int width, int height, Renderer renderer) {
         this.width = width;
@@ -46,9 +47,11 @@ public class FrameProcessor {
         isStacking = false;
     }
 
-    public void processFrame(Image image) {
+    public synchronized void processFrame(Image image) {
+        if (latestRawImage != null) latestRawImage.close();
+        latestRawImage = image;
+
         if (!isStacking) {
-            image.close();
             return;
         }
 
@@ -92,8 +95,9 @@ public class FrameProcessor {
                 frameAligner.setReferenceStars(stars);
             } else {
                 Point shift = frameAligner.computeShift(stars);
-                dx = shift.x;
-                dy = shift.y;
+                // Ensure shift is even to preserve Bayer pattern alignment
+                dx = (shift.x / 2) * 2;
+                dy = (shift.y / 2) * 2;
             }
 
             stackEngine.addFrame(currentRaw, dx, dy);
@@ -109,5 +113,11 @@ public class FrameProcessor {
 
     public float[] getResultBuffer() {
         return stackEngine.getStackBuffer();
+    }
+
+    public synchronized Image getLatestRawImage() {
+        Image img = latestRawImage;
+        latestRawImage = null; // Ownership transferred
+        return img;
     }
 }
