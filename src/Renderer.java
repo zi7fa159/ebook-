@@ -10,7 +10,12 @@ public class Renderer {
     private final TextureView textureView;
     private final Paint paint = new Paint();
     private Bitmap previewBitmap;
+    private Bitmap rotatedBitmap;
     private int[] argbBuffer;
+
+    private float blackPoint = 0.0f;
+    private float whitePoint = 1.0f;
+    private boolean useAutoStretch = true;
 
     // Default color gains for Realme 8i sensor (approximate)
     private float redGain = 1.6f;
@@ -32,6 +37,16 @@ public class Renderer {
         this.blueGain = b;
     }
 
+    public void setStretch(float black, float white) {
+        this.blackPoint = black;
+        this.whitePoint = white;
+        this.useAutoStretch = false;
+    }
+
+    public void setAutoStretch(boolean auto) {
+        this.useAutoStretch = auto;
+    }
+
     public synchronized void updateLive(short[] rawBuffer, int width, int height) {
         processAndDraw(null, rawBuffer, width, height);
     }
@@ -50,24 +65,30 @@ public class Renderer {
             argbBuffer = new int[sw * sh];
         }
 
-        // Auto-brightness scaling for preview - use 99th percentile approx
-        float maxObserved = 0;
-        int sampleCount = 0;
-        float sum = 0;
-        int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
-        for (int i = 0; i < len; i += 2000) {
-            float val = (stackBuffer != null) ? stackBuffer[i] : (rawBuffer[i] & 0xFFFF);
-            if (val > maxObserved) maxObserved = val;
-            sum += val;
-            sampleCount++;
+        // Brightness scaling for preview
+        float scale;
+        if (useAutoStretch) {
+            float maxObserved = 0;
+            int sampleCount = 0;
+            float sum = 0;
+            int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
+            for (int i = 0; i < len; i += 2000) {
+                float val = (stackBuffer != null) ? stackBuffer[i] : (rawBuffer[i] & 0xFFFF);
+                if (val > maxObserved) maxObserved = val;
+                sum += val;
+                sampleCount++;
+            }
+            float avg = sum / sampleCount;
+            float robustMax = (maxObserved + avg * 10) / 11.0f;
+            scale = 255.0f / (Math.max(1, robustMax - blackLevel));
+        } else {
+            scale = 255.0f / (Math.max(1, (whitePoint - blackPoint) * whiteLevel));
         }
-        float avg = sum / sampleCount;
-        // Robust max: use a mix of avg and max to avoid hot pixel dominance
-        float robustMax = (maxObserved + avg * 10) / 11.0f;
-        float scale = 255.0f / (Math.max(1, robustMax - blackLevel));
 
         // Simple Debayering for live preview (assume RGGB)
         // Downscale while debayering for speed
+        float manualBlackOffset = useAutoStretch ? 0 : blackPoint * whiteLevel;
+
         for (int y = 0; y < sh; y++) {
             int origY = y * 2;
             for (int x = 0; x < sw; x++) {
@@ -76,15 +97,15 @@ public class Renderer {
                 // RGGB
                 float r, g1, g2, b;
                 if (stackBuffer != null) {
-                    r = (stackBuffer[origY * width + origX] - blackLevel) * redGain;
-                    g1 = (stackBuffer[origY * width + (origX + 1)] - blackLevel) * greenGain;
-                    g2 = (stackBuffer[(origY + 1) * width + origX] - blackLevel) * greenGain;
-                    b = (stackBuffer[(origY + 1) * width + (origX + 1)] - blackLevel) * blueGain;
+                    r = (stackBuffer[origY * width + origX] - blackLevel - manualBlackOffset) * redGain;
+                    g1 = (stackBuffer[origY * width + (origX + 1)] - blackLevel - manualBlackOffset) * greenGain;
+                    g2 = (stackBuffer[(origY + 1) * width + origX] - blackLevel - manualBlackOffset) * greenGain;
+                    b = (stackBuffer[(origY + 1) * width + (origX + 1)] - blackLevel - manualBlackOffset) * blueGain;
                 } else {
-                    r = ((rawBuffer[origY * width + origX] & 0xFFFF) - blackLevel) * redGain;
-                    g1 = ((rawBuffer[origY * width + (origX + 1)] & 0xFFFF) - blackLevel) * greenGain;
-                    g2 = ((rawBuffer[(origY + 1) * width + origX] & 0xFFFF) - blackLevel) * greenGain;
-                    b = ((rawBuffer[(origY + 1) * width + (origX + 1)] & 0xFFFF) - blackLevel) * blueGain;
+                    r = ((rawBuffer[origY * width + origX] & 0xFFFF) - blackLevel - manualBlackOffset) * redGain;
+                    g1 = ((rawBuffer[origY * width + (origX + 1)] & 0xFFFF) - blackLevel - manualBlackOffset) * greenGain;
+                    g2 = ((rawBuffer[(origY + 1) * width + origX] & 0xFFFF) - blackLevel - manualBlackOffset) * greenGain;
+                    b = ((rawBuffer[(origY + 1) * width + (origX + 1)] & 0xFFFF) - blackLevel - manualBlackOffset) * blueGain;
                 }
 
                 float g = (g1 + g2) / 2.0f;
@@ -110,9 +131,34 @@ public class Renderer {
         Canvas canvas = textureView.lockCanvas();
         if (canvas != null) {
             if (previewBitmap != null) {
-                Rect src = new Rect(0, 0, previewBitmap.getWidth(), previewBitmap.getHeight());
-                Rect dst = new Rect(0, 0, canvas.getWidth(), canvas.getHeight());
-                canvas.drawBitmap(previewBitmap, src, dst, paint);
+                // Rotate 90 degrees for portrait orientation
+                if (rotatedBitmap == null || rotatedBitmap.getWidth() != previewBitmap.getHeight() || rotatedBitmap.getHeight() != previewBitmap.getWidth()) {
+                    rotatedBitmap = Bitmap.createBitmap(previewBitmap.getHeight(), previewBitmap.getWidth(), Bitmap.Config.ARGB_8888);
+                }
+
+                android.graphics.Matrix matrix = new android.graphics.Matrix();
+                matrix.postRotate(90);
+
+                Canvas rotatedCanvas = new Canvas(rotatedBitmap);
+                rotatedCanvas.drawBitmap(previewBitmap, matrix, paint);
+
+                // Draw rotated bitmap to fill screen while maintaining aspect ratio
+                int canvasW = canvas.getWidth();
+                int canvasH = canvas.getHeight();
+                int bitW = rotatedBitmap.getWidth();
+                int bitH = rotatedBitmap.getHeight();
+
+                float scaleX = (float) canvasW / bitW;
+                float scaleY = (float) canvasH / bitH;
+                float scale = Math.max(scaleX, scaleY); // Fill screen
+
+                int drawW = (int) (bitW * scale);
+                int drawH = (int) (bitH * scale);
+                int left = (canvasW - drawW) / 2;
+                int top = (canvasH - drawH) / 2;
+
+                Rect dst = new Rect(left, top, left + drawW, top + drawH);
+                canvas.drawBitmap(rotatedBitmap, null, dst, paint);
             }
             textureView.unlockCanvasAndPost(canvas);
         }

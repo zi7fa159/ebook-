@@ -45,6 +45,8 @@ public class MainActivity extends Activity {
     private float currentGGain = 1.0f;
     private float currentBGain = 2.1f;
     private int currentBlackLevel = 64;
+    private float stretchBlack = 0.0f;
+    private float stretchWhite = 1.0f;
     private boolean isStacking = false;
     private boolean isDestroyed = false;
 
@@ -240,19 +242,54 @@ public class MainActivity extends Activity {
 
     private void showTuneDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Color Calibration");
+        builder.setTitle("Tuning & Calibration");
 
+        android.widget.ScrollView sv = new android.widget.ScrollView(this);
         android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
         layout.setOrientation(android.widget.LinearLayout.VERTICAL);
         layout.setPadding(40, 20, 40, 20);
+        sv.addView(layout);
 
-        final EditText rGain = new EditText(this); rGain.setHint("Red Gain"); rGain.setText(String.valueOf(currentRGain)); rGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        final EditText gGain = new EditText(this); gGain.setHint("Green Gain"); gGain.setText(String.valueOf(currentGGain)); gGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        final EditText bGain = new EditText(this); bGain.setHint("Blue Gain"); bGain.setText(String.valueOf(currentBGain)); bGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        final EditText bLevel = new EditText(this); bLevel.setHint("Black Level"); bLevel.setText(String.valueOf(currentBlackLevel)); bLevel.setInputType(InputType.TYPE_CLASS_NUMBER);
+        layout.addView(createLabel("Red Gain:"));
+        final EditText rGain = new EditText(this); rGain.setText(String.valueOf(currentRGain)); rGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        layout.addView(rGain);
 
-        layout.addView(rGain); layout.addView(gGain); layout.addView(bGain); layout.addView(bLevel);
-        builder.setView(layout);
+        layout.addView(createLabel("Green Gain:"));
+        final EditText gGain = new EditText(this); gGain.setText(String.valueOf(currentGGain)); gGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        layout.addView(gGain);
+
+        layout.addView(createLabel("Blue Gain:"));
+        final EditText bGain = new EditText(this); bGain.setText(String.valueOf(currentBGain)); bGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        layout.addView(bGain);
+
+        layout.addView(createLabel("Sensor Black Level:"));
+        final EditText bLevel = new EditText(this); bLevel.setText(String.valueOf(currentBlackLevel)); bLevel.setInputType(InputType.TYPE_CLASS_NUMBER);
+        layout.addView(bLevel);
+
+        layout.addView(createLabel("--- Manual Stretch ---"));
+
+        final TextView blackLbl = createLabel("Black Point: " + String.format("%.2f", stretchBlack));
+        layout.addView(blackLbl);
+        final android.widget.SeekBar blackBar = new android.widget.SeekBar(this);
+        blackBar.setMax(100); blackBar.setProgress((int)(stretchBlack * 100));
+        layout.addView(blackBar);
+
+        final TextView whiteLbl = createLabel("White Point: " + String.format("%.2f", stretchWhite));
+        layout.addView(whiteLbl);
+        final android.widget.SeekBar whiteBar = new android.widget.SeekBar(this);
+        whiteBar.setMax(100); whiteBar.setProgress((int)(stretchWhite * 100));
+        layout.addView(whiteBar);
+
+        blackBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) { blackLbl.setText("Black Point: " + String.format("%.2f", p/100f)); }
+            public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
+        });
+        whiteBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) { whiteLbl.setText("White Point: " + String.format("%.2f", p/100f)); }
+            public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
+        });
+
+        builder.setView(sv);
 
         builder.setPositiveButton("Apply", (dialog, which) -> {
             try {
@@ -260,14 +297,29 @@ public class MainActivity extends Activity {
                 currentGGain = Float.parseFloat(gGain.getText().toString());
                 currentBGain = Float.parseFloat(bGain.getText().toString());
                 currentBlackLevel = Integer.parseInt(bLevel.getText().toString());
+                stretchBlack = blackBar.getProgress() / 100.0f;
+                stretchWhite = whiteBar.getProgress() / 100.0f;
+
                 if (renderer != null) {
                     renderer.setWbGains(currentRGain, currentGGain, currentBGain);
                     renderer.setBlackLevel(currentBlackLevel);
+                    renderer.setStretch(stretchBlack, stretchWhite);
                 }
             } catch (Exception e) {}
         });
+        builder.setNeutralButton("Auto", (dialog, which) -> {
+            if (renderer != null) renderer.setAutoStretch(true);
+        });
         builder.setNegativeButton("Cancel", null);
         builder.show();
+    }
+
+    private TextView createLabel(String text) {
+        TextView tv = new TextView(this);
+        tv.setText(text);
+        tv.setPadding(0, 10, 0, 0);
+        tv.setTextColor(0xFFCCCCCC);
+        return tv;
     }
 
     private void addLog(String msg) {
