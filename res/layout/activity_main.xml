@@ -9,7 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top Status Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -47,7 +46,6 @@
             android:textSize="10sp" />
     </LinearLayout>
 
-    <!-- Side Menu Overlay (Hidden by default) -->
     <LinearLayout
         android:id="@+id/menuLayout"
         android:layout_width="250dp"
@@ -74,12 +72,14 @@
         <Spinner android:id="@+id/spinnerAlgo" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#333333" />
 
         <CheckBox android:id="@+id/checkAlign" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Star Alignment" android:textColor="#FFFFFF" android:checked="true" android:layout_marginTop="16dp" />
+        <CheckBox android:id="@+id/checkRaw" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Use RAW_SENSOR" android:textColor="#FFFFFF" android:checked="false" />
+
+        <Button android:id="@+id/btnDark" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CAPTURE DARK" android:backgroundTint="#4444FF" android:layout_marginTop="8dp" />
 
         <Button android:id="@+id/btnApply" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="APPLY" android:layout_marginTop="24dp" />
         <Button android:id="@+id/btnCloseMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CLOSE" android:backgroundTint="#444444" />
     </LinearLayout>
 
-    <!-- Bottom Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -18,24 +18,52 @@ public class StarDetector {
         }
     }
 
-    private float sensitivityK = 4.0f; // Mean + K * StdDev
+    private float sensitivityK = 4.0f;
+    private byte[] proxyBuffer;
 
     public void setSensitivity(float k) {
         this.sensitivityK = k;
     }
 
-    public List<Star> detectStars(byte[] yData, int width, int height, int rowStride) {
-        // Step 1: Calculate Mean and StdDev for Adaptive Thresholding
-        // We use a subset of pixels to speed up calculation
+    public List<Star> detectStarsFromY(byte[] yData, int width, int height, int rowStride) {
+        return detectStarsInternal(yData, width, height, rowStride);
+    }
+
+    public List<Star> detectStarsFromRaw(short[] rawData, int width, int height) {
+        int proxyW = width / 2;
+        int proxyH = height / 2;
+        if (proxyBuffer == null || proxyBuffer.length != proxyW * proxyH) {
+            proxyBuffer = new byte[proxyW * proxyH];
+        }
+
+        for (int y = 0; y < proxyH; y++) {
+            for (int x = 0; x < proxyW; x++) {
+                int sum = (rawData[(y*2)*width + (x*2)] & 0xFFFF) +
+                          (rawData[(y*2)*width + (x*2+1)] & 0xFFFF) +
+                          (rawData[(y*2+1)*width + (x*2)] & 0xFFFF) +
+                          (rawData[(y*2+1)*width + (x*2+1)] & 0xFFFF);
+                proxyBuffer[y * proxyW + x] = (byte)((sum / 4) >> 2);
+            }
+        }
+
+        List<Star> stars = detectStarsInternal(proxyBuffer, proxyW, proxyH, proxyW);
+        for (Star s : stars) {
+            s.x *= 2;
+            s.y *= 2;
+        }
+        return stars;
+    }
+
+    private List<Star> detectStarsInternal(byte[] data, int width, int height, int stride) {
         long sum = 0;
         long sumSq = 0;
         int count = 0;
-        int step = 4; // Sample every 4th pixel
+        int step = 4;
 
         for (int y = 0; y < height; y += step) {
-            int rowOffset = y * rowStride;
+            int rowOffset = y * stride;
             for (int x = 0; x < width; x += step) {
-                int val = yData[rowOffset + x] & 0xFF;
+                int val = data[rowOffset + x] & 0xFF;
                 sum += val;
                 sumSq += (val * val);
                 count++;
@@ -47,20 +75,17 @@ public class StarDetector {
         float stdDev = (float) Math.sqrt(Math.max(0, variance));
         float threshold = mean + sensitivityK * stdDev;
 
-        // Step 2: Detect Local Maxima
         List<Star> stars = new ArrayList<>();
-        // Avoid edges
         for (int y = 2; y < height - 2; y += 2) {
-            int rowOffset = y * rowStride;
+            int rowOffset = y * stride;
             for (int x = 2; x < width - 2; x += 2) {
-                int val = yData[rowOffset + x] & 0xFF;
+                int val = data[rowOffset + x] & 0xFF;
                 if (val > threshold) {
-                    // Check 3x3 neighborhood for local maximum
                     boolean isMax = true;
                     for (int dy = -1; dy <= 1; dy++) {
                         for (int dx = -1; dx <= 1; dx++) {
                             if (dx == 0 && dy == 0) continue;
-                            int neighbor = yData[(y + dy) * rowStride + (x + dx)] & 0xFF;
+                            int neighbor = data[(y + dy) * stride + (x + dx)] & 0xFF;
                             if (neighbor > val) {
                                 isMax = false;
                                 break;
@@ -70,11 +95,10 @@ public class StarDetector {
                     }
 
                     if (isMax) {
-                        // Step 3: Sub-pixel Centroid Refinement (3x3)
                         float m00 = 0, m10 = 0, m01 = 0;
                         for (int dy = -1; dy <= 1; dy++) {
                             for (int dx = -1; dx <= 1; dx++) {
-                                int pixel = yData[(y + dy) * rowStride + (x + dx)] & 0xFF;
+                                int pixel = data[(y + dy) * stride + (x + dx)] & 0xFF;
                                 m00 += pixel;
                                 m10 += (x + dx) * pixel;
                                 m01 += (y + dy) * pixel;
@@ -88,7 +112,6 @@ public class StarDetector {
             }
         }
 
-        // Step 4: Limit to top 50 brightest stars
         Collections.sort(stars);
         if (stars.size() > 50) {
             return new ArrayList<>(stars.subList(0, 50));

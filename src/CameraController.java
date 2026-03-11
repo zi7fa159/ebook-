@@ -31,6 +31,7 @@ public class CameraController {
     private long exposureTimeNs = 1_000_000_000L; // 1s default
     private int iso = 800;
     private float focusDistance = 0.0f; // Infinity
+    private boolean useRaw = false;
 
     private Range<Long> exposureRange;
     private Range<Integer> isoRange;
@@ -68,7 +69,6 @@ public class CameraController {
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
-            // Get ranges
             exposureRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
             isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
             minFocusDistance = characteristics.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
@@ -81,9 +81,8 @@ public class CameraController {
                 }
             }
 
-            // Find ~3MP size for YUV
             Size[] yuvSizes = map.getOutputSizes(ImageFormat.YUV_420_888);
-            Size yuvSize = yuvSizes[0]; // Default to largest
+            Size yuvSize = yuvSizes[0];
             for (Size s : yuvSizes) {
                 int mp = (s.getWidth() * s.getHeight()) / 1_000_000;
                 if (mp >= 3 && mp <= 5) {
@@ -98,8 +97,9 @@ public class CameraController {
             }, backgroundHandler);
 
             if (isRawSupported) {
-                Size rawSize = map.getOutputSizes(ImageFormat.RAW_SENSOR)[0];
-                rawReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(), ImageFormat.RAW_SENSOR, 2);
+                Size[] rawSizes = map.getOutputSizes(ImageFormat.RAW_SENSOR);
+                Size rawSize = rawSizes[0]; // Usually largest
+                rawReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(), ImageFormat.RAW_SENSOR, 3);
                 rawReader.setOnImageAvailableListener(reader -> {
                     if (frameCallback != null) frameCallback.onRawFrameReceived(reader);
                 }, backgroundHandler);
@@ -158,10 +158,11 @@ public class CameraController {
         if (cameraDevice == null || captureSession == null) return;
         try {
             CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
-            builder.addTarget(yuvReader.getSurface());
-            // Optionally add RAW if wanted, but for live stacking we just need YUV
-            // If user wants to save RAW, we might need a separate burst or include it.
-            // For now, let's keep it YUV-only for the repeating request to save bandwidth.
+            if (useRaw && rawReader != null) {
+                builder.addTarget(rawReader.getSurface());
+            } else {
+                builder.addTarget(yuvReader.getSurface());
+            }
 
             builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
             builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
@@ -179,31 +180,11 @@ public class CameraController {
         }
     }
 
-    public void captureSingleRaw() {
-        if (cameraDevice == null || captureSession == null || rawReader == null) return;
-        try {
-            CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
-            builder.addTarget(rawReader.getSurface());
-            builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
-            builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNs);
-            builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
-            builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
-
-            captureSession.capture(builder.build(), null, backgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
+    public void setRawMode(boolean enabled) {
+        this.useRaw = enabled && isRawSupported;
     }
 
-    public void stopCapture() {
-        if (captureSession != null) {
-            try {
-                captureSession.stopRepeating();
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+    public boolean isRawMode() { return useRaw; }
 
     public void setExposure(long ns) {
         if (exposureRange != null) {

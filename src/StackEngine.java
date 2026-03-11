@@ -3,55 +3,59 @@ package com.example.astrostacker;
 public class StackEngine {
     public enum Mode { AVERAGE, ADDITIVE }
 
-    private float[] stackBuffer;
+    private float[] stackY, stackU, stackV;
     private int width, height;
+    private int uvWidth, uvHeight;
     private int frameCount = 0;
     private Mode mode = Mode.AVERAGE;
 
     public StackEngine(int width, int height) {
         this.width = width;
         this.height = height;
-        this.stackBuffer = new float[width * height];
+        this.uvWidth = width / 2;
+        this.uvHeight = height / 2;
+        this.stackY = new float[width * height];
+        this.stackU = new float[uvWidth * uvHeight];
+        this.stackV = new float[uvWidth * uvHeight];
     }
 
     public void setMode(Mode mode) {
         this.mode = mode;
     }
 
-    /**
-     * Adds a frame to the stack.
-     * @param yData Y-plane byte data
-     * @param rowStride row stride of the input data
-     * @param dx horizontal displacement of the incoming frame relative to reference
-     * @param dy vertical displacement of the incoming frame relative to reference
-     */
-    public void addFrame(byte[] yData, int rowStride, float dx, float dy) {
+    public void addFrame(byte[] yData, int yStride, byte[] uData, int uStride, byte[] vData, int vStride, float dx, float dy) {
         frameCount++;
 
-        // Integer shift for speed (as requested in optimizations)
         int shiftX = Math.round(dx);
         int shiftY = Math.round(dy);
 
-        for (int y = 0; y < height; y++) {
-            int srcY = y + shiftY;
-            if (srcY < 0 || srcY >= height) continue;
+        // Stack Y plane
+        stackPlane(stackY, yData, width, height, yStride, shiftX, shiftY);
 
-            int destRowOffset = y * width;
-            int srcRowOffset = srcY * rowStride;
+        // Stack U and V planes (subsampled)
+        stackPlane(stackU, uData, uvWidth, uvHeight, uStride, shiftX / 2, shiftY / 2);
+        stackPlane(stackV, vData, uvWidth, uvHeight, vStride, shiftX / 2, shiftY / 2);
+    }
 
-            for (int x = 0; x < width; x++) {
-                int srcX = x + shiftX;
-                if (srcX < 0 || srcX >= width) continue;
+    private void stackPlane(float[] stack, byte[] data, int w, int h, int stride, int sx, int sy) {
+        for (int y = 0; y < h; y++) {
+            int srcY = y + sy;
+            if (srcY < 0 || srcY >= h) continue;
+
+            int destRowOffset = y * w;
+            int srcRowOffset = srcY * stride;
+
+            for (int x = 0; x < w; x++) {
+                int srcX = x + sx;
+                if (srcX < 0 || srcX >= w) continue;
 
                 int destIdx = destRowOffset + x;
-                float newVal = (float)(yData[srcRowOffset + srcX] & 0xFF);
+                float newVal = (float)(data[srcRowOffset + srcX] & 0xFF);
 
                 if (mode == Mode.AVERAGE) {
-                    // Incremental averaging: S_n = (S_{n-1} * (n-1) + x_n) / n
-                    stackBuffer[destIdx] = (stackBuffer[destIdx] * (frameCount - 1) + newVal) / frameCount;
+                    stack[destIdx] = (stack[destIdx] * (frameCount - 1) + newVal) / frameCount;
                 } else {
-                    // Additive stacking
-                    stackBuffer[destIdx] += newVal;
+                    stack[destIdx] += newVal;
                 }
             }
         }
@@ -59,16 +63,14 @@ public class StackEngine {
 
     public void reset() {
         frameCount = 0;
-        if (stackBuffer != null) {
-            java.util.Arrays.fill(stackBuffer, 0.0f);
-        }
+        java.util.Arrays.fill(stackY, 0.0f);
+        java.util.Arrays.fill(stackU, 0.0f);
+        java.util.Arrays.fill(stackV, 0.0f);
     }
 
-    public float[] getStackBuffer() {
-        return stackBuffer;
-    }
-
-    public int getFrameCount() {
-        return frameCount;
-    }
+    public float[] getStackY() { return stackY; }
+    public float[] getStackU() { return stackU; }
+    public float[] getStackV() { return stackV; }
+    public int getFrameCount() { return frameCount; }
+    public Mode getMode() { return mode; }
 }

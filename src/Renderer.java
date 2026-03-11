@@ -11,7 +11,7 @@ public class Renderer {
     private final SurfaceHolder holder;
     private Bitmap bitmap;
     private int[] pixels;
-    private int[] lut = new int[256];
+    private float[] sample = new float[10000];
 
     public Renderer(SurfaceHolder holder, int width, int height) {
         this.holder = holder;
@@ -19,43 +19,46 @@ public class Renderer {
         this.pixels = new int[width * height];
     }
 
-    /**
-     * Renders the stack buffer to the surface with auto-stretch.
-     */
-    public void render(float[] stackBuffer, int width, int height, boolean autoStretch) {
+    public void render(float[] stackY, float[] stackU, float[] stackV, int width, int height, boolean autoStretch, int frameCount, StackEngine.Mode mode) {
         float blackPoint = 0;
-        float whitePoint = 255;
+        float whitePoint = mode == StackEngine.Mode.AVERAGE ? 255 : 255 * frameCount;
 
-        if (autoStretch && stackBuffer.length > 0) {
-            // Percentile-based stretch (simplified for performance)
-            // Use a small sample to find approximate percentiles
-            float[] sample = new float[Math.min(stackBuffer.length, 10000)];
-            int step = Math.max(1, stackBuffer.length / sample.length);
+        if (autoStretch && stackY.length > 0) {
+            int step = Math.max(1, stackY.length / sample.length);
             for (int i = 0; i < sample.length; i++) {
-                sample[i] = stackBuffer[Math.min(i * step, stackBuffer.length - 1)];
+                sample[i] = stackY[Math.min(i * step, stackY.length - 1)];
             }
             Arrays.sort(sample);
-
-            blackPoint = sample[(int)(sample.length * 0.05)]; // 5th percentile
-            whitePoint = sample[(int)(sample.length * 0.95)]; // 95th percentile
-
-            if (whitePoint <= blackPoint) {
-                whitePoint = blackPoint + 1.0f;
-            }
+            blackPoint = sample[(int)(sample.length * 0.05)];
+            whitePoint = sample[(int)(sample.length * 0.95)];
+            if (whitePoint <= blackPoint) whitePoint = blackPoint + 1.0f;
         }
 
-        float range = whitePoint - blackPoint;
-        if (range <= 0) range = 1.0f;
-        float invRange = 255.0f / range;
+        float invRange = 255.0f / (whitePoint - blackPoint);
 
-        for (int i = 0; i < stackBuffer.length; i++) {
-            float val = (stackBuffer[i] - blackPoint) * invRange;
-            int v = (int) val;
-            if (v < 0) v = 0;
-            else if (v > 255) v = 255;
+        int uvWidth = width / 2;
+        for (int y = 0; y < height; y++) {
+            int yRowOffset = y * width;
+            int uvRowOffset = (y / 2) * uvWidth;
+            for (int x = 0; x < width; x++) {
+                int idx = yRowOffset + x;
+                int uvIdx = uvRowOffset + (x / 2);
 
-            // Packed ARGB for faster bitmap update
-            pixels[i] = 0xFF000000 | (v << 16) | (v << 8) | v;
+                float Y = (stackY[idx] - blackPoint) * invRange;
+                float U = stackU[uvIdx] - 128f;
+                float V = stackV[uvIdx] - 128f;
+
+                // YUV to RGB
+                int r = (int)(Y + 1.370705f * V);
+                int g = (int)(Y - 0.337633f * U - 0.698001f * V);
+                int b = (int)(Y + 1.732446f * U);
+
+                if (r < 0) r = 0; else if (r > 255) r = 255;
+                if (g < 0) g = 0; else if (g > 255) g = 255;
+                if (b < 0) b = 0; else if (b > 255) b = 255;
+
+                pixels[idx] = 0xFF000000 | (r << 16) | (g << 8) | b;
+            }
         }
 
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
@@ -63,7 +66,6 @@ public class Renderer {
         Canvas canvas = holder.lockCanvas();
         if (canvas != null) {
             try {
-                // Keep aspect ratio
                 int canvasW = canvas.getWidth();
                 int canvasH = canvas.getHeight();
                 float scale = Math.min((float)canvasW / width, (float)canvasH / height);
