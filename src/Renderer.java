@@ -9,6 +9,7 @@ import android.view.TextureView;
 public class Renderer {
     private final TextureView textureView;
     private final Paint paint = new Paint();
+    private int sensorOrientation = 90;
     private Bitmap previewBitmap;
     private Bitmap rotatedBitmap;
     private int[] argbBuffer;
@@ -21,8 +22,8 @@ public class Renderer {
     private float redGain = 1.6f;
     private float greenGain = 1.0f;
     private float blueGain = 2.1f;
-    private int blackLevel = 64; // Common black level for many sensors
-    private float whiteLevel = 1023.0f; // 10-bit typical, update from logs if different
+    private int blackLevel = 64;
+    private float whiteLevel = 1023.0f;
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
@@ -30,6 +31,7 @@ public class Renderer {
 
     public void setBlackLevel(int bl) { this.blackLevel = bl; }
     public void setWhiteLevel(float wl) { this.whiteLevel = wl; }
+    public void setSensorOrientation(int orientation) { this.sensorOrientation = orientation; }
 
     public void setWbGains(float r, float g, float b) {
         this.redGain = r;
@@ -131,13 +133,16 @@ public class Renderer {
         Canvas canvas = textureView.lockCanvas();
         if (canvas != null) {
             if (previewBitmap != null) {
-                // Rotate 90 degrees for portrait orientation
-                if (rotatedBitmap == null || rotatedBitmap.getWidth() != previewBitmap.getHeight() || rotatedBitmap.getHeight() != previewBitmap.getWidth()) {
-                    rotatedBitmap = Bitmap.createBitmap(previewBitmap.getHeight(), previewBitmap.getWidth(), Bitmap.Config.ARGB_8888);
+                // Handle dynamic rotation
+                int targetWidth = (sensorOrientation % 180 == 0) ? previewBitmap.getWidth() : previewBitmap.getHeight();
+                int targetHeight = (sensorOrientation % 180 == 0) ? previewBitmap.getHeight() : previewBitmap.getWidth();
+
+                if (rotatedBitmap == null || rotatedBitmap.getWidth() != targetWidth || rotatedBitmap.getHeight() != targetHeight) {
+                    rotatedBitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
                 }
 
                 android.graphics.Matrix matrix = new android.graphics.Matrix();
-                matrix.postRotate(90);
+                matrix.postRotate(sensorOrientation);
 
                 Canvas rotatedCanvas = new Canvas(rotatedBitmap);
                 rotatedCanvas.drawBitmap(previewBitmap, matrix, paint);

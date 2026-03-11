@@ -14,7 +14,7 @@
     <uses-feature android:name="android.hardware.camera.raw" />
 
     <application
-        android:label="ALS Clone"
+        android:label="A2LS"
         android:largeHeap="true"
         android:requestLegacyExternalStorage="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">

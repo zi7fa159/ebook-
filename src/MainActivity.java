@@ -23,7 +23,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class MainActivity extends Activity {
-    private static final String TAG = "ALS_MainActivity";
+    private static final String TAG = "A2LS_MainActivity";
     private CameraController cameraController;
     private FrameProcessor frameProcessor;
     private Renderer renderer;
@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
     private long currentShutterNs = 1000000000L; // Default 1s for live view
     private int currentIso = 1600;
     private float currentFocus = 0.0f;
+    private long currentFrameDurationNs = 1100000000L;
     private int frameLimit = 0; // 0 = INF
     private float currentRGain = 1.6f;
     private float currentGGain = 1.0f;
@@ -134,35 +135,61 @@ public class MainActivity extends Activity {
 
         addLog("Application Initialized");
 
-        findViewById(R.id.ctrl_exp).setOnClickListener(v -> showEntryDialog("Exposure (seconds)", "2", s -> {
-            try {
-                float sec = Float.parseFloat(s);
-                if (sec < 1) sec = 1; if (sec > 32) sec = 32;
-                currentShutterNs = (long)(sec * 1000000000L);
-                valExp.setText((int)sec + "s");
-                updateCamera();
-            } catch (Exception e) {}
-        }));
+        findViewById(R.id.ctrl_exp).setOnClickListener(v -> {
+            android.util.Range<Long> range = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
+            String hint = "1.0";
+            if (range != null) hint = String.format("%.1f to %.1f", range.getLower()/1e9, range.getUpper()/1e9);
+            final android.util.Range<Long> fRange = range;
+            showEntryDialog("Exposure (seconds)", hint, s -> {
+                try {
+                    float sec = Float.parseFloat(s);
+                    long ns = (long)(sec * 1000000000L);
+                    if (fRange != null) {
+                        if (ns < fRange.getLower()) ns = fRange.getLower();
+                        if (ns > fRange.getUpper()) ns = fRange.getUpper();
+                    }
+                    currentShutterNs = ns;
+                    valExp.setText(String.format("%.1fs", currentShutterNs / 1e9));
+                    updateCamera();
+                } catch (Exception e) {}
+            });
+        });
 
-        findViewById(R.id.ctrl_iso).setOnClickListener(v -> showEntryDialog("ISO", "1600", s -> {
-            try {
-                int iso = Integer.parseInt(s);
-                if (iso < 100) iso = 100; if (iso > 6400) iso = 6400;
-                currentIso = iso;
-                valIso.setText(String.valueOf(iso));
-                updateCamera();
-            } catch (Exception e) {}
-        }));
+        findViewById(R.id.ctrl_iso).setOnClickListener(v -> {
+            android.util.Range<Integer> range = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
+            String hint = "1600";
+            if (range != null) hint = range.getLower() + " to " + range.getUpper();
+            final android.util.Range<Integer> fRange = range;
+            showEntryDialog("ISO", hint, s -> {
+                try {
+                    int iso = Integer.parseInt(s);
+                    if (fRange != null) {
+                        if (iso < fRange.getLower()) iso = fRange.getLower();
+                        if (iso > fRange.getUpper()) iso = fRange.getUpper();
+                    }
+                    currentIso = iso;
+                    valIso.setText(String.valueOf(currentIso));
+                    updateCamera();
+                } catch (Exception e) {}
+            });
+        });
 
-        findViewById(R.id.ctrl_focus).setOnClickListener(v -> showEntryDialog("Focus (0=INF, 10=Macro)", "0", s -> {
-            try {
-                float f = Float.parseFloat(s);
-                if (f < 0) f = 0; if (f > 10) f = 10;
-                currentFocus = f;
-                valFocus.setText(f == 0 ? "INF" : String.format("%.1f", f));
-                updateCamera();
-            } catch (Exception e) {}
-        }));
+        findViewById(R.id.ctrl_focus).setOnClickListener(v -> {
+            Float minFocus = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+            String hint = "0.0";
+            if (minFocus != null) hint = "0.0 to " + minFocus;
+            final Float fMinFocus = minFocus;
+            showEntryDialog("Focus (0=INF, Higher=Macro)", hint, s -> {
+                try {
+                    float f = Float.parseFloat(s);
+                    if (f < 0) f = 0;
+                    if (fMinFocus != null && f > fMinFocus) f = fMinFocus;
+                    currentFocus = f;
+                    valFocus.setText(f == 0 ? "INF" : String.format("%.1f", f));
+                    updateCamera();
+                } catch (Exception e) {}
+            });
+        });
 
         findViewById(R.id.ctrl_limit).setOnClickListener(v -> showEntryDialog("Frame Limit (0 for INF)", "20", s -> {
             try {
@@ -366,7 +393,7 @@ public class MainActivity extends Activity {
 
     private void updateCamera() {
         if (cameraController != null) {
-            cameraController.updateParams(currentShutterNs, currentIso, currentFocus);
+            cameraController.updateParams(currentShutterNs, currentIso, currentFocus, currentFrameDurationNs);
         }
     }
 
@@ -381,8 +408,24 @@ public class MainActivity extends Activity {
                 }
 
                 final android.util.Size size = cameraController.getRawSize();
-                if (size != null) {
+                final android.hardware.camera2.CameraCharacteristics chars = cameraController.getCharacteristics();
+                if (size != null && chars != null) {
                     runOnUiThread(() -> {
+                        // Extract sensor black/white levels
+                        android.hardware.camera2.params.BlackLevelPattern blp = chars.get(android.hardware.camera2.CameraCharacteristics.SENSOR_BLACK_LEVEL_PATTERN);
+                        if (blp != null) {
+                            currentBlackLevel = blp.getOffsetForIndex(0, 0);
+                            if (renderer != null) renderer.setBlackLevel(currentBlackLevel);
+                        }
+                        Integer wl = chars.get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_WHITE_LEVEL);
+                        if (wl != null) {
+                            if (renderer != null) renderer.setWhiteLevel(wl.floatValue());
+                        }
+                        Integer orientation = chars.get(android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION);
+                        if (orientation != null) {
+                            if (renderer != null) renderer.setSensorOrientation(orientation);
+                        }
+
                         frameProcessor = new FrameProcessor(size.getWidth(), size.getHeight(), renderer);
                         frameProcessor.setState(FrameProcessor.State.LIVE);
                         cameraController.setFrameProcessor(frameProcessor);
@@ -449,13 +492,13 @@ public class MainActivity extends Activity {
                 final float maxVal = maxValFound;
 
                 File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-                File path = new File(pictures, "ALS_Astro");
+                File path = new File(pictures, "A2LS_Astro");
                 if (!path.exists()) path.mkdirs();
 
                 String ts = String.valueOf(System.currentTimeMillis());
-                File pngFile = new File(path, "ALS_Stack_" + ts + ".png");
-                File tiffFile = new File(path, "ALS_Stack_" + ts + ".tiff");
-                File dngFile = new File(path, "ALS_Raw_" + ts + ".dng");
+                File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
+                File tiffFile = new File(path, "A2LS_Stack_" + ts + ".tiff");
+                File dngFile = new File(path, "A2LS_Raw_" + ts + ".dng");
 
                 addLog("Saving TIFF...");
                 TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel);
@@ -466,7 +509,7 @@ public class MainActivity extends Activity {
                 saveDng(dngFile);
 
                 addLog("Saved: " + tiffFile.getName());
-                runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/ALS_Astro", Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/A2LS_Astro", Toast.LENGTH_LONG).show());
             } catch (Exception e) {
                 addLog("Save failed: " + e.getMessage());
                 Log.e(TAG, "Save failed", e);
