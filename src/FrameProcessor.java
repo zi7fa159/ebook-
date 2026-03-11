@@ -16,14 +16,17 @@ public class FrameProcessor {
     private final HandlerThread processingThread;
     private final Handler processingHandler;
 
-    private boolean isStacking = false;
+    public enum State { IDLE, LIVE, STACKING, PAUSED }
+    private State currentState = State.IDLE;
+    private boolean showStack = false;
     private int width, height;
+    private int frameLimit = 0;
 
     // Using two buffers for efficient handover from Camera thread
     private short[][] rawBufferPool = new short[2][];
     private int poolIdx = 0;
     private byte[] grayBuffer;
-    private Image latestRawImage;
+    private volatile Image lastImage;
 
     public FrameProcessor(int width, int height, Renderer renderer) {
         this.width = width;
@@ -38,13 +41,28 @@ public class FrameProcessor {
         this.processingHandler = new Handler(processingThread.getLooper());
     }
 
-    public void startStacking() {
-        isStacking = true;
+    public void setState(State state) {
+        this.currentState = state;
+        if (state == State.STACKING) {
+            this.showStack = true;
+        } else if (state == State.LIVE) {
+            this.showStack = false;
+        }
+        if (state == State.IDLE) {
+            processingHandler.removeCallbacksAndMessages(null);
+        }
     }
 
-    public void stopStacking() {
-        isStacking = false;
-        processingHandler.removeCallbacksAndMessages(null);
+    public void setShowStack(boolean show) {
+        this.showStack = show;
+    }
+
+    public void setFrameLimit(int limit) {
+        this.frameLimit = limit;
+    }
+
+    public void setStackMethod(int method) {
+        stackEngine.setStackMethod(method);
     }
 
     public void resetStack() {
@@ -54,7 +72,7 @@ public class FrameProcessor {
     }
 
     public synchronized void processFrame(Image image) {
-        if (!isStacking) {
+        if (currentState == State.IDLE) {
             image.close();
             return;
         }
@@ -80,9 +98,29 @@ public class FrameProcessor {
             }
         }
 
-        image.close();
+        if (lastImage != null) lastImage.close();
+        lastImage = image;
 
         processingHandler.post(() -> {
+            if (currentState == State.PAUSED) {
+                if (showStack) {
+                    renderer.updateStack(stackEngine.getStackBuffer(), width, height);
+                } else {
+                    renderer.updateLive(currentRaw, width, height);
+                }
+                return;
+            }
+
+            if (currentState == State.LIVE) {
+                renderer.updateLive(currentRaw, width, height);
+                return;
+            }
+
+            if (frameLimit > 0 && stackEngine.getFrameCount() >= frameLimit) {
+                currentState = State.PAUSED; // Auto-switch to paused when limit reached
+                return;
+            }
+
             // Downscale for star detection speed (4x)
             int dw = width / 2;
             int dh = height / 2;
@@ -110,7 +148,12 @@ public class FrameProcessor {
 
             removeHotPixels(currentRaw, width, height);
             stackEngine.addFrame(currentRaw, dx, dy);
-            renderer.updateStack(stackEngine.getStackBuffer(), width, height);
+
+            if (showStack) {
+                renderer.updateStack(stackEngine.getStackBuffer(), width, height);
+            } else {
+                renderer.updateLive(currentRaw, width, height);
+            }
         });
     }
 
@@ -120,6 +163,10 @@ public class FrameProcessor {
 
     public float[] getResultBuffer() {
         return stackEngine.getStackBuffer();
+    }
+
+    public Image getLastImage() {
+        return lastImage;
     }
 
     private void removeHotPixels(short[] data, int w, int h) {

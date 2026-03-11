@@ -32,6 +32,7 @@ public class CameraController {
     private String cameraId;
     private Size rawSize;
     private CameraCharacteristics characteristics;
+    private TotalCaptureResult lastCaptureResult;
 
     private volatile FrameProcessor frameProcessor;
 
@@ -167,7 +168,12 @@ public class CameraController {
             builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
             builder.set(CaptureRequest.SENSOR_FRAME_DURATION, exposureTimeNs + 100000000L);
 
-            captureSession.setRepeatingRequest(builder.build(), null, backgroundHandler);
+            captureSession.setRepeatingRequest(builder.build(), new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                    lastCaptureResult = result;
+                }
+            }, backgroundHandler);
         } catch (CameraAccessException e) {
             Log.e(TAG, "Capture request failed", e);
         }
@@ -197,5 +203,13 @@ public class CameraController {
 
     public Size getRawSize() {
         return rawSize;
+    }
+
+    public CameraCharacteristics getCharacteristics() {
+        return characteristics;
+    }
+
+    public TotalCaptureResult getLastCaptureResult() {
+        return lastCaptureResult;
     }
 }

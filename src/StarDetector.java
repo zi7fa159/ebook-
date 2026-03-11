@@ -18,6 +18,19 @@ public class StarDetector {
     }
 
     public List<Point> detectStars(byte[] grayData) {
+        // 1. Simple 3x3 Blur (Box filter) to reduce noise
+        byte[] blurred = new byte[width * height];
+        for (int y = 1; y < height - 1; y++) {
+            for (int x = 1; x < width - 1; x++) {
+                int sum = (grayData[(y-1)*width + (x-1)] & 0xFF) + (grayData[(y-1)*width + x] & 0xFF) + (grayData[(y-1)*width + (x+1)] & 0xFF) +
+                          (grayData[y*width + (x-1)] & 0xFF) + (grayData[y*width + x] & 0xFF) + (grayData[y*width + (x+1)] & 0xFF) +
+                          ((y+1)*width + (x-1) < grayData.length ? (grayData[(y+1)*width + (x-1)] & 0xFF) : 0) +
+                          ((y+1)*width + x < grayData.length ? (grayData[(y+1)*width + x] & 0xFF) : 0) +
+                          ((y+1)*width + (x+1) < grayData.length ? (grayData[(y+1)*width + (x+1)] & 0xFF) : 0);
+                blurred[y * width + x] = (byte)(sum / 9);
+            }
+        }
+
         List<StarCandidate> candidates = new ArrayList<>();
 
         // Very basic star detection:
@@ -28,9 +41,9 @@ public class StarDetector {
         int radius = 5;
         for (int y = radius; y < height - radius; y += step) {
             for (int x = radius; x < width - radius; x += step) {
-                int val = grayData[y * width + x] & 0xFF;
+                int val = blurred[y * width + x] & 0xFF;
                 if (val > threshold) {
-                    if (isLocalMaximum(grayData, x, y, 5)) {
+                    if (isLocalMaximum(blurred, x, y, 5)) {
                         candidates.add(new StarCandidate(x, y, val));
                     }
                 }

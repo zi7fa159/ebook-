@@ -14,6 +14,7 @@ public class Renderer {
 
     // Default color gains for Realme 8i sensor (approximate)
     private float redGain = 1.6f;
+    private float greenGain = 1.0f;
     private float blueGain = 2.1f;
     private int blackLevel = 64; // Common black level for many sensors
     private float whiteLevel = 1023.0f; // 10-bit typical, update from logs if different
@@ -25,12 +26,21 @@ public class Renderer {
     public void setBlackLevel(int bl) { this.blackLevel = bl; }
     public void setWhiteLevel(float wl) { this.whiteLevel = wl; }
 
-    public void setWbGains(float r, float b) {
+    public void setWbGains(float r, float g, float b) {
         this.redGain = r;
+        this.greenGain = g;
         this.blueGain = b;
     }
 
+    public synchronized void updateLive(short[] rawBuffer, int width, int height) {
+        processAndDraw(null, rawBuffer, width, height);
+    }
+
     public synchronized void updateStack(float[] stackBuffer, int width, int height) {
+        processAndDraw(stackBuffer, null, width, height);
+    }
+
+    private void processAndDraw(float[] stackBuffer, short[] rawBuffer, int width, int height) {
         // Downscale for preview performance (always 4x downscale)
         int sw = width / 2;
         int sh = height / 2;
@@ -44,8 +54,9 @@ public class Renderer {
         float maxObserved = 0;
         int sampleCount = 0;
         float sum = 0;
-        for (int i = 0; i < stackBuffer.length; i += 2000) {
-            float val = stackBuffer[i];
+        int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
+        for (int i = 0; i < len; i += 2000) {
+            float val = (stackBuffer != null) ? stackBuffer[i] : (rawBuffer[i] & 0xFFFF);
             if (val > maxObserved) maxObserved = val;
             sum += val;
             sampleCount++;
@@ -63,10 +74,18 @@ public class Renderer {
                 int origX = x * 2;
 
                 // RGGB
-                float r = (stackBuffer[origY * width + origX] - blackLevel) * redGain;
-                float g1 = stackBuffer[origY * width + (origX + 1)] - blackLevel;
-                float g2 = stackBuffer[(origY + 1) * width + origX] - blackLevel;
-                float b = (stackBuffer[(origY + 1) * width + (origX + 1)] - blackLevel) * blueGain;
+                float r, g1, g2, b;
+                if (stackBuffer != null) {
+                    r = (stackBuffer[origY * width + origX] - blackLevel) * redGain;
+                    g1 = (stackBuffer[origY * width + (origX + 1)] - blackLevel) * greenGain;
+                    g2 = (stackBuffer[(origY + 1) * width + origX] - blackLevel) * greenGain;
+                    b = (stackBuffer[(origY + 1) * width + (origX + 1)] - blackLevel) * blueGain;
+                } else {
+                    r = ((rawBuffer[origY * width + origX] & 0xFFFF) - blackLevel) * redGain;
+                    g1 = ((rawBuffer[origY * width + (origX + 1)] & 0xFFFF) - blackLevel) * greenGain;
+                    g2 = ((rawBuffer[(origY + 1) * width + origX] & 0xFFFF) - blackLevel) * greenGain;
+                    b = ((rawBuffer[(origY + 1) * width + (origX + 1)] & 0xFFFF) - blackLevel) * blueGain;
+                }
 
                 float g = (g1 + g2) / 2.0f;
 
