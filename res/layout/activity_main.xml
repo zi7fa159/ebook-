@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <SurfaceView
+        android:id="@+id/surfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:drawable/screen_background_dark_transparent"
+        android:alpha="0.3" />
+
+    <!-- Top HUD -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:gravity="center_vertical">
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="READY"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/counterText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 frames"
+            android:textColor="#FFCC00"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Bottom Controls -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:background="#99000000"
+        android:padding="20dp">
+
+        <Button
+            android:id="@+id/btnCapture"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            android:text="START"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#000000"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/btnCapture"
+            android:layout_marginBottom="20dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="15dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EXP" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/valExp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1s" android:textColor="#FFF" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="15dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISO" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/valIso" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1600" android:textColor="#FFF" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="15dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FOCUS" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/valFocus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="INF" android:textColor="#FFF" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:text="Settings"
+            android:backgroundTint="#33FFFFFF" />
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:text="Save"
+            android:backgroundTint="#33FFFFFF" />
+
+    </RelativeLayout>
+
+    <!-- Settings Overlay -->
+    <LinearLayout
+        android:id="@+id/settingsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:visibility="gone"
+        android:gravity="center">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EXPOSURE (0.1 - 30s)" android:textColor="#FFF" />
+        <EditText android:id="@+id/setExp" android:layout_width="100dp" android:layout_height="wrap_content" android:text="1.0" android:textColor="#FFF" android:inputType="numberDecimal" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISO (100 - 6400)" android:textColor="#FFF" android:layout_marginTop="20dp" />
+        <EditText android:id="@+id/setIso" android:layout_width="100dp" android:layout_height="wrap_content" android:text="1600" android:textColor="#FFF" android:inputType="number" />
+
+        <Button android:id="@+id/btnApply" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="APPLY" android:layout_marginTop="30dp" />
+    </LinearLayout>
+
+</RelativeLayout>
