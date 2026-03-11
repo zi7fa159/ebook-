@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.SurfaceHolder;
@@ -47,7 +48,13 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         setContentView(R.layout.activity_main);
 
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 101);
+            String[] perms;
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                perms = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+            } else {
+                perms = new String[]{Manifest.permission.CAMERA};
+            }
+            requestPermissions(perms, 101);
         }
 
         statusText = findViewById(R.id.statusText);
