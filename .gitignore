@@ -3,5 +3,5 @@ obj/
 bin/
 *.keystore
 *.dex
-*.apk
+# *.apk
 *.zip
