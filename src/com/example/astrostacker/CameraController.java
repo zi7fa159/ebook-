@@ -12,6 +12,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
@@ -55,7 +56,8 @@ public class CameraController {
             String cameraId = null;
             for (String id : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics = manager.getCameraCharacteristics(id);
-                if (characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
+                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
                     cameraId = id;
                     break;
                 }
@@ -64,6 +66,7 @@ public class CameraController {
 
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            if (map == null) throw new RuntimeException("Cannot get stream configuration map");
 
             exposureRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
             isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
@@ -91,7 +94,7 @@ public class CameraController {
                 @Override public void onDisconnected(CameraDevice camera) { camera.close(); cameraDevice = null; }
                 @Override public void onError(CameraDevice camera, int error) { camera.close(); cameraDevice = null; }
             }, backgroundHandler);
-        } catch (CameraAccessException | SecurityException e) {
+        } catch (CameraAccessException | RuntimeException e) {
             e.printStackTrace();
         }
     }
@@ -105,7 +108,9 @@ public class CameraController {
                     captureSession = session;
                     if (onReady != null) onReady.run();
                 }
-                @Override public void onConfigureFailed(CameraCaptureSession session) {}
+                @Override public void onConfigureFailed(CameraCaptureSession session) {
+                    Log.e("ProAstro", "Capture session configuration failed");
+                }
             }, backgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -123,6 +128,10 @@ public class CameraController {
             builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
             builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
             builder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
+
+            if (exposureRange != null) exposureTimeNs = Math.max(exposureRange.getLower(), Math.min(exposureRange.getUpper(), exposureTimeNs));
+            if (isoRange != null) iso = Math.max(isoRange.getLower(), Math.min(isoRange.getUpper(), iso));
+
             builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNs);
             builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
             builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
@@ -144,7 +153,7 @@ public class CameraController {
         for (Size s : sizes) {
             if (s.getWidth() <= targetW && s.getHeight() <= targetH) return s;
         }
-        return sizes[sizes.length - 1];
+        return sizes[0];
     }
 
     public void setExposure(long ns) { this.exposureTimeNs = ns; }

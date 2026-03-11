@@ -36,6 +36,7 @@ public class MainActivity extends Activity implements CameraController.FrameCall
     private int widthRaw, heightRaw;
     private byte[] yData;
     private short[] rawData;
+    private byte[] rowBuffer;
 
     private TextView statusText, counterText, valExp, valIso;
     private Button btnCapture, btnSave, btnSettings, btnApply;
@@ -46,16 +47,6 @@ public class MainActivity extends Activity implements CameraController.FrameCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            String[] perms;
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                perms = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-            } else {
-                perms = new String[]{Manifest.permission.CAMERA};
-            }
-            requestPermissions(perms, 101);
-        }
 
         statusText = findViewById(R.id.statusText);
         counterText = findViewById(R.id.counterText);
@@ -69,6 +60,17 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         setExp = findViewById(R.id.setExp);
         setIso = findViewById(R.id.setIso);
 
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            String[] perms = Build.VERSION.SDK_INT <= Build.VERSION_CODES.P ?
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE} :
+                    new String[]{Manifest.permission.CAMERA};
+            requestPermissions(perms, 101);
+        } else {
+            initApp();
+        }
+    }
+
+    private void initApp() {
         cameraController = new CameraController(this);
         starDetector = new StarDetector();
         frameAligner = new FrameAligner();
@@ -119,54 +121,87 @@ public class MainActivity extends Activity implements CameraController.FrameCall
     }
 
     @Override
-    public void onYuvFrameReceived(ImageReader reader) {
-        Image img = reader.acquireLatestImage();
-        if (img == null) return;
-        if (yData == null) {
-            widthYuv = img.getWidth();
-            heightYuv = img.getHeight();
-            yData = new byte[widthYuv * heightYuv];
-            renderer = new LiveRenderer(((SurfaceView)findViewById(R.id.surfaceView)).getHolder(), widthYuv, heightYuv);
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == 101 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            initApp();
+        } else {
+            Toast.makeText(this, "Permissions required", Toast.LENGTH_LONG).show();
         }
-        ByteBuffer buf = img.getPlanes()[0].getBuffer();
-        buf.rewind();
-        buf.get(yData);
+    }
 
-        if (!isStacking) {
-            runOnUiThread(() -> renderer.renderYuv(yData, widthYuv, heightYuv));
+    @Override
+    public void onYuvFrameReceived(ImageReader reader) {
+        Image img = null;
+        try {
+            img = reader.acquireLatestImage();
+            if (img == null) return;
+
+            if (yData == null) {
+                widthYuv = img.getWidth();
+                heightYuv = img.getHeight();
+                yData = new byte[widthYuv * heightYuv];
+                rowBuffer = new byte[img.getPlanes()[0].getRowStride()];
+                renderer = new LiveRenderer(((SurfaceView)findViewById(R.id.surfaceView)).getHolder(), widthYuv, heightYuv);
+            }
+
+            Image.Plane plane = img.getPlanes()[0];
+            ByteBuffer buf = plane.getBuffer();
+            int rowStride = plane.getRowStride();
+
+            for (int y = 0; y < heightYuv; y++) {
+                buf.position(y * rowStride);
+                buf.get(yData, y * widthYuv, widthYuv);
+            }
+
+            if (!isStacking && renderer != null) {
+                runOnUiThread(() -> renderer.renderYuv(yData, widthYuv, heightYuv));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (img != null) img.close();
         }
-        img.close();
     }
 
     @Override
     public void onRawFrameReceived(ImageReader reader) {
-        Image img = reader.acquireLatestImage();
-        if (img == null) return;
-        if (rawData == null) {
-            widthRaw = img.getWidth();
-            heightRaw = img.getHeight();
-            rawData = new short[widthRaw * heightRaw];
-            rawStackEngine = new RawStackEngine(widthRaw, heightRaw);
-        }
-        ShortBuffer buf = img.getPlanes()[0].getBuffer().asShortBuffer();
-        buf.get(rawData);
+        Image img = null;
+        try {
+            img = reader.acquireLatestImage();
+            if (img == null) return;
 
-        if (isStacking) {
-            float dx = 0, dy = 0;
-            List<StarDetector.Star> stars = starDetector.detectStars(yData, widthYuv, heightYuv);
-            if (refStars == null) {
-                if (stars.size() >= 5) refStars = stars;
-            } else {
-                FrameAligner.Translation t = frameAligner.align(refStars, stars, (float)widthRaw/widthYuv, (float)heightRaw/heightYuv);
-                if (t != null) { dx = t.dx; dy = t.dy; } else { img.close(); return; }
+            if (rawData == null) {
+                widthRaw = img.getWidth();
+                heightRaw = img.getHeight();
+                rawData = new short[widthRaw * heightRaw];
+                rawStackEngine = new RawStackEngine(widthRaw, heightRaw);
             }
-            rawStackEngine.addFrame(rawData, dx, dy);
-            runOnUiThread(() -> {
-                renderer.renderRaw(rawStackEngine.getStack(), widthRaw, heightRaw);
-                counterText.setText(rawStackEngine.getFrameCount() + " frames");
-            });
+
+            ShortBuffer buf = img.getPlanes()[0].getBuffer().asShortBuffer();
+            buf.get(rawData);
+
+            if (isStacking && yData != null) {
+                float dx = 0, dy = 0;
+                List<StarDetector.Star> stars = starDetector.detectStars(yData, widthYuv, heightYuv);
+                if (refStars == null) {
+                    if (stars.size() >= 5) refStars = stars;
+                } else {
+                    FrameAligner.Translation t = frameAligner.align(refStars, stars, (float)widthRaw/widthYuv, (float)heightRaw/heightYuv);
+                    if (t != null) { dx = t.dx; dy = t.dy; } else { return; }
+                }
+                if (rawStackEngine != null) {
+                    rawStackEngine.addFrame(rawData, dx, dy);
+                    runOnUiThread(() -> {
+                        if (renderer != null) renderer.renderRaw(rawStackEngine.getStack(), widthRaw, heightRaw);
+                        counterText.setText(rawStackEngine.getFrameCount() + " frames");
+                    });
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (img != null) img.close();
         }
-        img.close();
     }
 
     private void saveTiff() {
@@ -193,5 +228,8 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         }).start();
     }
 
-    @Override protected void onDestroy() { super.onDestroy(); cameraController.close(); }
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        if (cameraController != null) cameraController.close();
+    }
 }
