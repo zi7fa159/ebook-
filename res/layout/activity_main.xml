@@ -9,105 +9,118 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:drawable/screen_background_dark_transparent"
+        android:alpha="0.3" />
+
+    <!-- Top HUD -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="#AA000000"
-        android:padding="8dp">
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:gravity="center_vertical">
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="READY"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/counterText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 frames"
+            android:textColor="#FFCC00"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Bottom Controls -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:background="#99000000"
+        android:padding="20dp">
+
+        <Button
+            android:id="@+id/btnCapture"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            android:text="START"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#000000"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:id="@+id/timerText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Stacked: 0 | Time: 00:00"
-                android:textColor="#00FF00"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Status: Idle"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp" />
+            android:layout_above="@id/btnCapture"
+            android:layout_marginBottom="20dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="15dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EXP" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/valExp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1s" android:textColor="#FFF" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="15dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISO" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/valIso" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1600" android:textColor="#FFF" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_marginHorizontal="15dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FOCUS" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/valFocus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="INF" android:textColor="#FFF" />
+            </LinearLayout>
+
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/sensorInfoText"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Exposure: 1.0s | ISO: 800 | Focus: Inf"
-            android:textColor="#FFFF00"
-            android:textSize="10sp" />
-    </LinearLayout>
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:text="Settings"
+            android:backgroundTint="#33FFFFFF" />
 
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:text="Save"
+            android:backgroundTint="#33FFFFFF" />
+
+    </RelativeLayout>
+
+    <!-- Settings Overlay -->
     <LinearLayout
-        android:id="@+id/menuLayout"
-        android:layout_width="250dp"
-        android:layout_height="match_parent"
-        android:background="#EE111111"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone"
-        android:clickable="true"
-        android:focusable="true">
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SETTINGS" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="18sp" android:layout_marginBottom="16dp" />
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Exposure (sec)" android:textColor="#AAAAAA" />
-        <EditText android:id="@+id/editExposure" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:text="1.0" android:textColor="#FFFFFF" />
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISO" android:textColor="#AAAAAA" android:layout_marginTop="8dp" />
-        <EditText android:id="@+id/editISO" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:text="800" android:textColor="#FFFFFF" />
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Focus (0=Inf, 10=Macro)" android:textColor="#AAAAAA" android:layout_marginTop="8dp" />
-        <EditText android:id="@+id/editFocus" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="numberDecimal" android:text="0.0" android:textColor="#FFFFFF" />
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Stack Mode" android:textColor="#AAAAAA" android:layout_marginTop="8dp" />
-        <Spinner android:id="@+id/spinnerAlgo" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#333333" />
-
-        <CheckBox android:id="@+id/checkAlign" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Star Alignment" android:textColor="#FFFFFF" android:checked="true" android:layout_marginTop="16dp" />
-        <CheckBox android:id="@+id/checkRaw" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Use RAW_SENSOR" android:textColor="#FFFFFF" android:checked="false" />
-
-        <Button android:id="@+id/btnDark" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CAPTURE DARK" android:backgroundTint="#4444FF" android:layout_marginTop="8dp" />
-
-        <Button android:id="@+id/btnApply" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="APPLY" android:layout_marginTop="24dp" />
-        <Button android:id="@+id/btnCloseMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CLOSE" android:backgroundTint="#444444" />
-    </LinearLayout>
-
-    <LinearLayout
+        android:id="@+id/settingsOverlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
+        android:layout_height="match_parent"
         android:background="#CC000000"
-        android:padding="8dp"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:visibility="gone"
         android:gravity="center">
 
-        <ImageButton
-            android:id="@+id/btnMenu"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@android:drawable/ic_menu_preferences"
-            android:background="?android:attr/selectableItemBackground" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EXPOSURE (0.1 - 30s)" android:textColor="#FFF" />
+        <EditText android:id="@+id/setExp" android:layout_width="100dp" android:layout_height="wrap_content" android:text="1.0" android:textColor="#FFF" android:inputType="numberDecimal" />
 
-        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISO (100 - 6400)" android:textColor="#FFF" android:layout_marginTop="20dp" />
+        <EditText android:id="@+id/setIso" android:layout_width="100dp" android:layout_height="wrap_content" android:text="1600" android:textColor="#FFF" android:inputType="number" />
 
-        <Button android:id="@+id/btnStart" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="START" android:backgroundTint="#228B22" />
-        <Button android:id="@+id/btnStop" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="STOP" android:enabled="false" android:backgroundTint="#B22222" android:layout_marginHorizontal="4dp" />
-
-        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
-
-        <ToggleButton android:id="@+id/toggleStretch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textOn="STRETCH" android:textOff="LINEAR" android:checked="true" />
-
-        <Button android:id="@+id/btnSave" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SAVE" android:layout_marginLeft="4dp" />
-        <Button android:id="@+id/btnReset" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="R" android:minWidth="40dp" android:layout_marginLeft="4dp" />
-
+        <Button android:id="@+id/btnApply" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="APPLY" android:layout_marginTop="30dp" />
     </LinearLayout>
 
 </RelativeLayout>
