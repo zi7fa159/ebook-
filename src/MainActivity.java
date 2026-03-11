@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
 
     private TextView statusText;
     private TextView frameCounter;
-    private android.widget.ProgressBar captureProgress;
+    private android.view.View captureProgress;
 
     private TextView valExp, valIso, valFocus, logText;
     private Button btnMainAction;
@@ -59,10 +59,27 @@ public class MainActivity extends Activity {
             setContentView(R.layout.activity_main);
             initUI();
             checkPermissions();
-        } catch (Exception e) {
-            Log.e(TAG, "onCreate failed", e);
-            Toast.makeText(this, "Init failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } catch (Throwable e) {
+            Log.e(TAG, "CRITICAL INIT FAILURE", e);
+            showDebugScreen(e);
         }
+    }
+
+    private void showDebugScreen(Throwable e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        String stackTrace = sw.toString();
+
+        android.widget.ScrollView sv = new android.widget.ScrollView(this);
+        TextView tv = new TextView(this);
+        tv.setText("CRITICAL ERROR DURING INITIALIZATION:\n\n" + stackTrace);
+        tv.setTextColor(0xFFFF0000);
+        tv.setPadding(20, 20, 20, 20);
+        tv.setTextSize(12);
+        sv.addView(tv);
+        setContentView(sv);
+
+        saveCrashLog(stackTrace);
     }
 
     private void saveCrashLog(String log) {
@@ -271,7 +288,11 @@ public class MainActivity extends Activity {
                 for (int i = 0; i <= 100; i += 2) {
                     if (!isStacking || isDestroyed) break;
                     final int p = i;
-                    runOnUiThread(() -> captureProgress.setProgress(p));
+                    runOnUiThread(() -> {
+                        android.view.ViewGroup.LayoutParams lp = captureProgress.getLayoutParams();
+                        lp.width = (captureProgress.getRootView().getWidth() * p) / 100;
+                        captureProgress.setLayoutParams(lp);
+                    });
                     try { Thread.sleep(currentShutterNs / 50000000); } catch (Exception e) {}
                 }
             }

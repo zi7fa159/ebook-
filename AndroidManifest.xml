@@ -17,7 +17,7 @@
         android:label="ALS Clone"
         android:largeHeap="true"
         android:requestLegacyExternalStorage="true"
-        android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
         <activity
             android:name=".MainActivity"
             android:exported="true"
