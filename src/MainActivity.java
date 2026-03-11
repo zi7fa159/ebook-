@@ -9,18 +9,21 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
+import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class MainActivity extends Activity {
+    private static final String TAG = "ALS_MainActivity";
     private CameraController cameraController;
     private FrameProcessor frameProcessor;
     private Renderer renderer;
@@ -29,10 +32,11 @@ public class MainActivity extends Activity {
     private TextView frameCounter;
     private android.widget.ProgressBar captureProgress;
 
-    private TextView valExp, valIso, valFocus;
+    private TextView valExp, valIso, valFocus, logText;
     private Button btnMainAction;
+    private android.widget.ScrollView logScroll;
 
-    private long currentShutterNs = 2000000000L; // 2s default
+    private long currentShutterNs = 2000000000L;
     private int currentIso = 1600;
     private float currentFocus = 0.0f;
     private boolean isStacking = false;
@@ -41,15 +45,37 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        requestPermissions(new String[]{
-            Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            "android.permission.MANAGE_EXTERNAL_STORAGE"
-        }, 1);
+        // Global Exception Handler to catch and log crashes
+        Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            Log.e(TAG, "CRASH: " + sw.toString());
+            saveCrashLog(sw.toString());
+            System.exit(1);
+        });
 
+        try {
+            setContentView(R.layout.activity_main);
+            initUI();
+            checkPermissions();
+        } catch (Exception e) {
+            Log.e(TAG, "onCreate failed", e);
+            Toast.makeText(this, "Init failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void saveCrashLog(String log) {
+        try {
+            File dir = getExternalFilesDir(null);
+            File file = new File(dir, "crash_log.txt");
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(log.getBytes());
+            fos.close();
+        } catch (IOException ignored) {}
+    }
+
+    private void initUI() {
         TextureView preview = findViewById(R.id.preview);
         renderer = new Renderer(preview);
 
@@ -61,6 +87,11 @@ public class MainActivity extends Activity {
         valIso = findViewById(R.id.val_iso);
         valFocus = findViewById(R.id.val_focus);
         btnMainAction = findViewById(R.id.btn_main_action);
+        logText = findViewById(R.id.log_text);
+        logScroll = findViewById(R.id.log_scroll);
+        if (logScroll != null) logScroll.setVisibility(View.VISIBLE);
+
+        addLog("Application Initialized");
 
         findViewById(R.id.ctrl_exp).setOnClickListener(v -> showEntryDialog("Exposure (seconds)", "2", s -> {
             try {
@@ -93,11 +124,8 @@ public class MainActivity extends Activity {
         }));
 
         btnMainAction.setOnClickListener(v -> {
-            if (!isStacking) {
-                startStacking();
-            } else {
-                stopStacking();
-            }
+            if (!isStacking) startStacking();
+            else stopStacking();
         });
 
         findViewById(R.id.btn_save).setOnClickListener(v -> saveResult());
@@ -109,8 +137,37 @@ public class MainActivity extends Activity {
                 Toast.makeText(this, "Stack cleared", Toast.LENGTH_SHORT).show();
             }
         });
+    }
 
-        initCamera();
+    private void checkPermissions() {
+        String[] permissions = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        };
+
+        boolean granted = true;
+        for (String p : permissions) {
+            if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
+                granted = false;
+                break;
+            }
+        }
+
+        if (!granted) {
+            requestPermissions(permissions, 1);
+        } else {
+            initCamera();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            initCamera();
+        } else {
+            Toast.makeText(this, "Permissions required", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void showEntryDialog(String title, String hint, java.util.function.Consumer<String> callback) {
@@ -125,6 +182,17 @@ public class MainActivity extends Activity {
         builder.show();
     }
 
+    private void addLog(String msg) {
+        runOnUiThread(() -> {
+            if (logText != null) {
+                logText.append("\n" + msg);
+                if (logScroll != null) {
+                    logScroll.post(() -> logScroll.fullScroll(View.FOCUS_DOWN));
+                }
+            }
+        });
+    }
+
     private void startStacking() {
         if (frameProcessor != null) {
             frameProcessor.startStacking();
@@ -132,6 +200,7 @@ public class MainActivity extends Activity {
             btnMainAction.setText("STOP");
             btnMainAction.setBackgroundColor(0xFF444444);
             statusText.setText("STACKING...");
+            addLog("Stacking Started");
             startProgressThread();
         }
     }
@@ -143,6 +212,7 @@ public class MainActivity extends Activity {
             btnMainAction.setText("START");
             btnMainAction.setBackgroundColor(0xFFFF4444);
             statusText.setText("PAUSED");
+            addLog("Stacking Stopped");
         }
     }
 
@@ -160,18 +230,27 @@ public class MainActivity extends Activity {
 
     private void initCamera() {
         new Thread(() -> {
-            cameraController = new CameraController(this, null);
-            cameraController.start();
-            while (cameraController.getRawSize() == null) {
-                try { Thread.sleep(100); } catch (InterruptedException e) {}
-            }
+            try {
+                cameraController = new CameraController(this, null);
+                cameraController.start();
+                long waitStart = System.currentTimeMillis();
+                while (cameraController.getRawSize() == null && System.currentTimeMillis() - waitStart < 5000) {
+                    try { Thread.sleep(100); } catch (InterruptedException e) {}
+                }
 
-            final android.util.Size size = cameraController.getRawSize();
-            runOnUiThread(() -> {
-                frameProcessor = new FrameProcessor(size.getWidth(), size.getHeight(), renderer);
-                cameraController.setFrameProcessor(frameProcessor);
-                updateCamera(); // Apply initial params
-            });
+                final android.util.Size size = cameraController.getRawSize();
+                if (size != null) {
+                    runOnUiThread(() -> {
+                        frameProcessor = new FrameProcessor(size.getWidth(), size.getHeight(), renderer);
+                        cameraController.setFrameProcessor(frameProcessor);
+                        updateCamera();
+                    });
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, "Camera init timeout", Toast.LENGTH_LONG).show());
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "initCamera background thread failed", e);
+            }
         }).start();
     }
 
@@ -185,10 +264,10 @@ public class MainActivity extends Activity {
                         lastCount = count;
                         final int c = count;
                         runOnUiThread(() -> frameCounter.setText(c + " Frames"));
+                        addLog("Frame " + c + " stacked");
                     }
                 }
 
-                // Progress bar animation based on exposure time
                 for (int i = 0; i <= 100; i += 2) {
                     if (!isStacking || isDestroyed) break;
                     final int p = i;
@@ -200,37 +279,46 @@ public class MainActivity extends Activity {
     }
 
     private void saveResult() {
-        if (frameProcessor == null || cameraController == null) return;
+        if (frameProcessor == null || cameraController == null) {
+            addLog("Error: No data to save");
+            return;
+        }
         final float[] buffer = frameProcessor.getResultBuffer();
+        if (buffer == null) {
+            addLog("Error: Buffer is null");
+            return;
+        }
+
         final int w = cameraController.getRawSize().getWidth();
         final int h = cameraController.getRawSize().getHeight();
 
-        Toast.makeText(this, "Saving 50MP lossless result...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Saving 50MP result...", Toast.LENGTH_SHORT).show();
 
         new Thread(() -> {
-            float maxValFound = 0;
-            for (int i = 0; i < buffer.length; i += 1000) if (buffer[i] > maxValFound) maxValFound = buffer[i];
-            if (maxValFound == 0) maxValFound = 1;
-            final float maxVal = maxValFound;
-
-            File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File path = new File(pictures, "ALS_Astro");
-            if (!path.exists()) path.mkdirs();
-
-            String ts = String.valueOf(System.currentTimeMillis());
-            File pngFile = new File(path, "ALS_Stack_" + ts + ".png");
-            File tiffFile = new File(path, "ALS_Stack_" + ts + ".tiff");
-
             try {
-                // Save 16-bit TIFF (Natural Color Gains from metadata should be here, using manual for now)
-                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, 2.0f, 2.0f);
+                float maxValFound = 0;
+                for (int i = 0; i < buffer.length; i += 1000) if (buffer[i] > maxValFound) maxValFound = buffer[i];
+                if (maxValFound == 0) maxValFound = 1;
+                final float maxVal = maxValFound;
 
-                // Save 8-bit PNG (Downscaled preview for gallery compatibility)
+                File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+                File path = new File(pictures, "ALS_Astro");
+                if (!path.exists()) path.mkdirs();
+
+                String ts = String.valueOf(System.currentTimeMillis());
+                File pngFile = new File(path, "ALS_Stack_" + ts + ".png");
+                File tiffFile = new File(path, "ALS_Stack_" + ts + ".tiff");
+
+                addLog("Saving TIFF...");
+                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, 2.0f, 2.0f);
+                addLog("Saving PNG...");
                 savePngOptimized(pngFile, buffer, w, h, maxVal);
 
+                addLog("Saved: " + tiffFile.getName());
                 runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/ALS_Astro", Toast.LENGTH_LONG).show());
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                addLog("Save failed: " + e.getMessage());
+                Log.e(TAG, "Save failed", e);
                 runOnUiThread(() -> Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();

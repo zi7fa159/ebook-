@@ -40,9 +40,9 @@ javac -source 11 -target 11 \
 
 # 4. Convert classes to DEX
 echo "Converting to DEX..."
-# Use find to get all .class files, including those in subdirectories
 CLASS_FILES=$(find obj -name "*.class")
 $D8 --release --output bin/classes.zip \
+    --min-api 24 \
     --lib $ANDROID_JAR \
     $CLASS_FILES
 
@@ -59,7 +59,6 @@ $ZIPALIGN -f 4 bin/app.apk bin/app-aligned.apk
 
 # 7. Sign APK
 echo "Signing APK..."
-# Generate a debug key if it doesn't exist
 if [ ! -f debug.keystore ]; then
     keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
 fi

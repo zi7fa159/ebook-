@@ -25,7 +25,7 @@ public class CameraController {
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
 
-    private long exposureTimeNs = 1000000000L; // 1s
+    private long exposureTimeNs = 1000000000L;
     private int iso = 800;
     private float focusDistance = 0.0f;
     private String cameraId;
@@ -58,13 +58,12 @@ public class CameraController {
                 CameraCharacteristics characteristics = manager.getCameraCharacteristics(id);
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
-                    cameraId = id;
-                this.characteristics = characteristics;
+                    this.cameraId = id;
+                    this.characteristics = characteristics;
                     StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                     if (map != null) {
                         Size[] rawSizes = map.getOutputSizes(ImageFormat.RAW_SENSOR);
                         if (rawSizes != null && rawSizes.length > 0) {
-                            // Find largest (50MP)
                             rawSize = rawSizes[0];
                             for (Size s : rawSizes) {
                                 if (s.getWidth() * s.getHeight() > rawSize.getWidth() * rawSize.getHeight()) {
@@ -78,16 +77,20 @@ public class CameraController {
             }
 
             if (cameraId != null && rawSize != null) {
-                rawImageReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(), ImageFormat.RAW_SENSOR, 3);
+                // Reduced to 2 buffers to save memory on 50MP
+                rawImageReader = ImageReader.newInstance(rawSize.getWidth(), rawSize.getHeight(), ImageFormat.RAW_SENSOR, 2);
                 rawImageReader.setOnImageAvailableListener(reader -> {
-                    FrameProcessor fp = frameProcessor;
-                    Image img = reader.acquireLatestImage();
-                    if (img == null) return;
-
-                    if (fp != null) {
-                        fp.processFrame(img);
-                    } else {
-                        img.close();
+                    Image img = null;
+                    try {
+                        img = reader.acquireLatestImage();
+                        if (img != null) {
+                            FrameProcessor fp = frameProcessor;
+                            if (fp != null) fp.processFrame(img);
+                            else img.close();
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error acquiring image", e);
+                        if (img != null) img.close();
                     }
                 }, backgroundHandler);
 
@@ -100,16 +103,18 @@ public class CameraController {
 
                     @Override
                     public void onDisconnected(CameraDevice camera) {
-                        camera.close();
-                        cameraDevice = null;
+                        Log.w(TAG, "Camera disconnected");
+                        closeCamera();
                     }
 
                     @Override
                     public void onError(CameraDevice camera, int error) {
-                        camera.close();
-                        cameraDevice = null;
+                        Log.e(TAG, "Camera error: " + error);
+                        closeCamera();
                     }
                 }, backgroundHandler);
+            } else {
+                Log.e(TAG, "No suitable back camera or RAW support found");
             }
         } catch (CameraAccessException e) {
             Log.e(TAG, "Access exception", e);
@@ -117,6 +122,7 @@ public class CameraController {
     }
 
     private void createCaptureSession() {
+        if (cameraDevice == null || rawImageReader == null) return;
         try {
             cameraDevice.createCaptureSession(Arrays.asList(rawImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                 @Override
@@ -136,6 +142,7 @@ public class CameraController {
     }
 
     private void startCapture() {
+        if (cameraDevice == null || captureSession == null) return;
         try {
             CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
             builder.addTarget(rawImageReader.getSurface());
@@ -148,13 +155,11 @@ public class CameraController {
             builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNs);
             builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
             builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
-
-            // Frame duration must be >= exposure time
-            builder.set(CaptureRequest.SENSOR_FRAME_DURATION, exposureTimeNs + 100000000L); // Add 100ms buffer
+            builder.set(CaptureRequest.SENSOR_FRAME_DURATION, exposureTimeNs + 100000000L);
 
             captureSession.setRepeatingRequest(builder.build(), null, backgroundHandler);
         } catch (CameraAccessException e) {
-            Log.e(TAG, "Access exception", e);
+            Log.e(TAG, "Capture request failed", e);
         }
     }
 
@@ -162,22 +167,25 @@ public class CameraController {
         this.exposureTimeNs = exposureTimeNs;
         this.iso = iso;
         this.focusDistance = focusDistance;
+        if (captureSession != null) startCapture();
+    }
+
+    private void closeCamera() {
         if (captureSession != null) {
-            startCapture();
+            captureSession.close();
+            captureSession = null;
+        }
+        if (cameraDevice != null) {
+            cameraDevice.close();
+            cameraDevice = null;
+        }
+        if (rawImageReader != null) {
+            rawImageReader.close();
+            rawImageReader = null;
         }
     }
 
     public Size getRawSize() {
         return rawSize;
-    }
-
-    public CameraCharacteristics getCharacteristics() {
-        return characteristics;
-    }
-
-    public int getBayerPattern() {
-        if (characteristics == null) return -1;
-        Integer pattern = characteristics.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
-        return pattern != null ? pattern : -1;
     }
 }
