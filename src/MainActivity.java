@@ -425,6 +425,10 @@ public class MainActivity extends Activity {
                         if (orientation != null) {
                             if (renderer != null) renderer.setSensorOrientation(orientation);
                         }
+                        Integer cfa = chars.get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+                        if (cfa != null) {
+                            if (renderer != null) renderer.setCfaPattern(cfa);
+                        }
 
                         frameProcessor = new FrameProcessor(size.getWidth(), size.getHeight(), renderer);
                         frameProcessor.setState(FrameProcessor.State.LIVE);

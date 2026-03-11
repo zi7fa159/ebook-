@@ -57,7 +57,12 @@ public class CameraController {
     private void openCamera() {
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         try {
-            for (String id : manager.getCameraIdList()) {
+            String[] ids = manager.getCameraIdList();
+            if (ids.length == 0) {
+                Log.e(TAG, "No cameras found");
+                return;
+            }
+            for (String id : ids) {
                 CameraCharacteristics characteristics = manager.getCameraCharacteristics(id);
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
@@ -109,19 +114,20 @@ public class CameraController {
                 manager.openCamera(cameraId, new CameraDevice.StateCallback() {
                     @Override
                     public void onOpened(CameraDevice camera) {
+                        Log.i(TAG, "Camera opened: " + cameraId);
                         cameraDevice = camera;
                         createCaptureSession();
                     }
 
                     @Override
                     public void onDisconnected(CameraDevice camera) {
-                        Log.w(TAG, "Camera disconnected");
+                        Log.w(TAG, "Camera disconnected: " + cameraId);
                         closeCamera();
                     }
 
                     @Override
                     public void onError(CameraDevice camera, int error) {
-                        Log.e(TAG, "Camera error: " + error);
+                        Log.e(TAG, "Camera error on " + cameraId + ": " + error);
                         closeCamera();
                     }
                 }, backgroundHandler);

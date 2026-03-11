@@ -10,6 +10,7 @@ public class Renderer {
     private final TextureView textureView;
     private final Paint paint = new Paint();
     private int sensorOrientation = 90;
+    private int cfaPattern = 0; // 0=RGGB, 1=GRBG, 2=GBRG, 3=BGGR
     private Bitmap previewBitmap;
     private Bitmap rotatedBitmap;
     private int[] argbBuffer;
@@ -32,6 +33,7 @@ public class Renderer {
     public void setBlackLevel(int bl) { this.blackLevel = bl; }
     public void setWhiteLevel(float wl) { this.whiteLevel = wl; }
     public void setSensorOrientation(int orientation) { this.sensorOrientation = orientation; }
+    public void setCfaPattern(int pattern) { this.cfaPattern = pattern; }
 
     public void setWbGains(float r, float g, float b) {
         this.redGain = r;
@@ -58,11 +60,13 @@ public class Renderer {
     }
 
     private void processAndDraw(float[] stackBuffer, short[] rawBuffer, int width, int height) {
-        // Downscale for preview performance (always 4x downscale)
-        int sw = width / 2;
-        int sh = height / 2;
+        // Increased downscale for 50MP performance (4x = 16x area reduction)
+        int step = (width > 6000) ? 4 : 2;
+        int sw = width / step;
+        int sh = height / step;
 
         if (previewBitmap == null || previewBitmap.getWidth() != sw || previewBitmap.getHeight() != sh) {
+            previewBitmap = Bitmap.createBitmap(sw, sw, Bitmap.Config.ARGB_8888); // Square allocation for rotation safety
             previewBitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888);
             argbBuffer = new int[sw * sh];
         }
@@ -87,35 +91,55 @@ public class Renderer {
             scale = 255.0f / (Math.max(1, (whitePoint - blackPoint) * whiteLevel));
         }
 
-        // Simple Debayering for live preview (assume RGGB)
-        // Downscale while debayering for speed
+        // Simple Debayering for live preview (pattern aware)
         float manualBlackOffset = useAutoStretch ? 0 : blackPoint * whiteLevel;
+        boolean isFastLive = (stackBuffer == null);
 
         for (int y = 0; y < sh; y++) {
-            int origY = y * 2;
+            int oy = y * step;
             for (int x = 0; x < sw; x++) {
-                int origX = x * 2;
+                int ox = x * step;
 
-                // RGGB
-                float r, g1, g2, b;
+                float r, g, b;
                 if (stackBuffer != null) {
-                    r = (stackBuffer[origY * width + origX] - blackLevel - manualBlackOffset) * redGain;
-                    g1 = (stackBuffer[origY * width + (origX + 1)] - blackLevel - manualBlackOffset) * greenGain;
-                    g2 = (stackBuffer[(origY + 1) * width + origX] - blackLevel - manualBlackOffset) * greenGain;
-                    b = (stackBuffer[(origY + 1) * width + (origX + 1)] - blackLevel - manualBlackOffset) * blueGain;
+                    // Pattern: 0=RGGB, 1=GRBG, 2=GBRG, 3=BGGR
+                    float v00 = stackBuffer[oy * width + ox];
+                    float v01 = stackBuffer[oy * width + (ox + 1)];
+                    float v10 = stackBuffer[(oy + 1) * width + ox];
+                    float v11 = stackBuffer[(oy + 1) * width + (ox + 1)];
+
+                    if (cfaPattern == 0) { r = v00; g = (v01+v10)/2f; b = v11; }
+                    else if (cfaPattern == 1) { r = v01; g = (v00+v11)/2f; b = v10; }
+                    else if (cfaPattern == 2) { r = v10; g = (v00+v11)/2f; b = v01; }
+                    else { r = v11; g = (v01+v10)/2f; b = v00; }
                 } else {
-                    r = ((rawBuffer[origY * width + origX] & 0xFFFF) - blackLevel - manualBlackOffset) * redGain;
-                    g1 = ((rawBuffer[origY * width + (origX + 1)] & 0xFFFF) - blackLevel - manualBlackOffset) * greenGain;
-                    g2 = ((rawBuffer[(origY + 1) * width + origX] & 0xFFFF) - blackLevel - manualBlackOffset) * greenGain;
-                    b = ((rawBuffer[(origY + 1) * width + (origX + 1)] & 0xFFFF) - blackLevel - manualBlackOffset) * blueGain;
+                    float v00 = (rawBuffer[oy * width + ox] & 0xFFFF);
+                    float v01 = (rawBuffer[oy * width + (ox + 1)] & 0xFFFF);
+                    float v10 = (rawBuffer[(oy + 1) * width + ox] & 0xFFFF);
+                    float v11 = (rawBuffer[(oy + 1) * width + (ox + 1)] & 0xFFFF);
+
+                    if (cfaPattern == 0) { r = v00; g = (v01+v10)/2f; b = v11; }
+                    else if (cfaPattern == 1) { r = v01; g = (v00+v11)/2f; b = v10; }
+                    else if (cfaPattern == 2) { r = v10; g = (v00+v11)/2f; b = v01; }
+                    else { r = v11; g = (v01+v10)/2f; b = v00; }
                 }
 
-                float g = (g1 + g2) / 2.0f;
+                r = (r - blackLevel - manualBlackOffset) * redGain;
+                g = (g - blackLevel - manualBlackOffset) * greenGain;
+                b = (b - blackLevel - manualBlackOffset) * blueGain;
 
-                // Apply a simple sqrt stretch for better visibility of faint stars (ALS style)
-                int ri = (int) (Math.sqrt(Math.max(0, r * scale) / 255.0) * 255.0);
-                int gi = (int) (Math.sqrt(Math.max(0, g * scale) / 255.0) * 255.0);
-                int bi = (int) (Math.sqrt(Math.max(0, b * scale) / 255.0) * 255.0);
+                int ri, gi, bi;
+                if (isFastLive) {
+                    // Faster linear mapping for live view
+                    ri = (int) (r * scale);
+                    gi = (int) (g * scale);
+                    bi = (int) (b * scale);
+                } else {
+                    // ALS style sqrt stretch for stacked result only
+                    ri = (int) (Math.sqrt(Math.max(0, r * scale) / 255.0) * 255.0);
+                    gi = (int) (Math.sqrt(Math.max(0, g * scale) / 255.0) * 255.0);
+                    bi = (int) (Math.sqrt(Math.max(0, b * scale) / 255.0) * 255.0);
+                }
 
                 ri = Math.min(255, ri);
                 gi = Math.min(255, gi);
