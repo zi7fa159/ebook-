@@ -149,7 +149,7 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.btn_reset).setOnClickListener(v -> {
             if (frameProcessor != null) {
-                frameProcessor.startStacking();
+                frameProcessor.resetStack();
                 frameCounter.setText("0 Frames");
                 Toast.makeText(this, "Stack cleared", Toast.LENGTH_SHORT).show();
             }

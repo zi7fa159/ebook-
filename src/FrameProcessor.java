@@ -39,12 +39,18 @@ public class FrameProcessor {
     }
 
     public void startStacking() {
-        stackEngine.reset();
         isStacking = true;
     }
 
     public void stopStacking() {
         isStacking = false;
+        processingHandler.removeCallbacksAndMessages(null);
+    }
+
+    public void resetStack() {
+        processingHandler.post(() -> {
+            stackEngine.reset();
+        });
     }
 
     public synchronized void processFrame(Image image) {

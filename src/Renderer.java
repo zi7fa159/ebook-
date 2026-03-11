@@ -13,12 +13,17 @@ public class Renderer {
     private int[] argbBuffer;
 
     // Default color gains for Realme 8i sensor (approximate)
-    private float redGain = 2.0f;
-    private float blueGain = 1.8f;
+    private float redGain = 1.6f;
+    private float blueGain = 2.1f;
+    private int blackLevel = 64; // Common black level for many sensors
+    private float whiteLevel = 1023.0f; // 10-bit typical, update from logs if different
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
     }
+
+    public void setBlackLevel(int bl) { this.blackLevel = bl; }
+    public void setWhiteLevel(float wl) { this.whiteLevel = wl; }
 
     public void setWbGains(float r, float b) {
         this.redGain = r;
@@ -35,11 +40,20 @@ public class Renderer {
             argbBuffer = new int[sw * sh];
         }
 
-        // Auto-brightness scaling for preview
-        float maxVal = 1.0f;
-        for (int i = 0; i < stackBuffer.length; i += 1000) {
-            if (stackBuffer[i] > maxVal) maxVal = stackBuffer[i];
+        // Auto-brightness scaling for preview - use 99th percentile approx
+        float maxObserved = 0;
+        int sampleCount = 0;
+        float sum = 0;
+        for (int i = 0; i < stackBuffer.length; i += 2000) {
+            float val = stackBuffer[i];
+            if (val > maxObserved) maxObserved = val;
+            sum += val;
+            sampleCount++;
         }
+        float avg = sum / sampleCount;
+        // Robust max: use a mix of avg and max to avoid hot pixel dominance
+        float robustMax = (maxObserved + avg * 10) / 11.0f;
+        float scale = 255.0f / (Math.max(1, robustMax - blackLevel));
 
         // Simple Debayering for live preview (assume RGGB)
         // Downscale while debayering for speed
@@ -49,16 +63,21 @@ public class Renderer {
                 int origX = x * 2;
 
                 // RGGB
-                float r = stackBuffer[origY * width + origX] * redGain;
-                float g1 = stackBuffer[origY * width + (origX + 1)];
-                float g2 = stackBuffer[(origY + 1) * width + origX];
-                float b = stackBuffer[(origY + 1) * width + (origX + 1)] * blueGain;
+                float r = (stackBuffer[origY * width + origX] - blackLevel) * redGain;
+                float g1 = stackBuffer[origY * width + (origX + 1)] - blackLevel;
+                float g2 = stackBuffer[(origY + 1) * width + origX] - blackLevel;
+                float b = (stackBuffer[(origY + 1) * width + (origX + 1)] - blackLevel) * blueGain;
 
                 float g = (g1 + g2) / 2.0f;
 
-                int ri = Math.min(255, (int) ((r / maxVal) * 255));
-                int gi = Math.min(255, (int) ((g / maxVal) * 255));
-                int bi = Math.min(255, (int) ((b / maxVal) * 255));
+                // Apply a simple sqrt stretch for better visibility of faint stars (ALS style)
+                int ri = (int) (Math.sqrt(Math.max(0, r * scale) / 255.0) * 255.0);
+                int gi = (int) (Math.sqrt(Math.max(0, g * scale) / 255.0) * 255.0);
+                int bi = (int) (Math.sqrt(Math.max(0, b * scale) / 255.0) * 255.0);
+
+                ri = Math.min(255, ri);
+                gi = Math.min(255, gi);
+                bi = Math.min(255, bi);
 
                 argbBuffer[y * sw + x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
             }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.*;
+import android.hardware.camera2.params.BlackLevelPattern;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -60,6 +61,15 @@ public class CameraController {
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
                     this.cameraId = id;
                     this.characteristics = characteristics;
+
+                    // Log sensor info for color calibration
+                    Integer cfa = characteristics.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+                    BlackLevelPattern blp = characteristics.get(CameraCharacteristics.SENSOR_BLACK_LEVEL_PATTERN);
+                    Integer wl = characteristics.get(CameraCharacteristics.SENSOR_INFO_WHITE_LEVEL);
+                    Log.i(TAG, "Sensor CFA: " + cfa); // 0=RGGB, 1=GRBG, 2=GBRG, 3=BGGR
+                    Log.i(TAG, "Sensor Black Level Pattern: " + (blp != null ? blp.toString() : "null"));
+                    Log.i(TAG, "Sensor White Level: " + wl);
+
                     StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                     if (map != null) {
                         Size[] rawSizes = map.getOutputSizes(ImageFormat.RAW_SENSOR);
