@@ -27,6 +27,7 @@ public class CameraController {
 
     private long exposureTimeNs = 1000000000L; // 1s
     private int iso = 800;
+    private float focusDistance = 0.0f;
     private String cameraId;
     private Size rawSize;
     private CameraCharacteristics characteristics;
@@ -146,7 +147,10 @@ public class CameraController {
 
             builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNs);
             builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
-            builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, 0.0f); // Infinity
+            builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
+
+            // Frame duration must be >= exposure time
+            builder.set(CaptureRequest.SENSOR_FRAME_DURATION, exposureTimeNs + 100000000L); // Add 100ms buffer
 
             captureSession.setRepeatingRequest(builder.build(), null, backgroundHandler);
         } catch (CameraAccessException e) {
@@ -154,9 +158,10 @@ public class CameraController {
         }
     }
 
-    public void updateParams(long exposureTimeNs, int iso) {
+    public void updateParams(long exposureTimeNs, int iso, float focusDistance) {
         this.exposureTimeNs = exposureTimeNs;
         this.iso = iso;
+        this.focusDistance = focusDistance;
         if (captureSession != null) {
             startCapture();
         }

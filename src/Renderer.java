@@ -13,9 +13,16 @@ public class Renderer {
     private final Paint paint = new Paint();
     private Bitmap previewBitmap;
     private int[] argbBuffer;
+    private float redGain = 2.0f;
+    private float blueGain = 2.0f;
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
+    }
+
+    public void setWbGains(float r, float b) {
+        this.redGain = r;
+        this.blueGain = b;
     }
 
     public synchronized void updateStack(float[] stackBuffer, int width, int height) {
@@ -37,10 +44,10 @@ public class Renderer {
         for (int y = 0; y < height; y += 2) {
             for (int x = 0; x < width; x += 2) {
                 // RGGB positions
-                float r = stackBuffer[y * width + x];
+                float r = stackBuffer[y * width + x] * redGain;
                 float g1 = stackBuffer[y * width + (x + 1)];
                 float g2 = stackBuffer[(y + 1) * width + x];
-                float b = stackBuffer[(y + 1) * width + (x + 1)];
+                float b = stackBuffer[(y + 1) * width + (x + 1)] * blueGain;
 
                 float g = (g1 + g2) / 2.0f;
 

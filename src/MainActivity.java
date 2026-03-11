@@ -24,13 +24,17 @@ public class MainActivity extends Activity {
     private Renderer renderer;
 
     private TextView statusText;
-    private TextView exposureText;
-    private TextView isoText;
-    private SeekBar exposureSeekBar;
-    private SeekBar isoSeekBar;
+    private TextView logText;
+    private android.widget.ProgressBar captureProgress;
+    private android.widget.ScrollView logScroll;
 
-    private long currentExposureNs = 1000000000L;
+    private SeekBar shutterSeekBar, isoSeekBar, focusSeekBar, wbRedSeekBar, wbBlueSeekBar;
+
+    private long currentShutterNs = 1000000000L;
     private int currentIso = 800;
+    private float currentFocus = 0.0f;
+    private float currentWbRed = 2.0f;
+    private float currentWbBlue = 2.0f;
     private boolean isDestroyed = false;
 
     @Override
@@ -44,70 +48,109 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-            checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-            checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-            checkSelfPermission("android.permission.MANAGE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{
-                Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                "android.permission.MANAGE_EXTERNAL_STORAGE"
-            }, 1);
-        }
+        requestPermissions(new String[]{
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            "android.permission.MANAGE_EXTERNAL_STORAGE"
+        }, 1);
 
         TextureView preview = findViewById(R.id.preview);
         renderer = new Renderer(preview);
 
         statusText = findViewById(R.id.status_text);
-        exposureText = findViewById(R.id.exposure_text);
-        isoText = findViewById(R.id.iso_text);
+        logText = findViewById(R.id.log_text);
+        captureProgress = findViewById(R.id.capture_progress);
+        logScroll = findViewById(R.id.log_scroll);
 
-        exposureSeekBar = findViewById(R.id.exposure_seekbar);
+        shutterSeekBar = findViewById(R.id.shutter_seekbar);
         isoSeekBar = findViewById(R.id.iso_seekbar);
+        focusSeekBar = findViewById(R.id.focus_seekbar);
+        wbRedSeekBar = findViewById(R.id.wb_red_seekbar);
+        wbBlueSeekBar = findViewById(R.id.wb_blue_seekbar);
 
-        exposureSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                int seconds = progress + 1;
-                currentExposureNs = seconds * 1000000000L;
-                exposureText.setText(String.format(Locale.US, "Exp: %ds", seconds));
-                if (cameraController != null) cameraController.updateParams(currentExposureNs, currentIso);
+        shutterSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
+            @Override public void onProgressChanged(SeekBar s, int p, boolean f) {
+                currentShutterNs = (p + 1) * 1000000000L;
+                addLog("Shutter: " + (p + 1) + "s");
+                updateCamera();
             }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        isoSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                currentIso = 100 + (progress * 100);
-                isoText.setText(String.format(Locale.US, "ISO: %d", currentIso));
-                if (cameraController != null) cameraController.updateParams(currentExposureNs, currentIso);
+        isoSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
+            @Override public void onProgressChanged(SeekBar s, int p, boolean f) {
+                currentIso = 100 + (p * 100);
+                addLog("ISO: " + currentIso);
+                updateCamera();
             }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        Button btnStart = findViewById(R.id.btn_start);
-        btnStart.setOnClickListener(v -> {
+        focusSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
+            @Override public void onProgressChanged(SeekBar s, int p, boolean f) {
+                currentFocus = p / 10.0f; // 0.0 to 10.0
+                addLog("Focus: " + currentFocus);
+                updateCamera();
+            }
+        });
+
+        wbRedSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
+            @Override public void onProgressChanged(SeekBar s, int p, boolean f) {
+                currentWbRed = p / 100.0f;
+                renderer.setWbGains(currentWbRed, currentWbBlue);
+            }
+        });
+
+        wbBlueSeekBar.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
+            @Override public void onProgressChanged(SeekBar s, int p, boolean f) {
+                currentWbBlue = p / 100.0f;
+                renderer.setWbGains(currentWbRed, currentWbBlue);
+            }
+        });
+
+        findViewById(R.id.btn_start).setOnClickListener(v -> {
             if (frameProcessor != null) {
                 frameProcessor.startStacking();
-                startStatusUpdate();
+                startStackingUI();
+                addLog("Stacking Started");
             }
         });
 
-        Button btnStop = findViewById(R.id.btn_stop);
-        btnStop.setOnClickListener(v -> {
+        findViewById(R.id.btn_stop).setOnClickListener(v -> {
             if (frameProcessor != null) {
                 frameProcessor.stopStacking();
+                addLog("Stacking Stopped");
             }
         });
 
-        Button btnSave = findViewById(R.id.btn_save);
-        btnSave.setOnClickListener(v -> saveResult());
+        findViewById(R.id.btn_save).setOnClickListener(v -> saveResult());
+
+        findViewById(R.id.btn_reset).setOnClickListener(v -> {
+            if (frameProcessor != null) {
+                frameProcessor.startStacking(); // Re-init
+                addLog("Stack Cleared");
+            }
+        });
 
         initCamera();
+    }
+
+    private void updateCamera() {
+        if (cameraController != null) {
+            cameraController.updateParams(currentShutterNs, currentIso, currentFocus);
+        }
+    }
+
+    private void addLog(String msg) {
+        runOnUiThread(() -> {
+            logText.append("\n" + msg);
+            logScroll.post(() -> logScroll.fullScroll(android.view.View.FOCUS_DOWN));
+        });
+    }
+
+    private abstract class SimpleSeekBarListener implements SeekBar.OnSeekBarChangeListener {
+        @Override public abstract void onProgressChanged(SeekBar s, int p, boolean f);
+        @Override public void onStartTrackingTouch(SeekBar s) {}
+        @Override public void onStopTrackingTouch(SeekBar s) {}
     }
 
     private void initCamera() {
@@ -131,15 +174,26 @@ public class MainActivity extends Activity {
         }).start();
     }
 
-    private void startStatusUpdate() {
+    private void startStackingUI() {
         new Thread(() -> {
+            int lastCount = -1;
             while (!isDestroyed) {
-                runOnUiThread(() -> {
-                    if (frameProcessor != null) {
-                        statusText.setText("Frames: " + frameProcessor.getFrameCount());
+                if (frameProcessor != null) {
+                    int count = frameProcessor.getFrameCount();
+                    if (count != lastCount) {
+                        lastCount = count;
+                        final int c = count;
+                        runOnUiThread(() -> statusText.setText("Stacked: " + c + " frames"));
+                        addLog("Frame " + c + " added to stack");
                     }
-                });
-                try { Thread.sleep(1000); } catch (InterruptedException e) {}
+                }
+
+                // Simulated progress bar for capture
+                for (int i = 0; i <= 100; i += 5) {
+                    final int p = i;
+                    runOnUiThread(() -> captureProgress.setProgress(p));
+                    try { Thread.sleep(currentShutterNs / 20000000); } catch (Exception e) {}
+                }
             }
         }).start();
     }
@@ -169,7 +223,7 @@ public class MainActivity extends Activity {
 
             try {
                 // Save 16-bit TIFF (Color) - already optimized to process row by row
-                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h);
+                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentWbRed, currentWbBlue);
 
                 // Save 8-bit PNG - do it row by row to save memory
                 savePngOptimized(pngFile, buffer, w, h, maxVal);
@@ -209,9 +263,9 @@ public class MainActivity extends Activity {
 
                 int bx = (origX / 2) * 2;
                 int by = (origY / 2) * 2;
-                float r = buffer[by * w + bx];
+                float r = buffer[by * w + bx] * currentWbRed;
                 float g = (buffer[by * w + (bx + 1)] + buffer[(by + 1) * w + bx]) / 2.0f;
-                float b = buffer[(by + 1) * w + (bx + 1)];
+                float b = buffer[(by + 1) * w + (bx + 1)] * currentWbBlue;
 
                 int ri = Math.min(255, (int) ((r / maxVal) * 255));
                 int gi = Math.min(255, (int) ((g / maxVal) * 255));

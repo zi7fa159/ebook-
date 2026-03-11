@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
  * A simple 16-bit Greyscale TIFF writer for astrophotography results.
  */
 public class TiffWriter {
-    public static void saveTiff16Color(String path, float[] data, int width, int height) throws IOException {
+    public static void saveTiff16Color(String path, float[] data, int width, int height, float rGain, float bGain) throws IOException {
         try (FileOutputStream out = new FileOutputStream(path)) {
             // TIFF Header (Little Endian)
             out.write(new byte[]{0x49, 0x49, 0x2A, 0x00});
@@ -40,9 +40,9 @@ public class TiffWriter {
                     int bx = (x / 2) * 2;
                     int by = (y / 2) * 2;
 
-                    float r = data[by * width + bx];
+                    float r = data[by * width + bx] * rGain;
                     float g = (data[by * width + (bx + 1)] + data[(by + 1) * width + bx]) / 2.0f;
-                    float b = data[(by + 1) * width + (bx + 1)];
+                    float b = data[(by + 1) * width + (bx + 1)] * bGain;
 
                     bb.putShort((short) Math.min(65535, (int)((r / maxVal) * 65535)));
                     bb.putShort((short) Math.min(65535, (int)((g / maxVal) * 65535)));

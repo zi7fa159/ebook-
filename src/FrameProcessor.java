@@ -100,6 +100,9 @@ public class FrameProcessor {
                 dy = (shift.y / 2) * 2;
             }
 
+            // Hot pixel removal (simple 3x3 median-like filter on bright isolated pixels)
+            removeHotPixels(currentRaw, width, height);
+
             stackEngine.addFrame(currentRaw, dx, dy);
 
             // Update preview
@@ -113,6 +116,28 @@ public class FrameProcessor {
 
     public float[] getResultBuffer() {
         return stackEngine.getStackBuffer();
+    }
+
+    private void removeHotPixels(short[] data, int w, int h) {
+        int threshold = 5000; // Adjust based on sensor noise
+        for (int y = 1; y < h - 1; y++) {
+            for (int x = 1; x < w - 1; x++) {
+                int idx = y * w + x;
+                int val = data[idx] & 0xFFFF;
+                if (val > threshold) {
+                    // Check neighbors (crude)
+                    int maxNeighbor = 0;
+                    maxNeighbor = Math.max(maxNeighbor, data[idx - 1] & 0xFFFF);
+                    maxNeighbor = Math.max(maxNeighbor, data[idx + 1] & 0xFFFF);
+                    maxNeighbor = Math.max(maxNeighbor, data[idx - w] & 0xFFFF);
+                    maxNeighbor = Math.max(maxNeighbor, data[idx + w] & 0xFFFF);
+
+                    if (val > maxNeighbor * 2) { // Isolated bright pixel
+                        data[idx] = (short) maxNeighbor;
+                    }
+                }
+            }
+        }
     }
 
     public synchronized Image getLatestRawImage() {
