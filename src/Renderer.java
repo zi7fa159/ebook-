@@ -4,9 +4,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.TextureView;
 
 public class Renderer {
+    private static final String TAG = "A2LS_Renderer";
     private final TextureView textureView;
     private final Paint paint = new Paint();
     private int sensorOrientation = 90;
@@ -25,6 +27,7 @@ public class Renderer {
     private float blueGain = 2.1f;
     private int blackLevel = 64;
     private float whiteLevel = 1023.0f;
+    private int frameCount = 0;
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
@@ -51,6 +54,12 @@ public class Renderer {
         this.useAutoStretch = auto;
     }
 
+    private String debugInfo = "";
+
+    public void setDebugInfo(String info) {
+        this.debugInfo = info;
+    }
+
     public synchronized void updateLive(short[] rawBuffer, int width, int height) {
         processAndDraw(null, rawBuffer, width, height);
     }
@@ -66,15 +75,16 @@ public class Renderer {
         int sh = height / step;
 
         if (previewBitmap == null || previewBitmap.getWidth() != sw || previewBitmap.getHeight() != sh) {
-            previewBitmap = Bitmap.createBitmap(sw, sw, Bitmap.Config.ARGB_8888); // Square allocation for rotation safety
+            if (previewBitmap != null) previewBitmap.recycle();
             previewBitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888);
             argbBuffer = new int[sw * sh];
         }
 
         // Brightness scaling for preview
         float scale;
+        float maxObserved = 0;
+        float avg = 0;
         if (useAutoStretch) {
-            float maxObserved = 0;
             int sampleCount = 0;
             float sum = 0;
             int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
@@ -84,12 +94,22 @@ public class Renderer {
                 sum += val;
                 sampleCount++;
             }
-            float avg = sum / sampleCount;
+            avg = sum / sampleCount;
             float robustMax = (maxObserved + avg * 10) / 11.0f;
             scale = 255.0f / (Math.max(1, robustMax - blackLevel));
+            if (frameCount % 30 == 0) {
+                Log.d(TAG, "AutoScale: max=" + maxObserved + " avg=" + avg + " robustMax=" + robustMax + " scale=" + scale + " bl=" + blackLevel);
+            }
         } else {
             scale = 255.0f / (Math.max(1, (whitePoint - blackPoint) * whiteLevel));
         }
+
+        if (stackBuffer == null && rawBuffer != null) {
+            // Sample a few pixels to see if they are non-zero
+            int mid = rawBuffer.length / 2;
+            debugInfo = "RawSample: " + (rawBuffer[mid] & 0xFFFF) + ", Max: " + (int)maxObserved + ", Scale: " + String.format("%.2f", scale);
+        }
+        frameCount++;
 
         // Simple Debayering for live preview (pattern aware)
         float manualBlackOffset = useAutoStretch ? 0 : blackPoint * whiteLevel;
@@ -141,9 +161,9 @@ public class Renderer {
                     bi = (int) (Math.sqrt(Math.max(0, b * scale) / 255.0) * 255.0);
                 }
 
-                ri = Math.min(255, ri);
-                gi = Math.min(255, gi);
-                bi = Math.min(255, bi);
+                ri = Math.max(0, Math.min(255, ri));
+                gi = Math.max(0, Math.min(255, gi));
+                bi = Math.max(0, Math.min(255, bi));
 
                 argbBuffer[y * sw + x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
             }
@@ -154,41 +174,62 @@ public class Renderer {
     }
 
     private void draw() {
+        if (!textureView.isAvailable()) return;
         Canvas canvas = textureView.lockCanvas();
         if (canvas != null) {
-            if (previewBitmap != null) {
-                // Handle dynamic rotation
-                int targetWidth = (sensorOrientation % 180 == 0) ? previewBitmap.getWidth() : previewBitmap.getHeight();
-                int targetHeight = (sensorOrientation % 180 == 0) ? previewBitmap.getHeight() : previewBitmap.getWidth();
+            canvas.drawColor(0xFF222222); // Dark gray to distinguish from pure black background
 
-                if (rotatedBitmap == null || rotatedBitmap.getWidth() != targetWidth || rotatedBitmap.getHeight() != targetHeight) {
-                    rotatedBitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
-                }
+            // Draw a debug indicator (green dot) to show rendering is alive
+            paint.setColor(0xFF00FF00);
+            canvas.drawCircle(30, 30, 15, paint);
+
+            if (previewBitmap != null) {
+                int bw = previewBitmap.getWidth();
+                int bh = previewBitmap.getHeight();
 
                 android.graphics.Matrix matrix = new android.graphics.Matrix();
-                matrix.postRotate(sensorOrientation);
 
-                Canvas rotatedCanvas = new Canvas(rotatedBitmap);
-                rotatedCanvas.drawBitmap(previewBitmap, matrix, paint);
+                // 1. Rotate around center of source bitmap
+                matrix.postRotate(sensorOrientation, bw / 2.0f, bh / 2.0f);
 
-                // Draw rotated bitmap to fill screen while maintaining aspect ratio
-                int canvasW = canvas.getWidth();
-                int canvasH = canvas.getHeight();
-                int bitW = rotatedBitmap.getWidth();
-                int bitH = rotatedBitmap.getHeight();
+                // 2. Translate so it's centered at (0,0) after rotation?
+                // Actually, let's just use a simpler approach.
 
-                float scaleX = (float) canvasW / bitW;
-                float scaleY = (float) canvasH / bitH;
-                float scale = Math.max(scaleX, scaleY); // Fill screen
+                // Better approach: rotate then find bounds, then scale to fit canvas.
+                float[] pts = {0, 0, bw, 0, bw, bh, 0, bh};
+                matrix.mapPoints(pts);
+                float minX = pts[0], minY = pts[1], maxX = pts[0], maxY = pts[1];
+                for (int i = 2; i < 8; i += 2) {
+                    minX = Math.min(minX, pts[i]);
+                    minY = Math.min(minY, pts[i+1]);
+                    maxX = Math.max(maxX, pts[i]);
+                    maxY = Math.max(maxY, pts[i+1]);
+                }
+                float rotatedW = maxX - minX;
+                float rotatedH = maxY - minY;
 
-                int drawW = (int) (bitW * scale);
-                int drawH = (int) (bitH * scale);
-                int left = (canvasW - drawW) / 2;
-                int top = (canvasH - drawH) / 2;
+                // Translate to bring minX, minY to 0,0
+                matrix.postTranslate(-minX, -minY);
 
-                Rect dst = new Rect(left, top, left + drawW, top + drawH);
-                canvas.drawBitmap(rotatedBitmap, null, dst, paint);
+                // Scale to fill canvas
+                float scaleX = (float) canvas.getWidth() / rotatedW;
+                float scaleY = (float) canvas.getHeight() / rotatedH;
+                float scale = Math.max(scaleX, scaleY);
+                matrix.postScale(scale, scale);
+
+                // Center in canvas
+                float finalW = rotatedW * scale;
+                float finalH = rotatedH * scale;
+                matrix.postTranslate((canvas.getWidth() - finalW) / 2.0f, (canvas.getHeight() - finalH) / 2.0f);
+
+                canvas.drawBitmap(previewBitmap, matrix, paint);
             }
+
+            // Draw debug text
+            paint.setColor(0xFFFFFFFF);
+            paint.setTextSize(30);
+            canvas.drawText(debugInfo, 50, 40, paint);
+
             textureView.unlockCanvasAndPost(canvas);
         }
     }
