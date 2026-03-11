@@ -5,7 +5,6 @@ import android.media.Image;
 import android.os.Handler;
 import android.os.HandlerThread;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 import java.util.List;
 
 public class FrameProcessor {
@@ -20,6 +19,7 @@ public class FrameProcessor {
     private boolean isStacking = false;
     private int width, height;
 
+    // Using two buffers for efficient handover from Camera thread
     private short[][] rawBufferPool = new short[2][];
     private int poolIdx = 0;
     private byte[] grayBuffer;
@@ -48,27 +48,21 @@ public class FrameProcessor {
     }
 
     public synchronized void processFrame(Image image) {
-        if (latestRawImage != null) latestRawImage.close();
-        latestRawImage = image;
-
         if (!isStacking) {
+            image.close();
             return;
         }
 
-        // Handle RAW_SENSOR (usually 16-bit)
-        // For Realme 8i 50MP, check plane count and format
         Image.Plane plane = image.getPlanes()[0];
         ByteBuffer buffer = plane.getBuffer();
+        buffer.order(java.nio.ByteOrder.nativeOrder());
 
-        // Buffer reuse
         if (rawBufferPool[0] == null) rawBufferPool[0] = new short[width * height];
         if (rawBufferPool[1] == null) rawBufferPool[1] = new short[width * height];
         if (grayBuffer == null) grayBuffer = new byte[width * height];
 
         final short[] currentRaw = rawBufferPool[poolIdx];
         poolIdx = (poolIdx + 1) % 2;
-
-        buffer.order(java.nio.ByteOrder.nativeOrder());
 
         int rowStride = plane.getRowStride();
         if (rowStride == width * 2) {
@@ -83,29 +77,33 @@ public class FrameProcessor {
         image.close();
 
         processingHandler.post(() -> {
-            // Processing happens on currentRaw which is now reserved for this task
-            for (int i = 0; i < currentRaw.length; i++) {
-                grayBuffer[i] = (byte) ((currentRaw[i] & 0xFFFF) >> 8);
+            // Downscale for star detection speed (4x)
+            int dw = width / 2;
+            int dh = height / 2;
+            if (grayBuffer.length < dw * dh) grayBuffer = new byte[dw * dh];
+
+            for (int y = 0; y < dh; y++) {
+                for (int x = 0; x < dw; x++) {
+                    grayBuffer[y * dw + x] = (byte) ((currentRaw[(y * 2) * width + (x * 2)] & 0xFFFF) >> 8);
+                }
             }
 
-            List<Point> stars = starDetector.detectStars(grayBuffer);
+            // Create a star detector that knows about downscaling
+            StarDetector sd = new StarDetector(dw, dh);
+            List<Point> stars = sd.detectStars(grayBuffer);
 
             int dx = 0, dy = 0;
             if (stackEngine.getFrameCount() == 0) {
                 frameAligner.setReferenceStars(stars);
             } else {
                 Point shift = frameAligner.computeShift(stars);
-                // Ensure shift is even to preserve Bayer pattern alignment
-                dx = (shift.x / 2) * 2;
-                dy = (shift.y / 2) * 2;
+                // Shift must be even to keep Bayer pattern aligned, and account for 2x downscale
+                dx = (shift.x * 2 / 2) * 2;
+                dy = (shift.y * 2 / 2) * 2;
             }
 
-            // Hot pixel removal (simple 3x3 median-like filter on bright isolated pixels)
             removeHotPixels(currentRaw, width, height);
-
             stackEngine.addFrame(currentRaw, dx, dy);
-
-            // Update preview
             renderer.updateStack(stackEngine.getStackBuffer(), width, height);
         });
     }
@@ -119,30 +117,20 @@ public class FrameProcessor {
     }
 
     private void removeHotPixels(short[] data, int w, int h) {
-        int threshold = 5000; // Adjust based on sensor noise
+        int threshold = 8000;
         for (int y = 1; y < h - 1; y++) {
             for (int x = 1; x < w - 1; x++) {
                 int idx = y * w + x;
                 int val = data[idx] & 0xFFFF;
                 if (val > threshold) {
-                    // Check neighbors (crude)
                     int maxNeighbor = 0;
                     maxNeighbor = Math.max(maxNeighbor, data[idx - 1] & 0xFFFF);
                     maxNeighbor = Math.max(maxNeighbor, data[idx + 1] & 0xFFFF);
                     maxNeighbor = Math.max(maxNeighbor, data[idx - w] & 0xFFFF);
                     maxNeighbor = Math.max(maxNeighbor, data[idx + w] & 0xFFFF);
-
-                    if (val > maxNeighbor * 2) { // Isolated bright pixel
-                        data[idx] = (short) maxNeighbor;
-                    }
+                    if (val > maxNeighbor * 2) data[idx] = (short) maxNeighbor;
                 }
             }
         }
-    }
-
-    public synchronized Image getLatestRawImage() {
-        Image img = latestRawImage;
-        latestRawImage = null; // Ownership transferred
-        return img;
     }
 }

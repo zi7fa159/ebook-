@@ -9,88 +9,161 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <ScrollView
-        android:id="@+id/log_scroll"
-        android:layout_width="200dp"
-        android:layout_height="150dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_margin="10dp"
-        android:background="#80000000">
+    <!-- Top Overlay: Status and Log -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:background="#40000000">
+
         <TextView
-            android:id="@+id/log_text"
-            android:layout_width="match_parent"
+            android:id="@+id/status_text"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:padding="5dp"
+            android:text="READY TO STACK"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/frame_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 Frames"
             android:textColor="#00FF00"
-            android:textSize="10sp"
-            android:text="System Initialized..." />
-    </ScrollView>
+            android:textSize="14sp" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/capture_progress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="4dp"
         android:layout_alignParentTop="true"
         android:progress="0"
         android:max="100" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
+    <!-- Right Overlay: System Logs -->
+    <ScrollView
+        android:id="@+id/log_scroll"
+        android:layout_width="150dp"
+        android:layout_height="120dp"
+        android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#B0000000">
-
+        android:layout_marginTop="50dp"
+        android:layout_marginRight="10dp"
+        android:background="#60000000"
+        android:visibility="gone">
         <TextView
-            android:id="@+id/status_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Stacked: 0 frames"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
-
-        <GridLayout
+            android:id="@+id/log_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="2">
+            android:padding="5dp"
+            android:textColor="#AAAAAA"
+            android:textSize="9sp" />
+    </ScrollView>
 
-            <!-- Shutter -->
-            <TextView android:text="Shutter" android:textColor="#AAA" android:textSize="12sp" />
-            <SeekBar android:id="@+id/shutter_seekbar" android:layout_width="150dp" android:max="31" />
+    <!-- Bottom Controls -->
+    <LinearLayout
+        android:id="@+id/bottom_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#CC000000">
 
-            <!-- ISO -->
-            <TextView android:text="ISO" android:textColor="#AAA" android:textSize="12sp" />
-            <SeekBar android:id="@+id/iso_seekbar" android:layout_width="150dp" android:max="63" />
-
-            <!-- Focus -->
-            <TextView android:text="Focus" android:textColor="#AAA" android:textSize="12sp" />
-            <SeekBar android:id="@+id/focus_seekbar" android:layout_width="150dp" android:max="100" />
-
-            <!-- WB (Red Gain) -->
-            <TextView android:text="WB Red" android:textColor="#AAA" android:textSize="12sp" />
-            <SeekBar android:id="@+id/wb_red_seekbar" android:layout_width="150dp" android:max="400" android:progress="200" />
-
-            <!-- WB (Blue Gain) -->
-            <TextView android:text="WB Blue" android:textColor="#AAA" android:textSize="12sp" />
-            <SeekBar android:id="@+id/wb_blue_seekbar" android:layout_width="150dp" android:max="400" android:progress="200" />
-        </GridLayout>
-
+        <!-- Values Display (Clickable for Manual Entry) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginTop="8dp">
+            android:layout_marginBottom="16dp">
 
-            <Button android:id="@+id/btn_start" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="START" />
-            <Button android:id="@+id/btn_stop" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="STOP" />
-            <Button android:id="@+id/btn_save" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SAVE" />
-            <Button android:id="@+id/btn_reset" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CLR" />
+            <LinearLayout
+                android:id="@+id/ctrl_exp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <TextView android:text="EXP" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/val_exp" android:text="1s" android:textColor="#FFF" android:textSize="18sp" android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="1dp" android:layout_height="30dp" android:background="#444" />
+
+            <LinearLayout
+                android:id="@+id/ctrl_iso"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <TextView android:text="ISO" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/val_iso" android:text="800" android:textColor="#FFF" android:textSize="18sp" android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="1dp" android:layout_height="30dp" android:background="#444" />
+
+            <LinearLayout
+                android:id="@+id/ctrl_focus"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <TextView android:text="FOCUS" android:textColor="#888" android:textSize="10sp" />
+                <TextView android:id="@+id/val_focus" android:text="INF" android:textColor="#FFF" android:textSize="18sp" android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_reset"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:text="CLR"
+                android:backgroundTint="#444"
+                android:textSize="12sp" />
+
+            <Space android:layout_width="20dp" android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btn_main_action"
+                android:layout_width="100dp"
+                android:layout_height="60dp"
+                android:text="START"
+                android:backgroundTint="#FF4444"
+                android:textStyle="bold" />
+
+            <Space android:layout_width="20dp" android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btn_save"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:text="SAVE"
+                android:backgroundTint="#444"
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
