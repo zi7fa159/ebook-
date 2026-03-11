@@ -38,11 +38,22 @@ public class CameraController {
     }
 
     public void openCamera(FrameCallback callback) {
+        if (cameraDevice != null) return;
         this.frameCallback = callback;
         startBackgroundThread();
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         try {
-            String cameraId = manager.getCameraIdList()[0];
+            String cameraId = null;
+            for (String id : manager.getCameraIdList()) {
+                CameraCharacteristics characteristics = manager.getCameraCharacteristics(id);
+                Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+                    cameraId = id;
+                    break;
+                }
+            }
+            if (cameraId == null) cameraId = manager.getCameraIdList()[0];
+
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             Size largest = map.getOutputSizes(ImageFormat.YUV_420_888)[0];
@@ -73,6 +84,10 @@ public class CameraController {
         } catch (CameraAccessException | SecurityException e) {
             e.printStackTrace();
         }
+    }
+
+    public interface SessionCallback {
+        void onReady();
     }
 
     private void createCaptureSession() {

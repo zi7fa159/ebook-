@@ -1,7 +1,9 @@
 package com.example.astrostacker;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -37,6 +39,12 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, 101);
+        } else {
+            Toast.makeText(this, "Camera permission granted", Toast.LENGTH_SHORT).show();
+        }
+
         statusText = findViewById(R.id.statusText);
         infoText = findViewById(R.id.infoText);
         btnStart = findViewById(R.id.btnStart);
@@ -60,9 +68,14 @@ public class MainActivity extends Activity implements CameraController.FrameCall
             public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {}
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
-                cameraController.close();
+                // cameraController.close(); // Don't close immediately to avoid issues on rotation
             }
         });
+
+        // Ensure camera opens if surface already created
+        if (surfaceView.getHolder().getSurface().isValid()) {
+            cameraController.openCamera(MainActivity.this);
+        }
 
         btnStart.setOnClickListener(v -> {
             isStacking = true;
@@ -119,7 +132,12 @@ public class MainActivity extends Activity implements CameraController.FrameCall
 
     @Override
     public void onFrameReceived(ImageReader reader) {
-        Image image = reader.acquireLatestImage();
+        Image image = null;
+        try {
+            image = reader.acquireLatestImage();
+        } catch (Exception e) {
+            return;
+        }
         if (image == null) return;
 
         if (width == 0) {
@@ -225,5 +243,16 @@ public class MainActivity extends Activity implements CameraController.FrameCall
         out.write((count >> 16) & 0xFF); out.write((count >> 24) & 0xFF);
         out.write(val & 0xFF); out.write((val >> 8) & 0xFF);
         out.write((val >> 16) & 0xFF); out.write((val >> 24) & 0xFF);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cameraController.close();
     }
 }
