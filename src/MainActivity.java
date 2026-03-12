@@ -619,7 +619,7 @@ public class MainActivity extends Activity {
         final int h = cameraController.getRawSize().getHeight();
         final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
         final int frameCount = frameProcessor.getFrameCount();
-        final StretchParams params = renderer.getCurrentParams();
+        final ColorEngine.Params params = renderer.getColorParams();
 
         new Thread(() -> {
             try {
@@ -643,9 +643,10 @@ public class MainActivity extends Activity {
         final int h = cameraController.getRawSize().getHeight();
         final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
         final int frameCount = frameProcessor.getFrameCount();
-        final StretchParams params = renderer.getCurrentParams();
+
         // Force one final render update to ensure params are fresh
         renderer.updateStack(buffer, w, h, frameCount, isSum);
+        final ColorEngine.Params params = renderer.getColorParams();
 
         addLog("Saving 16-bit TIFF (" + (stretched ? "Stretched" : "Linear") + ")...");
 
@@ -677,6 +678,7 @@ public class MainActivity extends Activity {
 
     private void saveDng(File file) {
         if (frameProcessor == null || cameraController == null) return;
+        addLog("Saving RAW DNG...");
         Image img = frameProcessor.getLastImage();
         android.hardware.camera2.TotalCaptureResult res = cameraController.getLastCaptureResult();
         android.hardware.camera2.CameraCharacteristics charac = cameraController.getCharacteristics();
@@ -692,7 +694,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void savePngOptimized(File file, float[] buffer, int w, int h, int frameCount, boolean isSum, StretchParams params) throws IOException {
+    private void savePngOptimized(File file, float[] buffer, int w, int h, int frameCount, boolean isSum, ColorEngine.Params params) throws IOException {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         int[] rowPixels = new int[w];
         float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
@@ -712,21 +714,21 @@ public class MainActivity extends Activity {
                     if (m > whiteClip) { r = g = b = m; }
                 }
 
-                // Apply Stretch
-                r = (r - params.blackOffset) * params.scale;
-                g = (g - params.blackOffset) * params.scale;
-                b = (b - params.blackOffset) * params.scale;
+                // Apply Stretch identically to ColorEngine
+                r = (r - params.manualBlackOffset) * params.stretchScale / 255.0f;
+                g = (g - params.manualBlackOffset) * params.stretchScale / 255.0f;
+                b = (b - params.manualBlackOffset) * params.stretchScale / 255.0f;
 
                 int ri, gi, bi;
-                if (params.useAuto) {
-                    ri = (int) (Math.sqrt(Math.max(0, r) / 255.0) * 255.0);
-                    gi = (int) (Math.sqrt(Math.max(0, g) / 255.0) * 255.0);
-                    bi = (int) (Math.sqrt(Math.max(0, b) / 255.0) * 255.0);
-                } else {
-                    ri = (int) (Math.pow(Math.max(0, r/255f), params.midFactor) * 255);
-                    gi = (int) (Math.pow(Math.max(0, g/255f), params.midFactor) * 255);
-                    bi = (int) (Math.pow(Math.max(0, b/255f), params.midFactor) * 255);
+                if (params.gamma != 1.0f) {
+                    r = (float) Math.pow(Math.max(0, r), params.gamma);
+                    g = (float) Math.pow(Math.max(0, g), params.gamma);
+                    b = (float) Math.pow(Math.max(0, b), params.gamma);
                 }
+
+                ri = (int)(r * 255);
+                gi = (int)(g * 255);
+                bi = (int)(b * 255);
 
                 ri = Math.min(255, Math.max(0, ri));
                 gi = Math.min(255, Math.max(0, gi));

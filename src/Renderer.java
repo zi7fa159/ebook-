@@ -33,7 +33,7 @@ public class Renderer {
     private boolean isSumStacking = false;
     private final int[] histogram = new int[256];
     private final Object histLock = new Object();
-    private final StretchParams currentParams = new StretchParams();
+    private final ColorEngine.Params colorParams = new ColorEngine.Params();
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
@@ -45,6 +45,9 @@ public class Renderer {
     public synchronized void setCfaPattern(int pattern) { this.cfaPattern = pattern; }
 
     public synchronized void setWbGains(float r, float g, float b) {
+        colorParams.rGain = r;
+        colorParams.gGain = g;
+        colorParams.bGain = b;
         this.redGain = r;
         this.greenGain = g;
         this.blueGain = b;
@@ -55,7 +58,8 @@ public class Renderer {
         this.midPoint = Math.max(0.05f, Math.min(0.95f, mid));
         this.whitePoint = white;
         this.useAutoStretch = false;
-        currentParams.useAuto = false;
+        colorParams.useAutoStretch = false;
+        colorParams.gamma = (float)(Math.log(0.5)/Math.log(midPoint));
     }
 
     public int[] getHistogram() {
@@ -66,18 +70,20 @@ public class Renderer {
 
     public synchronized void setAutoStretch(boolean auto) {
         this.useAutoStretch = auto;
-        currentParams.useAuto = auto;
+        colorParams.useAutoStretch = auto;
     }
 
-    public StretchParams getCurrentParams() {
-        StretchParams p = new StretchParams();
-        synchronized(this) {
-            p.scale = currentParams.scale;
-            p.midFactor = currentParams.midFactor;
-            p.blackOffset = currentParams.blackOffset;
-            p.whiteClip = currentParams.whiteClip;
-            p.useAuto = currentParams.useAuto;
-        }
+    public synchronized ColorEngine.Params getColorParams() {
+        ColorEngine.Params p = new ColorEngine.Params();
+        p.rGain = colorParams.rGain;
+        p.gGain = colorParams.gGain;
+        p.bGain = colorParams.bGain;
+        p.blackLevel = colorParams.blackLevel;
+        p.whiteLevel = colorParams.whiteLevel;
+        p.stretchScale = colorParams.stretchScale;
+        p.gamma = colorParams.gamma;
+        p.manualBlackOffset = colorParams.manualBlackOffset;
+        p.useAutoStretch = colorParams.useAutoStretch;
         return p;
     }
 
@@ -145,10 +151,11 @@ public class Renderer {
 
         // Sync params for export
         synchronized(this) {
-            currentParams.scale = scale;
-            currentParams.midFactor = midFactor;
-            currentParams.blackOffset = manualBlackOffset;
-            currentParams.whiteClip = (whiteLevel - blackLevel) * 0.95f;
+            colorParams.stretchScale = scale;
+            colorParams.gamma = midFactor;
+            colorParams.manualBlackOffset = manualBlackOffset;
+            colorParams.blackLevel = (int)effectiveBlack;
+            colorParams.whiteLevel = whiteLevel;
         }
 
         if (stackBuffer == null && rawBuffer != null) {
@@ -170,77 +177,40 @@ public class Renderer {
             for (int x = 0; x < sw; x++) {
                 int ox = x * step;
 
-                float r, g, b;
+                float v00, v01, v10, v11;
                 if (stackBuffer != null) {
-                    // Pattern: 0=RGGB, 1=GRBG, 2=GBRG, 3=BGGR
-                    float v00 = stackBuffer[oy * width + ox];
-                    float v01 = stackBuffer[oy * width + (ox + 1)];
-                    float v10 = stackBuffer[(oy + 1) * width + ox];
-                    float v11 = stackBuffer[(oy + 1) * width + (ox + 1)];
-
-                    if (cfaPattern == 0) { r = v00; g = (v01+v10)/2f; b = v11; }
-                    else if (cfaPattern == 1) { r = v01; g = (v00+v11)/2f; b = v10; }
-                    else if (cfaPattern == 2) { r = v10; g = (v00+v11)/2f; b = v01; }
-                    else { r = v11; g = (v01+v10)/2f; b = v00; }
+                    v00 = stackBuffer[oy * width + ox];
+                    v01 = stackBuffer[oy * width + (ox + 1)];
+                    v10 = stackBuffer[(oy + 1) * width + ox];
+                    v11 = stackBuffer[(oy + 1) * width + (ox + 1)];
                 } else {
-                    float v00 = (rawBuffer[oy * width + ox] & 0xFFFF);
-                    float v01 = (rawBuffer[oy * width + (ox + 1)] & 0xFFFF);
-                    float v10 = (rawBuffer[(oy + 1) * width + ox] & 0xFFFF);
-                    float v11 = (rawBuffer[(oy + 1) * width + (ox + 1)] & 0xFFFF);
-
-                    if (cfaPattern == 0) { r = v00; g = (v01+v10)/2f; b = v11; }
-                    else if (cfaPattern == 1) { r = v01; g = (v00+v11)/2f; b = v10; }
-                    else if (cfaPattern == 2) { r = v10; g = (v00+v11)/2f; b = v01; }
-                    else { r = v11; g = (v01+v10)/2f; b = v00; }
+                    v00 = (rawBuffer[oy * width + ox] & 0xFFFF);
+                    v01 = (rawBuffer[oy * width + (ox + 1)] & 0xFFFF);
+                    v10 = (rawBuffer[(oy + 1) * width + ox] & 0xFFFF);
+                    v11 = (rawBuffer[(oy + 1) * width + (ox + 1)] & 0xFFFF);
                 }
 
-                r = (r - effectiveBlack - manualBlackOffset) * redGain;
-                g = (g - effectiveBlack - manualBlackOffset) * greenGain;
-                b = (b - effectiveBlack - manualBlackOffset) * blueGain;
+                float r, b;
+                if (cfaPattern == 0) { r = v00; b = v11; }
+                else if (cfaPattern == 1) { r = v01; b = v10; }
+                else if (cfaPattern == 2) { r = v10; b = v01; }
+                else { r = v11; b = v00; }
 
-                // Purple Highlight Fix: If value is near saturation, clamp to avoid tint
+                // Optimized color processing using ColorEngine
                 float whiteClip = (whiteLevel - blackLevel) * 0.95f;
-                if (r > whiteClip || g > whiteClip || b > whiteClip) {
-                    float max = Math.max(r, Math.max(g, b));
-                    if (max > whiteClip) {
-                        r = g = b = max;
-                    }
-                }
+                int argb = ColorEngine.processPixel(r, v01, v10, b, colorParams, effectiveBlack, whiteClip);
 
-                int ri, gi, bi;
-                if (useAutoStretch) {
-                    if (isFastLive) {
-                        ri = (int) (r * scale);
-                        gi = (int) (g * scale);
-                        bi = (int) (b * scale);
-                    } else {
-                        ri = (int) (Math.sqrt(Math.max(0, r * scale) / 255.0) * 255.0);
-                        gi = (int) (Math.sqrt(Math.max(0, g * scale) / 255.0) * 255.0);
-                        bi = (int) (Math.sqrt(Math.max(0, b * scale) / 255.0) * 255.0);
-                    }
-                } else {
-                    // Professional Midtones Stretch (Power Law)
-                    float range = Math.max(1, (whitePoint - blackPoint) * effectiveWhite);
-                    float normR = Math.max(0, Math.min(1.0f, r / range));
-                    float normG = Math.max(0, Math.min(1.0f, g / range));
-                    float normB = Math.max(0, Math.min(1.0f, b / range));
+                // Extract 8-bit for histogram
+                int ri = (argb >> 16) & 0xFF;
+                int gi = (argb >> 8) & 0xFF;
+                int bi = argb & 0xFF;
 
-                    ri = (int) (Math.pow(normR, midFactor) * 255);
-                    gi = (int) (Math.pow(normG, midFactor) * 255);
-                    bi = (int) (Math.pow(normB, midFactor) * 255);
-                }
-
-                ri = Math.max(0, Math.min(255, ri));
-                gi = Math.max(0, Math.min(255, gi));
-                bi = Math.max(0, Math.min(255, bi));
-
-                // Update histogram with average luminance
-                int lum = (ri + gi + bi) / 3;
+                // Update histogram
                 synchronized(histLock) {
-                    histogram[lum]++;
+                    histogram[(ri + gi + bi) / 3]++;
                 }
 
-                argbBuffer[y * sw + x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
+                argbBuffer[y * sw + x] = argb;
             }
         }
 
