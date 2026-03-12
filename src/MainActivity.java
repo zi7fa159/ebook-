@@ -45,6 +45,8 @@ public class MainActivity extends Activity {
     private float currentRGain = 1.6f;
     private float currentGGain = 1.0f;
     private float currentBGain = 2.1f;
+    private float currentTemp = 5000f;
+    private float currentTint = 0f;
     private int currentBlackLevel = 64;
     private float stretchBlack = 0.0f;
     private float stretchMid = 0.5f;
@@ -340,6 +342,7 @@ public class MainActivity extends Activity {
         mainLayout.addView(tabScroll);
 
         android.widget.FrameLayout contentFrame = new android.widget.FrameLayout(this);
+        contentFrame.setLayoutParams(new android.widget.LinearLayout.LayoutParams(-1, -2));
         mainLayout.addView(contentFrame);
 
         // Sections
@@ -379,17 +382,19 @@ public class MainActivity extends Activity {
         final android.widget.SeekBar whiteBar = new android.widget.SeekBar(this); whiteBar.setMax(100); whiteBar.setProgress((int)(stretchWhite*100)); stretchLayout.addView(whiteBar);
 
         // Color Content
-        colorLayout.addView(createLabel("Red Gain:"));
-        final EditText rGain = new EditText(this); rGain.setText(String.valueOf(currentRGain)); rGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        colorLayout.addView(rGain);
+        final TextView tempLbl = createLabel("Temp: " + (int)currentTemp + "K"); colorLayout.addView(tempLbl);
+        final android.widget.SeekBar tempBar = new android.widget.SeekBar(this); tempBar.setMax(100); tempBar.setProgress((int)((currentTemp-2000)/80)); colorLayout.addView(tempBar);
 
-        colorLayout.addView(createLabel("Green Gain:"));
-        final EditText gGain = new EditText(this); gGain.setText(String.valueOf(currentGGain)); gGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        colorLayout.addView(gGain);
+        final TextView tintLbl = createLabel("Tint: " + (int)currentTint); colorLayout.addView(tintLbl);
+        final android.widget.SeekBar tintBar = new android.widget.SeekBar(this); tintBar.setMax(200); tintBar.setProgress((int)currentTint + 100); colorLayout.addView(tintBar);
 
-        colorLayout.addView(createLabel("Blue Gain:"));
-        final EditText bGain = new EditText(this); bGain.setText(String.valueOf(currentBGain)); bGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        colorLayout.addView(bGain);
+        colorLayout.addView(createLabel("Manual Gains (Optional):"));
+        android.widget.LinearLayout gainsRow = new android.widget.LinearLayout(this);
+        final EditText rGain = new EditText(this); rGain.setText(String.format("%.2f", currentRGain)); rGain.setLayoutParams(new android.widget.LinearLayout.LayoutParams(0, -2, 1));
+        final EditText gGain = new EditText(this); gGain.setText(String.format("%.2f", currentGGain)); gGain.setLayoutParams(new android.widget.LinearLayout.LayoutParams(0, -2, 1));
+        final EditText bGain = new EditText(this); bGain.setText(String.format("%.2f", currentBGain)); bGain.setLayoutParams(new android.widget.LinearLayout.LayoutParams(0, -2, 1));
+        gainsRow.addView(rGain); gainsRow.addView(gGain); gainsRow.addView(bGain);
+        colorLayout.addView(gainsRow);
 
         colorLayout.addView(createLabel("Black Level:"));
         final EditText bLevel = new EditText(this); bLevel.setText(String.valueOf(currentBlackLevel)); bLevel.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -413,9 +418,29 @@ public class MainActivity extends Activity {
         midBar.setOnSeekBarChangeListener(listener);
         whiteBar.setOnSeekBarChangeListener(listener);
 
+        tempBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) {
+                float t = 2000 + p * 80;
+                tempLbl.setText("Temp: " + (int)t + "K");
+                if (renderer != null) renderer.setTempTint(t, tintBar.getProgress() - 100);
+            }
+            public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
+        });
+
+        tintBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) {
+                int t = p - 100;
+                tintLbl.setText("Tint: " + t);
+                if (renderer != null) renderer.setTempTint(2000 + tempBar.getProgress() * 80, t);
+            }
+            public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
+        });
+
         builder.setView(mainLayout);
         builder.setPositiveButton("OK", (dialog, which) -> {
             try {
+                currentTemp = 2000 + tempBar.getProgress() * 80;
+                currentTint = tintBar.getProgress() - 100;
                 currentRGain = Float.parseFloat(rGain.getText().toString());
                 currentGGain = Float.parseFloat(gGain.getText().toString());
                 currentBGain = Float.parseFloat(bGain.getText().toString());
@@ -424,7 +449,19 @@ public class MainActivity extends Activity {
                 stretchMid = midBar.getProgress() / 100.0f;
                 stretchWhite = whiteBar.getProgress() / 100.0f;
                 if (renderer != null) {
-                    renderer.setWbGains(currentRGain, currentGGain, currentBGain);
+                    renderer.setTempTint(currentTemp, currentTint);
+                    // If gains were manually edited, they take priority
+                    float rg = Float.parseFloat(rGain.getText().toString());
+                    float gg = Float.parseFloat(gGain.getText().toString());
+                    float bg = Float.parseFloat(bGain.getText().toString());
+                    if (Math.abs(rg - currentRGain) > 0.01 || Math.abs(gg - currentGGain) > 0.01 || Math.abs(bg - currentBGain) > 0.01) {
+                         renderer.setWbGains(rg, gg, bg);
+                         currentRGain = rg; currentGGain = gg; currentBGain = bg;
+                    } else {
+                         ColorEngine.Params cp = renderer.getColorParams();
+                         currentRGain = cp.rGain; currentGGain = cp.gGain; currentBGain = cp.bGain;
+                    }
+
                     renderer.setBlackLevel(currentBlackLevel);
                     renderer.setStretch(stretchBlack, stretchMid, stretchWhite);
                 }
@@ -436,11 +473,33 @@ public class MainActivity extends Activity {
                 renderer.setAutoStretch(true);
             }
         });
-        builder.setNeutralButton("Auto", (dialog, which) -> {
-            if (renderer != null) renderer.setAutoStretch(true);
+        builder.setNeutralButton("Auto WB", (dialog, which) -> {
+            autoWb();
         });
         builder.setNegativeButton("Cancel", null);
         builder.show();
+    }
+
+    private void autoWb() {
+        if (cameraController == null || renderer == null) return;
+        android.hardware.camera2.TotalCaptureResult res = cameraController.getLastCaptureResult();
+        if (res != null) {
+            android.hardware.camera2.params.RggbChannelVector gains = res.get(android.hardware.camera2.CaptureResult.COLOR_CORRECTION_GAINS);
+            if (gains != null) {
+                currentRGain = gains.getRed();
+                currentGGain = (gains.getGreenEven() + gains.getGreenOdd()) / 2.0f;
+                currentBGain = gains.getBlue();
+                // Normalize to G=1.0
+                currentRGain /= currentGGain;
+                currentBGain /= currentGGain;
+                currentGGain = 1.0f;
+                renderer.setWbGains(currentRGain, currentGGain, currentBGain);
+                addLog("Auto WB Applied: R=" + String.format("%.2f", currentRGain) + " B=" + String.format("%.2f", currentBGain));
+                Toast.makeText(this, "Auto WB Applied", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "No capture result yet", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private TextView createLabel(String text) {

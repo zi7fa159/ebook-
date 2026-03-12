@@ -9,6 +9,8 @@ import android.graphics.Color;
 public class ColorEngine {
 
     public static class Params {
+        public float temperature = 5000f;
+        public float tint = 0f;
         public float rGain = 1.6f;
         public float gGain = 1.0f;
         public float bGain = 2.1f;
@@ -18,6 +20,46 @@ public class ColorEngine {
         public float gamma = 1.0f; // 1.0 = Linear
         public float manualBlackOffset = 0.0f;
         public boolean useAutoStretch = true;
+    }
+
+    /**
+     * Converts Color Temperature (Kelvin) and Tint to RGB gains.
+     * Based on approximate inverse of Planckian locus.
+     */
+    public static float[] getGainsFromTempTint(float temp, float tint) {
+        float r, g, b;
+        float t = temp / 100.0f;
+
+        // Calculate color of light source
+        if (t <= 66) {
+            r = 255;
+            g = (float) (99.4708025861 * Math.log(t) - 161.1195681661);
+            b = (t <= 19) ? 0 : (float) (138.5177312231 * Math.log(t - 10) - 305.0447927307);
+        } else {
+            r = (float) (329.698727446 * Math.pow(t - 60, -0.1332047592));
+            g = (float) (288.1221695283 * Math.pow(t - 60, -0.0755148492));
+            b = 255;
+        }
+
+        // Normalize light color
+        float max = Math.max(r, Math.max(g, b));
+        r /= max; g /= max; b /= max;
+
+        // Inverse for gains
+        float gr = 1.0f / Math.max(0.01f, r);
+        float gg = 1.0f / Math.max(0.01f, g);
+        float gb = 1.0f / Math.max(0.01f, b);
+
+        // Apply Tint (Green-Magenta axis)
+        // Positive tint = more magenta = less green = lower green gain
+        gg *= (float) Math.pow(1.001, -tint);
+
+        // Normalize so G is 1.0 (typical for RAW)
+        gr /= gg;
+        gb /= gg;
+        gg = 1.0f;
+
+        return new float[]{gr, gg, gb};
     }
 
     public static int processPixel(float rIn, float g1In, float g2In, float bIn, Params p, float effectiveBlack) {

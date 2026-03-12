@@ -53,6 +53,13 @@ public class Renderer {
         this.blueGain = b;
     }
 
+    public synchronized void setTempTint(float temp, float tint) {
+        colorParams.temperature = temp;
+        colorParams.tint = tint;
+        float[] gains = ColorEngine.getGainsFromTempTint(temp, tint);
+        setWbGains(gains[0], gains[1], gains[2]);
+    }
+
     public synchronized void setStretch(float black, float mid, float white) {
         this.blackPoint = black;
         this.midPoint = Math.max(0.05f, Math.min(0.95f, mid));
@@ -75,6 +82,8 @@ public class Renderer {
 
     public synchronized ColorEngine.Params getColorParams() {
         ColorEngine.Params p = new ColorEngine.Params();
+        p.temperature = colorParams.temperature;
+        p.tint = colorParams.tint;
         p.rGain = colorParams.rGain;
         p.gGain = colorParams.gGain;
         p.bGain = colorParams.bGain;
