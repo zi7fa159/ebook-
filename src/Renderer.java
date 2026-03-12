@@ -108,13 +108,15 @@ public class Renderer {
     private void processAndDraw(float[] stackBuffer, short[] rawBuffer, int width, int height) {
         // Increased downscale for 50MP performance (4x = 16x area reduction)
         int step = (width > 6000) ? 4 : 2;
-        int sw = width / step;
-        int sh = height / step;
+        int sw = (width / step) / 2 * 2; // Ensure even
+        int sh = (height / step) / 2 * 2;
 
-        if (previewBitmap == null || previewBitmap.getWidth() != sw || previewBitmap.getHeight() != sh) {
-            if (previewBitmap != null) previewBitmap.recycle();
-            previewBitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888);
-            argbBuffer = new int[sw * sh];
+        synchronized(this) {
+            if (previewBitmap == null || previewBitmap.getWidth() != sw || previewBitmap.getHeight() != sh) {
+                if (previewBitmap != null) previewBitmap.recycle();
+                previewBitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888);
+                argbBuffer = new int[sw * sh];
+            }
         }
 
         // Effective black level for summed stacks
@@ -131,17 +133,17 @@ public class Renderer {
             int sampleCount = 0;
             float sum = 0;
             int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
-            for (int i = 0; i < len; i += 4000) {
+            for (int i = 0; i < len; i += 8000) {
                 float val = (stackBuffer != null) ? stackBuffer[i] : (rawBuffer[i] & 0xFFFF);
                 if (val > maxObserved) maxObserved = val;
                 sum += val;
                 sampleCount++;
             }
-            float avg = sum / sampleCount;
+            float avg = sum / Math.max(1, sampleCount);
             float signalRange = Math.max(1, avg - effectiveBlack);
-            scale = 50.0f / signalRange; // Map background to 50/255
-            if (scale > 20.0f) scale = 20.0f;
-            midFactor = 1.0f; // Neutral
+            scale = 40.0f / signalRange; // Slightly dimmer auto-stretch
+            if (scale > 30.0f) scale = 30.0f;
+            midFactor = 1.0f;
             manualBlackOffset = 0;
         } else {
             manualBlackOffset = blackPoint * effectiveWhite;
@@ -154,27 +156,24 @@ public class Renderer {
             colorParams.stretchScale = scale;
             colorParams.gamma = midFactor;
             colorParams.manualBlackOffset = manualBlackOffset;
-            colorParams.blackLevel = (int)effectiveBlack;
+            colorParams.blackLevel = blackLevel; // Original black level
             colorParams.whiteLevel = whiteLevel;
+            colorParams.useAutoStretch = useAutoStretch;
         }
 
         if (stackBuffer == null && rawBuffer != null) {
-            // Sample a few pixels to see if they are non-zero
             int mid = rawBuffer.length / 2;
             debugInfo = "RawSample: " + (rawBuffer[mid] & 0xFFFF) + ", Scale: " + String.format("%.2f", scale);
         }
         frameCount++;
 
-        // Simple Debayering for live preview (pattern aware)
-        boolean isFastLive = (stackBuffer == null);
-
         synchronized(histLock) {
             for (int i = 0; i < 256; i++) histogram[i] = 0;
         }
 
-        for (int y = 0; y < sh; y++) {
+        for (int y = 0; y < sh; y += 2) {
             int oy = y * step;
-            for (int x = 0; x < sw; x++) {
+            for (int x = 0; x < sw; x += 2) {
                 int ox = x * step;
 
                 float v00, v01, v10, v11;
@@ -190,15 +189,21 @@ public class Renderer {
                     v11 = (rawBuffer[(oy + 1) * width + (ox + 1)] & 0xFFFF);
                 }
 
-                float r, b;
-                if (cfaPattern == 0) { r = v00; b = v11; }
-                else if (cfaPattern == 1) { r = v01; b = v10; }
-                else if (cfaPattern == 2) { r = v10; b = v01; }
-                else { r = v11; b = v00; }
+                float r, g1, g2, b;
+                switch(cfaPattern) {
+                    case 1: r=v01; g1=v00; g2=v11; b=v10; break; // GRBG
+                    case 2: r=v10; g1=v00; g2=v11; b=v01; break; // GBRG
+                    case 3: r=v11; g1=v01; g2=v10; b=v00; break; // BGGR
+                    default: r=v00; g1=v01; g2=v10; b=v11; break; // RGGB
+                }
 
-                // Optimized color processing using ColorEngine
-                float whiteClip = (whiteLevel - blackLevel) * 0.95f;
-                int argb = ColorEngine.processPixel(r, v01, v10, b, colorParams, effectiveBlack, whiteClip);
+                int argb = ColorEngine.processPixel(r, g1, g2, b, colorParams, effectiveBlack);
+
+                // Set 2x2 block
+                argbBuffer[y * sw + x] = argb;
+                argbBuffer[y * sw + (x + 1)] = argb;
+                argbBuffer[(y + 1) * sw + x] = argb;
+                argbBuffer[(y + 1) * sw + (x + 1)] = argb;
 
                 // Extract 8-bit for histogram
                 int ri = (argb >> 16) & 0xFF;
@@ -222,60 +227,50 @@ public class Renderer {
         if (!textureView.isAvailable()) return;
         Canvas canvas = textureView.lockCanvas();
         if (canvas != null) {
-            canvas.drawColor(0xFF222222); // Dark gray to distinguish from pure black background
+            try {
+                canvas.drawColor(0xFF000000);
 
-            // Draw a debug indicator (green dot) to show rendering is alive
-            paint.setColor(0xFF00FF00);
-            canvas.drawCircle(30, 30, 15, paint);
+                synchronized(this) {
+                    if (previewBitmap != null && !previewBitmap.isRecycled()) {
+                        int bw = previewBitmap.getWidth();
+                        int bh = previewBitmap.getHeight();
 
-            if (previewBitmap != null) {
-                int bw = previewBitmap.getWidth();
-                int bh = previewBitmap.getHeight();
+                        android.graphics.Matrix matrix = new android.graphics.Matrix();
+                        matrix.postRotate(sensorOrientation, bw / 2.0f, bh / 2.0f);
 
-                android.graphics.Matrix matrix = new android.graphics.Matrix();
+                        float[] pts = {0, 0, bw, 0, bw, bh, 0, bh};
+                        matrix.mapPoints(pts);
+                        float minX = pts[0], minY = pts[1], maxX = pts[0], maxY = pts[1];
+                        for (int i = 2; i < 8; i += 2) {
+                            minX = Math.min(minX, pts[i]);
+                            minY = Math.min(minY, pts[i+1]);
+                            maxX = Math.max(maxX, pts[i]);
+                            maxY = Math.max(maxY, pts[i+1]);
+                        }
+                        float rotatedW = maxX - minX;
+                        float rotatedH = maxY - minY;
 
-                // 1. Rotate around center of source bitmap
-                matrix.postRotate(sensorOrientation, bw / 2.0f, bh / 2.0f);
+                        matrix.postTranslate(-minX, -minY);
 
-                // 2. Translate so it's centered at (0,0) after rotation?
-                // Actually, let's just use a simpler approach.
+                        float scaleX = (float) canvas.getWidth() / rotatedW;
+                        float scaleY = (float) canvas.getHeight() / rotatedH;
+                        float scale = Math.min(scaleX, scaleY);
+                        matrix.postScale(scale, scale);
 
-                // Better approach: rotate then find bounds, then scale to fit canvas.
-                float[] pts = {0, 0, bw, 0, bw, bh, 0, bh};
-                matrix.mapPoints(pts);
-                float minX = pts[0], minY = pts[1], maxX = pts[0], maxY = pts[1];
-                for (int i = 2; i < 8; i += 2) {
-                    minX = Math.min(minX, pts[i]);
-                    minY = Math.min(minY, pts[i+1]);
-                    maxX = Math.max(maxX, pts[i]);
-                    maxY = Math.max(maxY, pts[i+1]);
+                        float finalW = rotatedW * scale;
+                        float finalH = rotatedH * scale;
+                        matrix.postTranslate((canvas.getWidth() - finalW) / 2.0f, (canvas.getHeight() - finalH) / 2.0f);
+
+                        canvas.drawBitmap(previewBitmap, matrix, paint);
+                    }
                 }
-                float rotatedW = maxX - minX;
-                float rotatedH = maxY - minY;
 
-                // Translate to bring minX, minY to 0,0
-                matrix.postTranslate(-minX, -minY);
-
-                // Scale to fill canvas
-                float scaleX = (float) canvas.getWidth() / rotatedW;
-                float scaleY = (float) canvas.getHeight() / rotatedH;
-                float scale = Math.max(scaleX, scaleY);
-                matrix.postScale(scale, scale);
-
-                // Center in canvas
-                float finalW = rotatedW * scale;
-                float finalH = rotatedH * scale;
-                matrix.postTranslate((canvas.getWidth() - finalW) / 2.0f, (canvas.getHeight() - finalH) / 2.0f);
-
-                canvas.drawBitmap(previewBitmap, matrix, paint);
+                paint.setColor(0xFFFFFFFF);
+                paint.setTextSize(30);
+                canvas.drawText(debugInfo, 50, 40, paint);
+            } finally {
+                textureView.unlockCanvasAndPost(canvas);
             }
-
-            // Draw debug text
-            paint.setColor(0xFFFFFFFF);
-            paint.setTextSize(30);
-            canvas.drawText(debugInfo, 50, 40, paint);
-
-            textureView.unlockCanvasAndPost(canvas);
         }
     }
 }

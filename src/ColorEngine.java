@@ -20,39 +20,45 @@ public class ColorEngine {
         public boolean useAutoStretch = true;
     }
 
-    public static int processPixel(float raw, float g1, float g2, float b, Params p, float effectiveBlack, float whiteClip) {
+    public static int processPixel(float rIn, float g1In, float g2In, float bIn, Params p, float effectiveBlack) {
         // 1. Black Level Subtraction
-        float r = raw - effectiveBlack;
-        float g = ((g1 + g2) / 2.0f) - effectiveBlack;
-        float bl = b - effectiveBlack;
+        float r = rIn - effectiveBlack;
+        float g = ((g1In + g2In) / 2.0f) - effectiveBlack;
+        float b = bIn - effectiveBlack;
 
         // 2. White Balance
         r *= p.rGain;
         g *= p.gGain;
-        bl *= p.bGain;
+        b *= p.bGain;
 
-        // 3. Purple Highlight Fix (Clamping near saturation)
-        if (r > whiteClip || g > whiteClip || bl > whiteClip) {
-            float max = Math.max(r, Math.max(g, bl));
-            if (max > whiteClip) { r = g = bl = max; }
+        // 3. Simple Highlight Recovery (Desaturate if any channel clips)
+        float clip = (p.whiteLevel - p.blackLevel) * (effectiveBlack / p.blackLevel); // Scaled white level
+        if (r > clip || g > clip || b > clip) {
+            float max = Math.max(r, Math.max(g, b));
+            r = g = b = max;
         }
 
         // 4. Stretching & Gamma
-        // Map to [0, 1] range based on current scale
+        // Map to [0, 1] range
         r = (r - p.manualBlackOffset) * p.stretchScale / 255.0f;
         g = (g - p.manualBlackOffset) * p.stretchScale / 255.0f;
-        bl = (bl - p.manualBlackOffset) * p.stretchScale / 255.0f;
+        b = (b - p.manualBlackOffset) * p.stretchScale / 255.0f;
 
-        if (p.gamma != 1.0f) {
+        if (p.useAutoStretch) {
+            // S-Curve like stretch for auto mode
+            r = (float) Math.sqrt(Math.max(0, r));
+            g = (float) Math.sqrt(Math.max(0, g));
+            b = (float) Math.sqrt(Math.max(0, b));
+        } else if (p.gamma != 1.0f) {
             r = (float) Math.pow(Math.max(0, r), p.gamma);
             g = (float) Math.pow(Math.max(0, g), p.gamma);
-            bl = (float) Math.pow(Math.max(0, bl), p.gamma);
+            b = (float) Math.pow(Math.max(0, b), p.gamma);
         }
 
         // 5. Final Scaling to 8-bit
         int ri = Math.max(0, Math.min(255, (int)(r * 255)));
         int gi = Math.max(0, Math.min(255, (int)(g * 255)));
-        int bi = Math.max(0, Math.min(255, (int)(bl * 255)));
+        int bi = Math.max(0, Math.min(255, (int)(b * 255)));
 
         return 0xFF000000 | (ri << 16) | (gi << 8) | bi;
     }

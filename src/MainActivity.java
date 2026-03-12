@@ -648,6 +648,11 @@ public class MainActivity extends Activity {
         renderer.updateStack(buffer, w, h, frameCount, isSum);
         final ColorEngine.Params params = renderer.getColorParams();
 
+        int cfa = 0;
+        Integer cfaInt = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+        if (cfaInt != null) cfa = cfaInt;
+        final int finalCfa = cfa;
+
         addLog("Saving 16-bit TIFF (" + (stretched ? "Stretched" : "Linear") + ")...");
 
         new Thread(() -> {
@@ -662,9 +667,9 @@ public class MainActivity extends Activity {
                 float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
 
                 if (stretched) {
-                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, params);
+                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, params, finalCfa);
                 } else {
-                    TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum);
+                    TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum, finalCfa);
                 }
 
                 addLog("Saved: " + tiffFile.getName());
@@ -698,44 +703,41 @@ public class MainActivity extends Activity {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         int[] rowPixels = new int[w];
         float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
-        float whiteClip = (1023.0f - currentBlackLevel) * (isSum ? frameCount : 1.0f) * 0.95f;
 
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int bx = (x / 2) * 2;
-                int by = (y / 2) * 2;
-                float r = (buffer[by * w + bx] - effectiveBlack) * currentRGain;
-                float g = ((buffer[by * w + (bx + 1)] + buffer[(by + 1) * w + bx]) / 2.0f - effectiveBlack) * currentGGain;
-                float b = (buffer[(by + 1) * w + (bx + 1)] - effectiveBlack) * currentBGain;
+        for (int y = 0; y < h; y += 2) {
+            for (int x = 0; x < w; x += 2) {
+                int b00 = y * w + x;
+                int b01 = b00 + 1;
+                int b10 = (y + 1) * w + x;
+                int b11 = b10 + 1;
 
-                // Purple Highlight Fix
-                if (r > whiteClip || g > whiteClip || b > whiteClip) {
-                    float m = Math.max(r, Math.max(g, b));
-                    if (m > whiteClip) { r = g = b = m; }
+                float v00 = buffer[b00];
+                float v01 = buffer[b01];
+                float v10 = buffer[b10];
+                float v11 = buffer[b11];
+
+                float r, g1, g2, b;
+                // Use the same CFA logic as Renderer
+                int cfa = 0;
+                if (cameraController != null) {
+                    Integer cfaInt = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+                    if (cfaInt != null) cfa = cfaInt;
                 }
 
-                // Apply Stretch identically to ColorEngine
-                r = (r - params.manualBlackOffset) * params.stretchScale / 255.0f;
-                g = (g - params.manualBlackOffset) * params.stretchScale / 255.0f;
-                b = (b - params.manualBlackOffset) * params.stretchScale / 255.0f;
-
-                int ri, gi, bi;
-                if (params.gamma != 1.0f) {
-                    r = (float) Math.pow(Math.max(0, r), params.gamma);
-                    g = (float) Math.pow(Math.max(0, g), params.gamma);
-                    b = (float) Math.pow(Math.max(0, b), params.gamma);
+                switch(cfa) {
+                    case 1: r=v01; g1=v00; g2=v11; b=v10; break; // GRBG
+                    case 2: r=v10; g1=v00; g2=v11; b=v01; break; // GBRG
+                    case 3: r=v11; g1=v01; g2=v10; b=v00; break; // BGGR
+                    default: r=v00; g1=v01; g2=v10; b=v11; break; // RGGB
                 }
 
-                ri = (int)(r * 255);
-                gi = (int)(g * 255);
-                bi = (int)(b * 255);
+                int argb = ColorEngine.processPixel(r, g1, g2, b, params, effectiveBlack);
 
-                ri = Math.min(255, Math.max(0, ri));
-                gi = Math.min(255, Math.max(0, gi));
-                bi = Math.min(255, Math.max(0, bi));
-                rowPixels[x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
+                rowPixels[x] = argb;
+                rowPixels[x+1] = argb;
             }
             bitmap.setPixels(rowPixels, 0, w, 0, y, w, 1);
+            bitmap.setPixels(rowPixels, 0, w, 0, y + 1, w, 1);
         }
         try (FileOutputStream out = new FileOutputStream(file)) {
             bitmap.compress(Bitmap.CompressFormat.PNG, 95, out);

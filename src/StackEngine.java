@@ -62,8 +62,8 @@ public class StackEngine {
                 if (m2Buffer == null) m2Buffer = new float[width * height];
                 float n = (float) frameCount;
                 float nextN = n + 1.0f;
-                // Higher factor initially to allow signal buildup, then tighten
-                float sigmaFactor = (n < 20) ? 4.0f : 3.0f;
+                // Tighten sigma factor as we get more data
+                float sigmaFactor = (n < 10) ? 10.0f : (n < 30 ? 4.0f : 3.0f);
 
                 for (int y = 0; y < height; y++) {
                     int sy = y + dy;
