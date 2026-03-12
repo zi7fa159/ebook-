@@ -39,20 +39,20 @@ public class Renderer {
         this.textureView = textureView;
     }
 
-    public void setBlackLevel(int bl) { this.blackLevel = bl; }
-    public void setWhiteLevel(float wl) { this.whiteLevel = wl; }
-    public void setSensorOrientation(int orientation) { this.sensorOrientation = orientation; }
-    public void setCfaPattern(int pattern) { this.cfaPattern = pattern; }
+    public synchronized void setBlackLevel(int bl) { this.blackLevel = bl; }
+    public synchronized void setWhiteLevel(float wl) { this.whiteLevel = wl; }
+    public synchronized void setSensorOrientation(int orientation) { this.sensorOrientation = orientation; }
+    public synchronized void setCfaPattern(int pattern) { this.cfaPattern = pattern; }
 
-    public void setWbGains(float r, float g, float b) {
+    public synchronized void setWbGains(float r, float g, float b) {
         this.redGain = r;
         this.greenGain = g;
         this.blueGain = b;
     }
 
-    public void setStretch(float black, float mid, float white) {
+    public synchronized void setStretch(float black, float mid, float white) {
         this.blackPoint = black;
-        this.midPoint = mid;
+        this.midPoint = Math.max(0.05f, Math.min(0.95f, mid));
         this.whitePoint = white;
         this.useAutoStretch = false;
         currentParams.useAuto = false;
@@ -64,13 +64,21 @@ public class Renderer {
         }
     }
 
-    public void setAutoStretch(boolean auto) {
+    public synchronized void setAutoStretch(boolean auto) {
         this.useAutoStretch = auto;
         currentParams.useAuto = auto;
     }
 
     public StretchParams getCurrentParams() {
-        return currentParams;
+        StretchParams p = new StretchParams();
+        synchronized(this) {
+            p.scale = currentParams.scale;
+            p.midFactor = currentParams.midFactor;
+            p.blackOffset = currentParams.blackOffset;
+            p.whiteClip = currentParams.whiteClip;
+            p.useAuto = currentParams.useAuto;
+        }
+        return p;
     }
 
     private String debugInfo = "";
@@ -110,7 +118,7 @@ public class Renderer {
         // Brightness scaling for preview
         float scale;
         float midFactor;
-        float manualBlackOffset = useAutoStretch ? 0 : blackPoint * effectiveWhite;
+        float manualBlackOffset;
 
         if (useAutoStretch) {
             float maxObserved = 0;
@@ -125,19 +133,23 @@ public class Renderer {
             }
             float avg = sum / sampleCount;
             float signalRange = Math.max(1, avg - effectiveBlack);
-            scale = 40.0f / signalRange;
-            if (scale > 10.0f) scale = 10.0f;
-            midFactor = (float) (Math.log(0.5) / Math.log(0.5)); // Neutral for auto
+            scale = 50.0f / signalRange; // Map background to 50/255
+            if (scale > 20.0f) scale = 20.0f;
+            midFactor = 1.0f; // Neutral
+            manualBlackOffset = 0;
         } else {
-            scale = 255.0f / (Math.max(1, (whitePoint - blackPoint) * effectiveWhite));
+            manualBlackOffset = blackPoint * effectiveWhite;
+            scale = 255.0f / Math.max(1.0f, (whitePoint * effectiveWhite) - manualBlackOffset);
             midFactor = (float) (Math.log(0.5) / Math.log(midPoint));
         }
 
         // Sync params for export
-        currentParams.scale = scale;
-        currentParams.midFactor = midFactor;
-        currentParams.blackOffset = manualBlackOffset;
-        currentParams.whiteClip = (whiteLevel - blackLevel) * 0.95f;
+        synchronized(this) {
+            currentParams.scale = scale;
+            currentParams.midFactor = midFactor;
+            currentParams.blackOffset = manualBlackOffset;
+            currentParams.whiteClip = (whiteLevel - blackLevel) * 0.95f;
+        }
 
         if (stackBuffer == null && rawBuffer != null) {
             // Sample a few pixels to see if they are non-zero

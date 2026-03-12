@@ -34,8 +34,6 @@ public class TiffWriter {
             float whiteClip = (1023.0f - black) * (isSum ? frameCount : 1.0f) * 0.95f;
 
             if (stretched && params != null) {
-                // Use unified parameters from live preview
-                // targetMax in preview logic is part of 'scale'
                 midFactor = params.midFactor;
                 manualBlackOffset = params.blackOffset;
             } else {
@@ -71,11 +69,13 @@ public class TiffWriter {
                         g = (g - manualBlackOffset) * params.scale;
                         b = (b - manualBlackOffset) * params.scale;
 
+                        // Sqrt stretch only for auto-stretch
                         if (params.useAuto) {
                             r = (float) Math.sqrt(Math.max(0, r / 255.0)) * 65535;
                             g = (float) Math.sqrt(Math.max(0, g / 255.0)) * 65535;
                             b = (float) Math.sqrt(Math.max(0, b / 255.0)) * 65535;
                         } else {
+                            // MidFactor is already calculated from log(0.5)/log(midPoint)
                             float normR = Math.max(0, Math.min(1.0f, r / 255.0f));
                             float normG = Math.max(0, Math.min(1.0f, g / 255.0f));
                             float normB = Math.max(0, Math.min(1.0f, b / 255.0f));
