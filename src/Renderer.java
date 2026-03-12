@@ -18,6 +18,7 @@ public class Renderer {
     private int[] argbBuffer;
 
     private float blackPoint = 0.0f;
+    private float midPoint = 0.5f;
     private float whitePoint = 1.0f;
     private boolean useAutoStretch = true;
 
@@ -47,8 +48,9 @@ public class Renderer {
         this.blueGain = b;
     }
 
-    public void setStretch(float black, float white) {
+    public void setStretch(float black, float mid, float white) {
         this.blackPoint = black;
+        this.midPoint = mid;
         this.whitePoint = white;
         this.useAutoStretch = false;
     }
@@ -99,6 +101,8 @@ public class Renderer {
         float scale;
         float maxObserved = 0;
         float avg = 0;
+        float midFactor = (float) (Math.log(0.5) / Math.log(midPoint));
+
         if (useAutoStretch) {
             int sampleCount = 0;
             float sum = 0;
@@ -185,16 +189,26 @@ public class Renderer {
                 }
 
                 int ri, gi, bi;
-                if (isFastLive) {
-                    // Faster linear mapping for live view
-                    ri = (int) (r * scale);
-                    gi = (int) (g * scale);
-                    bi = (int) (b * scale);
+                if (useAutoStretch) {
+                    if (isFastLive) {
+                        ri = (int) (r * scale);
+                        gi = (int) (g * scale);
+                        bi = (int) (b * scale);
+                    } else {
+                        ri = (int) (Math.sqrt(Math.max(0, r * scale) / 255.0) * 255.0);
+                        gi = (int) (Math.sqrt(Math.max(0, g * scale) / 255.0) * 255.0);
+                        bi = (int) (Math.sqrt(Math.max(0, b * scale) / 255.0) * 255.0);
+                    }
                 } else {
-                    // ALS style sqrt stretch for stacked result only
-                    ri = (int) (Math.sqrt(Math.max(0, r * scale) / 255.0) * 255.0);
-                    gi = (int) (Math.sqrt(Math.max(0, g * scale) / 255.0) * 255.0);
-                    bi = (int) (Math.sqrt(Math.max(0, b * scale) / 255.0) * 255.0);
+                    // Professional Midtones Stretch (Power Law)
+                    float range = Math.max(1, (whitePoint - blackPoint) * effectiveWhite);
+                    float normR = Math.max(0, Math.min(1.0f, r / range));
+                    float normG = Math.max(0, Math.min(1.0f, g / range));
+                    float normB = Math.max(0, Math.min(1.0f, b / range));
+
+                    ri = (int) (Math.pow(normR, midFactor) * 255);
+                    gi = (int) (Math.pow(normG, midFactor) * 255);
+                    bi = (int) (Math.pow(normB, midFactor) * 255);
                 }
 
                 ri = Math.max(0, Math.min(255, ri));

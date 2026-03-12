@@ -29,6 +29,10 @@ public class FrameProcessor {
     private byte[] grayBuffer;
     private volatile Image lastImage;
 
+    // Professional Hot Pixel tracking
+    private byte[] hotPixelMap; // 0: clear, 255: confirmed hot
+    private int[] outlierVotes;
+
     public FrameProcessor(int width, int height, Renderer renderer) {
         this.width = width;
         this.height = height;
@@ -40,6 +44,9 @@ public class FrameProcessor {
         this.processingThread = new HandlerThread("FrameProcessor");
         this.processingThread.start();
         this.processingHandler = new Handler(processingThread.getLooper());
+
+        this.hotPixelMap = new byte[width * height];
+        this.outlierVotes = new int[width * height];
     }
 
     public void setState(State state) {
@@ -71,6 +78,8 @@ public class FrameProcessor {
         processingHandler.removeCallbacksAndMessages(null);
         processingHandler.post(() -> {
             stackEngine.reset();
+            java.util.Arrays.fill(outlierVotes, 0);
+            java.util.Arrays.fill(hotPixelMap, (byte)0);
         });
     }
 
@@ -185,28 +194,38 @@ public class FrameProcessor {
     }
 
     private void removeHotPixels(short[] data, int w, int h) {
-        // Advanced Hot Pixel Removal (Median-based Outlier Detection)
-        // Only target pixels that are significantly brighter than their same-color neighbors
-        int step = 2; // Bayer pattern step
+        int step = 2;
+        int frameIdx = stackEngine.getFrameCount();
+
         for (int y = step; y < h - step; y++) {
             for (int x = step; x < w - step; x++) {
                 int idx = y * w + x;
-                int val = data[idx] & 0xFFFF;
 
-                // Only check if it's potentially a hot pixel (above a noise floor)
-                if (val > 500) {
-                    // Compare with same-color neighbors in a 5x5 area (at step 2)
-                    // Neighbors: (x-2, y), (x+2, y), (x, y-2), (x, y+2)
+                // If confirmed hot from previous frames, fix immediately
+                if (hotPixelMap[idx] == (byte)255) {
+                    data[idx] = (short) (( (data[idx-step]&0xFFFF) + (data[idx+step]&0xFFFF) ) / 2);
+                    continue;
+                }
+
+                int val = data[idx] & 0xFFFF;
+                if (val > 300) {
                     int v1 = data[idx - step] & 0xFFFF;
                     int v2 = data[idx + step] & 0xFFFF;
                     int v3 = data[idx - step * w] & 0xFFFF;
                     int v4 = data[idx + step * w] & 0xFFFF;
 
-                    int median = Math.max(Math.min(v1, v2), Math.min(Math.max(v1, v2), Math.min(v3, v4)));
+                    int maxN = Math.max(Math.max(v1, v2), Math.max(v3, v4));
+                    int medianN = (v1 + v2 + v3 + v4) / 4;
 
-                    // If pixel is > 2.5x the median of its neighbors AND > 100 counts above it
-                    if (val > median * 2.5 && val > median + 100) {
-                        data[idx] = (short) median;
+                    // Outlier detection: significantly brighter than neighbors
+                    if (val > maxN * 2.0 && val > medianN + 200) {
+                        // Temporal verification: star would move due to drift/alignment,
+                        // but a hot pixel stays at the same sensor coordinate.
+                        outlierVotes[idx]++;
+                        if (outlierVotes[idx] > 3) {
+                            hotPixelMap[idx] = (byte)255;
+                        }
+                        data[idx] = (short) maxN;
                     }
                 }
             }

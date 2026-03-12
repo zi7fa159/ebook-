@@ -48,6 +48,7 @@ public class MainActivity extends Activity {
     private float currentBGain = 2.1f;
     private int currentBlackLevel = 64;
     private float stretchBlack = 0.0f;
+    private float stretchMid = 0.5f;
     private float stretchWhite = 1.0f;
     private int startTimerSec = 0;
     private boolean isStacking = false;
@@ -329,76 +330,133 @@ public class MainActivity extends Activity {
     }
 
     private void showTuneDialog() {
+        if (isStacking) {
+            Toast.makeText(this, "Pause stacking to tune", Toast.LENGTH_SHORT).show();
+        }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Tuning & Calibration");
+        builder.setTitle("Tune Studio");
 
-        android.widget.ScrollView sv = new android.widget.ScrollView(this);
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
-        sv.addView(layout);
+        android.widget.LinearLayout mainLayout = new android.widget.LinearLayout(this);
+        mainLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
 
-        layout.addView(createLabel("Red Gain:"));
-        final EditText rGain = new EditText(this); rGain.setText(String.valueOf(currentRGain)); rGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        layout.addView(rGain);
+        android.widget.HorizontalScrollView tabScroll = new android.widget.HorizontalScrollView(this);
+        android.widget.LinearLayout tabLayout = new android.widget.LinearLayout(this);
+        tabLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        tabScroll.addView(tabLayout);
+        mainLayout.addView(tabScroll);
 
-        layout.addView(createLabel("Green Gain:"));
-        final EditText gGain = new EditText(this); gGain.setText(String.valueOf(currentGGain)); gGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        layout.addView(gGain);
+        android.widget.FrameLayout contentFrame = new android.widget.FrameLayout(this);
+        mainLayout.addView(contentFrame);
 
-        layout.addView(createLabel("Blue Gain:"));
-        final EditText bGain = new EditText(this); bGain.setText(String.valueOf(currentBGain)); bGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        layout.addView(bGain);
+        // Sections
+        android.widget.LinearLayout stretchLayout = new android.widget.LinearLayout(this);
+        stretchLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        stretchLayout.setPadding(30, 10, 30, 10);
 
-        layout.addView(createLabel("Sensor Black Level:"));
-        final EditText bLevel = new EditText(this); bLevel.setText(String.valueOf(currentBlackLevel)); bLevel.setInputType(InputType.TYPE_CLASS_NUMBER);
-        layout.addView(bLevel);
+        android.widget.LinearLayout colorLayout = new android.widget.LinearLayout(this);
+        colorLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        colorLayout.setPadding(30, 10, 30, 10);
+        colorLayout.setVisibility(View.GONE);
 
-        layout.addView(createLabel("--- Manual Stretch ---"));
+        android.widget.LinearLayout detailLayout = new android.widget.LinearLayout(this);
+        detailLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        detailLayout.setPadding(30, 10, 30, 10);
+        detailLayout.setVisibility(View.GONE);
 
+        contentFrame.addView(stretchLayout);
+        contentFrame.addView(colorLayout);
+        contentFrame.addView(detailLayout);
+
+        // Tab Buttons
+        Button btnStretch = new Button(this); btnStretch.setText("STRETCH"); tabLayout.addView(btnStretch);
+        Button btnColor = new Button(this); btnColor.setText("COLOR"); tabLayout.addView(btnColor);
+        Button btnDetail = new Button(this); btnDetail.setText("DETAIL"); tabLayout.addView(btnDetail);
+
+        btnStretch.setOnClickListener(v -> { stretchLayout.setVisibility(View.VISIBLE); colorLayout.setVisibility(View.GONE); detailLayout.setVisibility(View.GONE); });
+        btnColor.setOnClickListener(v -> { stretchLayout.setVisibility(View.GONE); colorLayout.setVisibility(View.VISIBLE); detailLayout.setVisibility(View.GONE); });
+        btnDetail.setOnClickListener(v -> { stretchLayout.setVisibility(View.GONE); colorLayout.setVisibility(View.GONE); detailLayout.setVisibility(View.VISIBLE); });
+
+        // Stretch Content
         HistogramView histView = new HistogramView(this);
-        histView.setLayoutParams(new android.widget.LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, 200));
+        histView.setLayoutParams(new android.widget.LinearLayout.LayoutParams(-1, 200));
         if (renderer != null) histView.setData(renderer.getHistogram());
-        layout.addView(histView);
+        histView.setMarkers(stretchBlack, stretchMid, stretchWhite);
+        stretchLayout.addView(histView);
 
-        final TextView blackLbl = createLabel("Black Point: " + String.format("%.2f", stretchBlack));
-        layout.addView(blackLbl);
-        final android.widget.SeekBar blackBar = new android.widget.SeekBar(this);
-        blackBar.setMax(100); blackBar.setProgress((int)(stretchBlack * 100));
-        layout.addView(blackBar);
+        final TextView blackLbl = createLabel("Black: " + stretchBlack); stretchLayout.addView(blackLbl);
+        final android.widget.SeekBar blackBar = new android.widget.SeekBar(this); blackBar.setMax(100); blackBar.setProgress((int)(stretchBlack*100)); stretchLayout.addView(blackBar);
 
-        final TextView whiteLbl = createLabel("White Point: " + String.format("%.2f", stretchWhite));
-        layout.addView(whiteLbl);
-        final android.widget.SeekBar whiteBar = new android.widget.SeekBar(this);
-        whiteBar.setMax(100); whiteBar.setProgress((int)(stretchWhite * 100));
-        layout.addView(whiteBar);
+        final TextView midLbl = createLabel("Mid (Gamma): " + stretchMid); stretchLayout.addView(midLbl);
+        final android.widget.SeekBar midBar = new android.widget.SeekBar(this); midBar.setMax(100); midBar.setProgress((int)(stretchMid*100)); stretchLayout.addView(midBar);
 
-        blackBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) { blackLbl.setText("Black Point: " + String.format("%.2f", p/100f)); }
+        final TextView whiteLbl = createLabel("White: " + stretchWhite); stretchLayout.addView(whiteLbl);
+        final android.widget.SeekBar whiteBar = new android.widget.SeekBar(this); whiteBar.setMax(100); whiteBar.setProgress((int)(stretchWhite*100)); stretchLayout.addView(whiteBar);
+
+        // Color Content
+        colorLayout.addView(createLabel("Red Gain:"));
+        final EditText rGain = new EditText(this); rGain.setText(String.valueOf(currentRGain)); rGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        colorLayout.addView(rGain);
+
+        colorLayout.addView(createLabel("Green Gain:"));
+        final EditText gGain = new EditText(this); gGain.setText(String.valueOf(currentGGain)); gGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        colorLayout.addView(gGain);
+
+        colorLayout.addView(createLabel("Blue Gain:"));
+        final EditText bGain = new EditText(this); bGain.setText(String.valueOf(currentBGain)); bGain.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        colorLayout.addView(bGain);
+
+        colorLayout.addView(createLabel("Black Level:"));
+        final EditText bLevel = new EditText(this); bLevel.setText(String.valueOf(currentBlackLevel)); bLevel.setInputType(InputType.TYPE_CLASS_NUMBER);
+        colorLayout.addView(bLevel);
+
+        // Detail Content
+        detailLayout.addView(createLabel("Denoise Strength:"));
+        final android.widget.SeekBar denoiseBar = new android.widget.SeekBar(this); denoiseBar.setMax(100); denoiseBar.setProgress(0);
+        detailLayout.addView(denoiseBar);
+        detailLayout.addView(createLabel("Hot Pixel Aggression:"));
+        final android.widget.SeekBar hotBar = new android.widget.SeekBar(this); hotBar.setMax(100); hotBar.setProgress(50);
+        detailLayout.addView(hotBar);
+
+        // Preview interaction
+        android.widget.SeekBar.OnSeekBarChangeListener listener = new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) {
+                float bl = blackBar.getProgress()/100f;
+                float mi = midBar.getProgress()/100f;
+                float wh = whiteBar.getProgress()/100f;
+                blackLbl.setText("Black: " + String.format("%.2f", bl));
+                midLbl.setText("Mid: " + String.format("%.2f", mi));
+                whiteLbl.setText("White: " + String.format("%.2f", wh));
+                histView.setMarkers(bl, mi, wh);
+                if (renderer != null) renderer.setStretch(bl, mi, wh);
+            }
             public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
-        });
-        whiteBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) { whiteLbl.setText("White Point: " + String.format("%.2f", p/100f)); }
-            public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
-        });
+        };
+        blackBar.setOnSeekBarChangeListener(listener);
+        midBar.setOnSeekBarChangeListener(listener);
+        whiteBar.setOnSeekBarChangeListener(listener);
 
-        builder.setView(sv);
-
-        builder.setPositiveButton("Apply", (dialog, which) -> {
+        builder.setView(mainLayout);
+        builder.setPositiveButton("OK", (dialog, which) -> {
             try {
                 currentRGain = Float.parseFloat(rGain.getText().toString());
                 currentGGain = Float.parseFloat(gGain.getText().toString());
                 currentBGain = Float.parseFloat(bGain.getText().toString());
                 currentBlackLevel = Integer.parseInt(bLevel.getText().toString());
                 stretchBlack = blackBar.getProgress() / 100.0f;
+                stretchMid = midBar.getProgress() / 100.0f;
                 stretchWhite = whiteBar.getProgress() / 100.0f;
-
                 if (renderer != null) {
                     renderer.setWbGains(currentRGain, currentGGain, currentBGain);
                     renderer.setBlackLevel(currentBlackLevel);
-                    renderer.setStretch(stretchBlack, stretchWhite);
+                    renderer.setStretch(stretchBlack, stretchMid, stretchWhite);
                 }
             } catch (Exception e) {}
+        });
+        builder.setNegativeButton("Reset", (dialog, which) -> {
+            stretchBlack = 0.0f; stretchMid = 0.5f; stretchWhite = 1.0f;
+            if (renderer != null) {
+                renderer.setAutoStretch(true);
+            }
         });
         builder.setNeutralButton("Auto", (dialog, which) -> {
             if (renderer != null) renderer.setAutoStretch(true);
@@ -648,7 +706,7 @@ public class MainActivity extends Activity {
 
                 if (stretched) {
                     float whitePoint = (stretchWhite * 1023) * (isSum ? frameCount : 1);
-                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, whitePoint);
+                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, stretchMid, whitePoint);
                 } else {
                     TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum);
                 }

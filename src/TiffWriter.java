@@ -10,14 +10,14 @@ import java.nio.ByteOrder;
  */
 public class TiffWriter {
     public static void saveTiff16Color(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, int blackLevel, int frameCount, boolean isSum) throws IOException {
-        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, (float)blackLevel, (float)frameCount, isSum, false, 0);
+        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, (float)blackLevel, (float)frameCount, isSum, false, 0.5f, 0);
     }
 
-    public static void saveTiff16Stretched(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float effectiveBlack, float whitePoint) throws IOException {
-        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, effectiveBlack, 1.0f, false, true, whitePoint);
+    public static void saveTiff16Stretched(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float effectiveBlack, float midPoint, float whitePoint) throws IOException {
+        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, effectiveBlack, 1.0f, false, true, midPoint, whitePoint);
     }
 
-    private static void saveTiff16Internal(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float black, float frameCount, boolean isSum, boolean stretched, float whitePoint) throws IOException {
+    private static void saveTiff16Internal(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float black, float frameCount, boolean isSum, boolean stretched, float midPoint, float whitePoint) throws IOException {
         try (FileOutputStream out = new FileOutputStream(path)) {
             out.write(new byte[]{0x49, 0x49, 0x2A, 0x00});
             int pixelDataSize = width * height * 3 * 2;
@@ -26,6 +26,8 @@ public class TiffWriter {
 
             float effectiveBlack = isSum ? (black * frameCount) : black;
             float targetMax = 0;
+
+            float midFactor = (float) (Math.log(0.5) / Math.log(midPoint));
 
             if (stretched) {
                 targetMax = whitePoint - effectiveBlack;
@@ -60,10 +62,13 @@ public class TiffWriter {
                     }
 
                     if (stretched) {
-                        // Sqrt stretch for "Stretched" output
-                        r = (float) Math.sqrt(Math.max(0, r / targetMax)) * 65535;
-                        g = (float) Math.sqrt(Math.max(0, g / targetMax)) * 65535;
-                        b = (float) Math.sqrt(Math.max(0, b / targetMax)) * 65535;
+                        // Professional Midtones Stretch (Power Law) for "Stretched" output
+                        float normR = Math.max(0, Math.min(1.0f, r / targetMax));
+                        float normG = Math.max(0, Math.min(1.0f, g / targetMax));
+                        float normB = Math.max(0, Math.min(1.0f, b / targetMax));
+                        r = (float) Math.pow(normR, midFactor) * 65535;
+                        g = (float) Math.pow(normG, midFactor) * 65535;
+                        b = (float) Math.pow(normB, midFactor) * 65535;
                     } else {
                         r = (r / targetMax) * 65535;
                         g = (g / targetMax) * 65535;
