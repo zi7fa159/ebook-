@@ -32,6 +32,8 @@ public class CameraController {
     private long frameDurationNs = 1100000000L;
     private String cameraId;
     private Size rawSize;
+    private Size pixelArraySize;
+    private android.graphics.Rect activeArraySize;
     private CameraCharacteristics characteristics;
     private TotalCaptureResult lastCaptureResult;
 
@@ -70,6 +72,9 @@ public class CameraController {
                     this.cameraId = id;
                     this.characteristics = characteristics;
 
+                    this.pixelArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+                    this.activeArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+
                     // Log sensor info for color calibration
                     Integer cfa = characteristics.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
                     BlackLevelPattern blp = characteristics.get(CameraCharacteristics.SENSOR_BLACK_LEVEL_PATTERN);
@@ -77,20 +82,33 @@ public class CameraController {
                     Log.i(TAG, "Sensor CFA: " + cfa); // 0=RGGB, 1=GRBG, 2=GBRG, 3=BGGR
                     Log.i(TAG, "Sensor Black Level Pattern: " + (blp != null ? blp.toString() : "null"));
                     Log.i(TAG, "Sensor White Level: " + wl);
+                    Log.i(TAG, "Sensor Pixel Array: " + (pixelArraySize != null ? pixelArraySize.toString() : "null"));
+                    Log.i(TAG, "Sensor Active Array: " + (activeArraySize != null ? activeArraySize.toString() : "null"));
 
                     StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                     if (map != null) {
                         Size[] rawSizes = map.getOutputSizes(ImageFormat.RAW_SENSOR);
                         if (rawSizes != null && rawSizes.length > 0) {
                             // Find the largest RAW size, ideally matching the full sensor resolution (50MP)
-                            rawSize = rawSizes[0];
+                            Size bestRaw = rawSizes[0];
                             for (Size s : rawSizes) {
                                 Log.i(TAG, "Available RAW Size: " + s.getWidth() + "x" + s.getHeight());
-                                if (s.getWidth() * s.getHeight() > rawSize.getWidth() * rawSize.getHeight()) {
-                                    rawSize = s;
+                                if (s.getWidth() * s.getHeight() > bestRaw.getWidth() * bestRaw.getHeight()) {
+                                    bestRaw = s;
                                 }
                             }
-                            Log.i(TAG, "Selected Max RAW Size: " + rawSize.getWidth() + "x" + rawSize.getHeight());
+                            // Prefer size that matches pixel array exactly to ensure FOV parity with DNG
+                            if (pixelArraySize != null) {
+                                for (Size s : rawSizes) {
+                                    if (s.getWidth() == pixelArraySize.getWidth() && s.getHeight() == pixelArraySize.getHeight()) {
+                                        bestRaw = s;
+                                        Log.i(TAG, "Found RAW size matching Pixel Array: " + bestRaw);
+                                        break;
+                                    }
+                                }
+                            }
+                            rawSize = bestRaw;
+                            Log.i(TAG, "Selected RAW Size: " + rawSize.getWidth() + "x" + rawSize.getHeight());
                         }
                     }
                     break;
@@ -184,10 +202,11 @@ public class CameraController {
             builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
             builder.set(CaptureRequest.SENSOR_FRAME_DURATION, Math.max(exposureTimeNs + 100000000L, frameDurationNs));
 
-            // Force full active array to prevent HAL-level cropping
-            android.graphics.Rect activeArray = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-            if (activeArray != null) {
-                builder.set(CaptureRequest.SCALER_CROP_REGION, activeArray);
+            // Force full pixel array to prevent HAL-level cropping and maximize FOV
+            if (pixelArraySize != null) {
+                builder.set(CaptureRequest.SCALER_CROP_REGION, new android.graphics.Rect(0, 0, pixelArraySize.getWidth(), pixelArraySize.getHeight()));
+            } else if (activeArraySize != null) {
+                builder.set(CaptureRequest.SCALER_CROP_REGION, activeArraySize);
             }
 
             captureSession.setRepeatingRequest(builder.build(), new CameraCaptureSession.CaptureCallback() {
@@ -247,6 +266,14 @@ public class CameraController {
 
     public CameraCharacteristics getCharacteristics() {
         return characteristics;
+    }
+
+    public Size getPixelArraySize() {
+        return pixelArraySize;
+    }
+
+    public android.graphics.Rect getActiveArraySize() {
+        return activeArraySize;
     }
 
     public TotalCaptureResult getLastCaptureResult() {
