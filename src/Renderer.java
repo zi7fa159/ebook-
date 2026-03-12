@@ -194,31 +194,24 @@ public class Renderer {
 
         for (int y = 0; y < sh; y += 2) {
             int oy = y * step;
+            if (oy >= height - 1) continue;
             for (int x = 0; x < sw; x += 2) {
                 int ox = x * step;
+                if (ox >= width - 1) continue;
+
+                int idx = oy * width + ox;
+                float v00 = (stackBuffer != null) ? stackBuffer[idx] : (rawBuffer[idx] & 0xFFFF);
+                float v01 = (stackBuffer != null) ? stackBuffer[idx + 1] : (rawBuffer[idx + 1] & 0xFFFF);
+                float v10 = (stackBuffer != null) ? stackBuffer[idx + width] : (rawBuffer[idx + width] & 0xFFFF);
+                float v11 = (stackBuffer != null) ? stackBuffer[idx + width + 1] : (rawBuffer[idx + width + 1] & 0xFFFF);
 
                 float r, g, b;
-                if (stackBuffer != null) {
-                    int idx = (oy * width + ox) * 3;
-                    r = stackBuffer[idx];
-                    g = stackBuffer[idx+1];
-                    b = stackBuffer[idx+2];
-                } else {
-                    int idx = oy * width + ox;
-                    float v00 = (rawBuffer[idx] & 0xFFFF);
-                    float v01 = (rawBuffer[idx + 1] & 0xFFFF);
-                    float v10 = (rawBuffer[idx + width] & 0xFFFF);
-                    float v11 = (rawBuffer[idx + width + 1] & 0xFFFF);
-                    switch(cfaPattern) {
-                        case 1: r=v01; g=(v00+v11)/2f; b=v10; break;
-                        case 2: r=v10; g=(v00+v11)/2f; b=v01; break;
-                        case 3: r=v11; g=(v01+v10)/2f; b=v00; break;
-                        default: r=v00; g=(v01+v10)/2f; b=v11; break;
-                    }
+                switch(cfaPattern) {
+                    case 1: r=v01; g=(v00+v11)/2f; b=v10; break;
+                    case 2: r=v10; g=(v00+v11)/2f; b=v01; break;
+                    case 3: r=v11; g=(v01+v10)/2f; b=v00; break;
+                    default: r=v00; g=(v01+v10)/2f; b=v11; break;
                 }
-
-                // Apply simple gradient correction if requested (stub)
-                // r -= backgroundMedian * 0.5f;
 
                 int argb = ColorEngine.processPixel(r, g, g, b, colorParams, effectiveBlack);
 

@@ -66,10 +66,26 @@ public class TiffWriter {
                         sy = dy;
                     }
 
-                    int idx = (sy * width + sx) * 3;
-                    float r = (data[idx] - effectiveBlack) * rGain;
-                    float g = (data[idx+1] - effectiveBlack) * gGain;
-                    float b = (data[idx+2] - effectiveBlack) * bGain;
+                    // Debayering with Bayer phase awareness
+                    int bx = (sx / 2) * 2;
+                    int by = (sy / 2) * 2;
+                    int sIdx = by * width + bx;
+                    float v00 = data[sIdx];
+                    float v01 = data[sIdx + 1];
+                    float v10 = data[sIdx + width];
+                    float v11 = data[sIdx + width + 1];
+
+                    float r, g, b;
+                    switch(cfa) {
+                        case 1: r=v01; g=(v00+v11)/2f; b=v10; break; // GRBG
+                        case 2: r=v10; g=(v00+v11)/2f; b=v01; break; // GBRG
+                        case 3: r=v11; g=(v01+v10)/2f; b=v00; break; // BGGR
+                        default: r=v00; g=(v01+v10)/2f; b=v11; break; // RGGB
+                    }
+
+                    r = (r - effectiveBlack) * rGain;
+                    g = (g - effectiveBlack) * gGain;
+                    b = (b - effectiveBlack) * bGain;
 
                     if (r > clip || g > clip || b > clip) {
                         float m = Math.max(r, Math.max(g, b));

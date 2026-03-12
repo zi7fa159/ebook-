@@ -17,7 +17,7 @@ public class FrameProcessor {
     private final Handler processingHandler;
 
     public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK }
-    private State currentState = State.IDLE;
+    private volatile State currentState = State.IDLE;
     private boolean showStack = false;
     private int width, height;
     private int frameLimit = 0;
@@ -28,6 +28,7 @@ public class FrameProcessor {
     private int poolIdx = 0;
     private byte[] grayBuffer;
     private volatile Image lastImage;
+    private final Object imageLock = new Object();
 
     // Professional Hot Pixel tracking
     private byte[] hotPixelMap; // 0: clear, 255: confirmed hot
@@ -80,7 +81,8 @@ public class FrameProcessor {
     }
 
     public void setCfaPattern(int cfa) {
-        stackEngine.setCfaPattern(cfa);
+        // stackEngine.setCfaPattern(cfa);
+        // Bayer stacking doesn't need CFA pattern in StackEngine anymore, handled in Renderer/Export
     }
 
     public void setHotAggression(int aggression) {
@@ -102,6 +104,13 @@ public class FrameProcessor {
             masterDark = new float[width * height];
             darkCount = 0;
             currentState = State.CALIBRATING_DARK;
+        });
+    }
+
+    public void clearMasterDark() {
+        processingHandler.post(() -> {
+            masterDark = null;
+            darkCount = 0;
         });
     }
 
@@ -132,11 +141,13 @@ public class FrameProcessor {
                 }
             }
 
-            // Keep a copy of the metadata but close the actual image as soon as we can
-            if (lastImage != null) lastImage.close();
-            lastImage = image;
-            // Actually, we must NOT close it if we want to save DNG later,
-            // but we can only hold ONE image if we want to keep the reader happy.
+            // Handle image lifecycle for DNG save
+            synchronized(imageLock) {
+                if (lastImage != null) {
+                    try { lastImage.close(); } catch (Exception ignored) {}
+                }
+                lastImage = image;
+            }
 
             submitToProcessing(currentRaw);
         } catch (Exception e) {
@@ -171,7 +182,10 @@ public class FrameProcessor {
                     masterDark[i] = (masterDark[i] * darkCount + (currentRaw[i] & 0xFFFF)) / (darkCount + 1);
                 }
                 darkCount++;
-                if (darkCount >= 10) currentState = State.PAUSED; // Done after 10 frames
+                if (darkCount >= 20) {
+                    currentState = State.PAUSED; // Done after 20 frames
+                    renderer.setDebugInfo("Dark Calibration Complete");
+                }
                 return;
             }
 
@@ -198,9 +212,11 @@ public class FrameProcessor {
             StarDetector sd = new StarDetector(dw, dh);
             List<float[]> stars = sd.detectStarsCentroid(grayBuffer);
 
-            // Frame Quality Rejection (FWHM estimate)
+            // Frame Quality Rejection (FWHM estimate and star count)
+            // Handheld check: if too few stars detected compared to reference or too many stars are missing
             if (stars.size() < 5) {
                 rejectedCount++;
+                renderer.setDebugInfo("Rejected: Too few stars (" + stars.size() + ")");
                 return;
             }
 
@@ -209,6 +225,11 @@ public class FrameProcessor {
                 frameAligner.setReferenceStars(stars, dw, dh);
             } else {
                 alignment = frameAligner.computeAlignment(stars);
+                if (Float.isNaN(alignment.dx)) {
+                    rejectedCount++;
+                    renderer.setDebugInfo("Rejected: Poor star matching");
+                    return;
+                }
                 // Scale back to full resolution
                 alignment.dx *= step;
                 alignment.dy *= step;
@@ -216,6 +237,9 @@ public class FrameProcessor {
 
             removeHotPixels(currentRaw, width, height);
             stackEngine.addFrame(currentRaw, alignment);
+
+            // Log frame completion immediately
+            android.util.Log.i("FrameProcessor", "Frame " + stackEngine.getFrameCount() + " stacked");
 
             if (showStack) {
                 renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
@@ -233,12 +257,24 @@ public class FrameProcessor {
         return rejectedCount;
     }
 
+    public State getState() {
+        return currentState;
+    }
+
+    public int getDarkCount() {
+        return darkCount;
+    }
+
     public float[] getResultBuffer() {
         return stackEngine.getStackBuffer();
     }
 
-    public Image getLastImage() {
+    public Image acquireLastImage() {
         return lastImage;
+    }
+
+    public void releaseLastImage(Image img) {
+        // img.close() will be handled by the next processFrame or manual close
     }
 
     private void removeHotPixels(short[] data, int w, int h) {

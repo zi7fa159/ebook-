@@ -30,7 +30,6 @@ public class MainActivity extends Activity {
 
     private TextView statusText;
     private TextView frameCounter;
-    private TextView frameRejectionText;
     private android.view.View captureProgress;
 
     private TextView valExp, valIso, valFocus, valLimit, valTimer, logText;
@@ -114,7 +113,6 @@ public class MainActivity extends Activity {
         statusText = findViewById(R.id.status_text);
         statusText.setText("LIVE VIEW");
         frameCounter = findViewById(R.id.frame_counter);
-        frameRejectionText = new TextView(this); // Dynamically adding for now or find in layout
         captureProgress = findViewById(R.id.capture_progress);
 
         valExp = findViewById(R.id.val_exp);
@@ -285,17 +283,26 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.btn_reset).setOnClickListener(v -> {
             if (frameProcessor != null) {
-                frameProcessor.resetStack();
-                frameProcessor.setState(FrameProcessor.State.LIVE);
-                isStacking = false;
-                runOnUiThread(() -> {
-                    btnMainAction.setText("START");
-                    btnMainAction.setBackgroundColor(0xFFFF4444);
-                    statusText.setText("LIVE VIEW");
-                    frameCounter.setText("0 Frames");
+                android.app.AlertDialog.Builder b = new android.app.AlertDialog.Builder(this);
+                b.setTitle("Clear Data");
+                b.setItems(new String[]{"Clear Stack Only", "Clear Master Dark Only", "Clear Everything"}, (dialog, which) -> {
+                    if (which == 0 || which == 2) {
+                        frameProcessor.resetStack();
+                        isStacking = false;
+                        runOnUiThread(() -> {
+                            btnMainAction.setText("START");
+                            btnMainAction.setBackgroundColor(0xFFFF4444);
+                            statusText.setText("LIVE VIEW");
+                            frameCounter.setText("0 Frames");
+                        });
+                        addLog("Stack Cleared");
+                    }
+                    if (which == 1 || which == 2) {
+                        frameProcessor.clearMasterDark();
+                    }
+                    Toast.makeText(this, "Data cleared", Toast.LENGTH_SHORT).show();
                 });
-                addLog("Stack Cleared & Live Reset");
-                Toast.makeText(this, "Stack cleared", Toast.LENGTH_SHORT).show();
+                b.show();
             }
         });
     }
@@ -574,7 +581,6 @@ public class MainActivity extends Activity {
                 statusText.setText("STACKING...");
                 addLog("Stacking Started");
             });
-            startProgressThread();
         }
     }
 
@@ -646,6 +652,7 @@ public class MainActivity extends Activity {
                         frameProcessor.setState(FrameProcessor.State.LIVE);
                         cameraController.setFrameProcessor(frameProcessor);
                         updateCamera();
+                        startProgressThread();
                     });
                 } else {
                     runOnUiThread(() -> Toast.makeText(this, "Camera init timeout", Toast.LENGTH_LONG).show());
@@ -659,23 +666,41 @@ public class MainActivity extends Activity {
     private void startProgressThread() {
         new Thread(() -> {
             int lastCount = -1;
-            while (isStacking && !isDestroyed) {
+            int lastRejected = -1;
+            FrameProcessor.State lastState = null;
+
+            while (!isDestroyed) {
                 if (frameProcessor != null) {
-                    int count = frameProcessor.getFrameCount();
-                    int rejected = frameProcessor.getRejectedCount();
-                    if (count != lastCount) {
+                    final int count = frameProcessor.getFrameCount();
+                    final int rejected = frameProcessor.getRejectedCount();
+                    final FrameProcessor.State state = frameProcessor.getState();
+
+                    if (count != lastCount || rejected != lastRejected || state != lastState) {
                         lastCount = count;
-                        final int c = count;
-                        final int r = rejected;
-                        final double nr = Math.sqrt(c);
+                        lastRejected = rejected;
+                        lastState = state;
+
+                        final double nr = Math.sqrt(count);
                         runOnUiThread(() -> {
-                            frameCounter.setText(c + " Frames (NR: " + String.format("%.1fx", nr) + ")");
-                            statusText.setText("STACKING (Rejected: " + r + ")");
-                            if (frameLimit > 0 && c >= frameLimit) {
-                                stopStacking();
+                            frameCounter.setText(count + " Frames (NR: " + String.format("%.1fx", nr) + ")");
+
+                            if (state == FrameProcessor.State.CALIBRATING_DARK) {
+                                statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/20)");
+                            } else if (state == FrameProcessor.State.STACKING) {
+                                statusText.setText("STACKING (Rejected: " + rejected + ")");
+                                if (frameLimit > 0 && count >= frameLimit) {
+                                    stopStacking();
+                                }
+                            } else if (state == FrameProcessor.State.PAUSED) {
+                                statusText.setText("PAUSED");
+                            } else if (state == FrameProcessor.State.LIVE) {
+                                statusText.setText("LIVE VIEW");
                             }
                         });
-                        if (c > 0) addLog("Frame " + c + " stacked. Rejected: " + r);
+
+                        if (count > 0 && state == FrameProcessor.State.STACKING) {
+                            addLog("Frame " + count + " stacked. Total rejected: " + rejected);
+                        }
                     }
                 }
 
@@ -771,7 +796,7 @@ public class MainActivity extends Activity {
         if (frameProcessor == null || cameraController == null) return;
         addLog("Saving RAW DNG...");
         try {
-            Image img = frameProcessor.getLastImage();
+            Image img = frameProcessor.acquireLastImage();
             android.hardware.camera2.TotalCaptureResult res = cameraController.getLastCaptureResult();
             android.hardware.camera2.CameraCharacteristics charac = cameraController.getCharacteristics();
             if (img == null || res == null || charac == null) {
@@ -810,38 +835,62 @@ public class MainActivity extends Activity {
         int outH = (orientation == 90 || orientation == 270) ? w : h;
 
         Bitmap bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888);
+        int[] argbArray = new int[outW * outH];
         float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
 
-        // Process from RGB buffer
-        for (int y = 0; y < h; y += 1) {
-            for (int x = 0; x < w; x += 1) {
-                int idx = (y * w + x) * 3;
-                float r = buffer[idx];
-                float g = buffer[idx + 1];
-                float b = buffer[idx + 2];
+        int cfa = 0;
+        if (cameraController != null) {
+            Integer cfaInt = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+            if (cfaInt != null) cfa = cfaInt;
+        }
+
+        // Process in 2x2 blocks from Bayer buffer for speed and correctness
+        for (int y = 0; y < h; y += 2) {
+            for (int x = 0; x < w; x += 2) {
+                int idx = y * w + x;
+                float v00 = buffer[idx];
+                float v01 = buffer[idx + 1];
+                float v10 = buffer[idx + w];
+                float v11 = buffer[idx + w + 1];
+
+                float r, g, b;
+                switch(cfa) {
+                    case 1: r=v01; g=(v00+v11)/2f; b=v10; break;
+                    case 2: r=v10; g=(v00+v11)/2f; b=v01; break;
+                    case 3: r=v11; g=(v01+v10)/2f; b=v00; break;
+                    default: r=v00; g=(v01+v10)/2f; b=v11; break;
+                }
 
                 int argb = ColorEngine.processPixel(r, g, g, b, params, effectiveBlack);
 
-                int destX, destY;
-                if (orientation == 90) {
-                    destX = (h - 1) - y;
-                    destY = x;
-                } else if (orientation == 270) {
-                    destX = y;
-                    destY = (w - 1) - x;
-                } else if (orientation == 180) {
-                    destX = (w - 1) - x;
-                    destY = (h - 1) - y;
-                } else {
-                    destX = x;
-                    destY = y;
-                }
+                for (int dy = 0; dy < 2; dy++) {
+                    for (int dx = 0; dx < 2; dx++) {
+                        int srcX = x + dx;
+                        int srcY = y + dy;
 
-                if (destX >= 0 && destX < outW && destY >= 0 && destY < outH) {
-                    bitmap.setPixel(destX, destY, argb);
+                        int destX, destY;
+                        if (orientation == 90) {
+                            destX = (h - 1) - srcY;
+                            destY = srcX;
+                        } else if (orientation == 270) {
+                            destX = srcY;
+                            destY = (w - 1) - srcX;
+                        } else if (orientation == 180) {
+                            destX = (w - 1) - srcX;
+                            destY = (h - 1) - srcY;
+                        } else {
+                            destX = srcX;
+                            destY = srcY;
+                        }
+
+                        if (destX >= 0 && destX < outW && destY >= 0 && destY < outH) {
+                            argbArray[destY * outW + destX] = argb;
+                        }
+                    }
                 }
             }
         }
+        bitmap.setPixels(argbArray, 0, outW, 0, 0, outW, outH);
         try (FileOutputStream out = new FileOutputStream(file)) {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
         }

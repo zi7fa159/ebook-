@@ -26,6 +26,11 @@ public class FrameAligner {
             return new Alignment(0, 0, 0);
         }
 
+        if (currentStars.size() < referenceStars.size() / 3) {
+            // Quality rejection trigger
+            return new Alignment(Float.NaN, Float.NaN, 0);
+        }
+
         // 1. Initial translation guess using histogram (translation only)
         int limit = 200;
         int size = limit * 2 + 1;
@@ -60,7 +65,10 @@ public class FrameAligner {
             }
         }
 
-        if (maxVotes < 3) return new Alignment(0, 0, 0);
+        if (maxVotes < 5) {
+            // Quality rejection trigger: too few matching stars
+            return new Alignment(Float.NaN, Float.NaN, 0);
+        }
 
         // Sub-pixel centroid estimation on the histogram peak
         float sumX = 0, sumY = 0, sumV = 0;
@@ -80,6 +88,11 @@ public class FrameAligner {
         if (sumV > 0) {
             subDx = sumX / sumV;
             subDy = sumY / sumV;
+        }
+
+        // Reject extreme motion (e.g. handheld movement during exposure)
+        if (Math.sqrt(subDx*subDx + subDy*subDy) > 150) {
+            return new Alignment(Float.NaN, Float.NaN, 0);
         }
 
         // 2. Rotation estimation
