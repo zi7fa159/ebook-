@@ -32,7 +32,7 @@ public class MainActivity extends Activity {
     private TextView frameCounter;
     private android.view.View captureProgress;
 
-    private TextView valExp, valIso, valFocus, valLimit, logText;
+    private TextView valExp, valIso, valFocus, valLimit, valTimer, logText;
     private Button btnMainAction;
     private android.widget.ScrollView logScroll;
     private android.widget.Spinner spinMethod;
@@ -48,6 +48,7 @@ public class MainActivity extends Activity {
     private int currentBlackLevel = 64;
     private float stretchBlack = 0.0f;
     private float stretchWhite = 1.0f;
+    private int startTimerSec = 0;
     private boolean isStacking = false;
     private boolean isDestroyed = false;
 
@@ -114,6 +115,7 @@ public class MainActivity extends Activity {
         valIso = findViewById(R.id.val_iso);
         valFocus = findViewById(R.id.val_focus);
         valLimit = findViewById(R.id.val_limit);
+        valTimer = findViewById(R.id.val_timer);
         btnMainAction = findViewById(R.id.btn_main_action);
         logText = findViewById(R.id.log_text);
 
@@ -200,24 +202,56 @@ public class MainActivity extends Activity {
             } catch (Exception e) {}
         }));
 
+        findViewById(R.id.ctrl_timer).setOnClickListener(v -> showEntryDialog("Start Timer (seconds)", "5", s -> {
+            try {
+                int l = Integer.parseInt(s);
+                startTimerSec = Math.max(0, l);
+                valTimer.setText(startTimerSec + "s");
+            } catch (Exception e) {}
+        }));
+
         findViewById(R.id.btn_tune).setOnClickListener(v -> showTuneDialog());
 
         btnMainAction.setOnClickListener(v -> {
-            if (!isStacking) startStacking();
-            else stopStacking();
+            if (!isStacking) {
+                if (startTimerSec > 0) {
+                    startCountdown();
+                } else {
+                    startStacking();
+                }
+            } else {
+                stopStacking();
+            }
         });
 
-        findViewById(R.id.btn_save).setOnClickListener(v -> saveResult());
+        findViewById(R.id.btn_save).setOnClickListener(v -> {
+            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+            builder.setTitle("Save Result");
+            String[] options = {"Linear TIFF (16-bit)", "Stretched TIFF (16-bit)", "DNG (RAW Sensor)"};
+            builder.setItems(options, (dialog, which) -> {
+                if (which == 0) saveResult(false);
+                else if (which == 1) saveResult(true);
+                else {
+                    File pictures = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES);
+                    File path = new File(pictures, "A2LS_Astro");
+                    if (!path.exists()) path.mkdirs();
+                    saveDng(new File(path, "A2LS_Raw_" + System.currentTimeMillis() + ".dng"));
+                }
+            });
+            builder.show();
+        });
 
         findViewById(R.id.btn_reset).setOnClickListener(v -> {
             if (frameProcessor != null) {
                 frameProcessor.resetStack();
                 frameProcessor.setState(FrameProcessor.State.LIVE);
                 isStacking = false;
-                btnMainAction.setText("START");
-                btnMainAction.setBackgroundColor(0xFFFF4444);
-                statusText.setText("LIVE VIEW");
-                frameCounter.setText("0 Frames");
+                runOnUiThread(() -> {
+                    btnMainAction.setText("START");
+                    btnMainAction.setBackgroundColor(0xFFFF4444);
+                    statusText.setText("LIVE VIEW");
+                    frameCounter.setText("0 Frames");
+                });
                 addLog("Stack Cleared & Live Reset");
                 Toast.makeText(this, "Stack cleared", Toast.LENGTH_SHORT).show();
             }
@@ -360,16 +394,36 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void startCountdown() {
+        btnMainAction.setEnabled(false);
+        new Thread(() -> {
+            for (int i = startTimerSec; i > 0; i--) {
+                final int remaining = i;
+                runOnUiThread(() -> {
+                    statusText.setText("STARTING IN " + remaining + "s");
+                    addLog("Timer: " + remaining + "...");
+                });
+                try { Thread.sleep(1000); } catch (InterruptedException e) {}
+            }
+            runOnUiThread(() -> {
+                btnMainAction.setEnabled(true);
+                startStacking();
+            });
+        }).start();
+    }
+
     private void startStacking() {
         if (frameProcessor != null) {
             frameProcessor.setStackMethod(spinMethod.getSelectedItemPosition());
             frameProcessor.setFrameLimit(frameLimit);
             frameProcessor.setState(FrameProcessor.State.STACKING);
             isStacking = true;
-            btnMainAction.setText("STOP");
-            btnMainAction.setBackgroundColor(0xFF444444);
-            statusText.setText("STACKING...");
-            addLog("Stacking Started");
+            runOnUiThread(() -> {
+                btnMainAction.setText("STOP");
+                btnMainAction.setBackgroundColor(0xFF444444);
+                statusText.setText("STACKING...");
+                addLog("Stacking Started");
+            });
             startProgressThread();
         }
     }
@@ -388,6 +442,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         isDestroyed = true;
+        if (cameraController != null) cameraController.close();
         super.onDestroy();
     }
 
@@ -453,7 +508,12 @@ public class MainActivity extends Activity {
                     if (count != lastCount) {
                         lastCount = count;
                         final int c = count;
-                        runOnUiThread(() -> frameCounter.setText(c + " Frames"));
+                        runOnUiThread(() -> {
+                            frameCounter.setText(c + " Frames");
+                            if (frameLimit > 0 && c >= frameLimit) {
+                                stopStacking();
+                            }
+                        });
                         addLog("Frame " + c + " stacked");
                     }
                 }
@@ -463,61 +523,69 @@ public class MainActivity extends Activity {
                     final int p = i;
                     runOnUiThread(() -> {
                         android.view.ViewGroup.LayoutParams lp = captureProgress.getLayoutParams();
-                        lp.width = (captureProgress.getRootView().getWidth() * p) / 100;
-                        captureProgress.setLayoutParams(lp);
+                        if (lp != null) {
+                            lp.width = (captureProgress.getRootView().getWidth() * p) / 100;
+                            captureProgress.setLayoutParams(lp);
+                        }
                     });
-                    try { Thread.sleep(currentShutterNs / 50000000); } catch (Exception e) {}
+                    try { Thread.sleep(Math.max(10, currentShutterNs / 50000000)); } catch (Exception e) {}
                 }
             }
+            // Reset progress bar on exit
+            runOnUiThread(() -> {
+                android.view.ViewGroup.LayoutParams lp = captureProgress.getLayoutParams();
+                if (lp != null) {
+                    lp.width = 0;
+                    captureProgress.setLayoutParams(lp);
+                }
+            });
         }).start();
     }
 
-    private void saveResult() {
-        if (frameProcessor == null || cameraController == null) {
-            addLog("Error: No data to save");
-            return;
-        }
+    private void saveResult(boolean stretched) {
+        if (frameProcessor == null || cameraController == null) return;
         final float[] buffer = frameProcessor.getResultBuffer();
-        if (buffer == null) {
-            addLog("Error: Buffer is null");
-            return;
-        }
+        if (buffer == null) return;
 
         final int w = cameraController.getRawSize().getWidth();
         final int h = cameraController.getRawSize().getHeight();
+        final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
+        final int frameCount = frameProcessor.getFrameCount();
 
-        Toast.makeText(this, "Saving 50MP result...", Toast.LENGTH_SHORT).show();
+        addLog("Saving 16-bit TIFF (" + (stretched ? "Stretched" : "Linear") + ")...");
 
         new Thread(() -> {
             try {
-                float maxValFound = 0;
-                for (int i = 0; i < buffer.length; i += 1000) if (buffer[i] > maxValFound) maxValFound = buffer[i];
-                if (maxValFound == 0) maxValFound = 1;
-                final float maxVal = maxValFound;
-
                 File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
                 File path = new File(pictures, "A2LS_Astro");
                 if (!path.exists()) path.mkdirs();
 
                 String ts = String.valueOf(System.currentTimeMillis());
-                File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
-                File tiffFile = new File(path, "A2LS_Stack_" + ts + ".tiff");
-                File dngFile = new File(path, "A2LS_Raw_" + ts + ".dng");
+                File tiffFile = new File(path, "A2LS_Stack_" + (stretched ? "Stretched_" : "") + ts + ".tiff");
 
-                addLog("Saving TIFF...");
-                TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameProcessor.getFrameCount(), spinMethod.getSelectedItemPosition() == 1);
-                addLog("Saving PNG...");
-                savePngOptimized(pngFile, buffer, w, h, maxVal, frameProcessor.getFrameCount(), spinMethod.getSelectedItemPosition() == 1);
+                float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
 
-                addLog("Saving DNG...");
-                saveDng(dngFile);
+                if (stretched) {
+                    float whitePoint = (stretchWhite * 1023) * (isSum ? frameCount : 1);
+                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, whitePoint);
+                } else {
+                    TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum);
+                }
+
+                if (!stretched) {
+                    File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
+                    float maxValFound = 0;
+                    for (int i = 0; i < buffer.length; i += 1000) if (buffer[i] > maxValFound) maxValFound = buffer[i];
+                    float whiteLimit = (1023.0f - currentBlackLevel) * (isSum ? frameCount : 1.0f);
+                    float maxVal = Math.max(maxValFound - effectiveBlack, whiteLimit * 0.1f);
+                    savePngOptimized(pngFile, buffer, w, h, maxVal, frameCount, isSum);
+                }
 
                 addLog("Saved: " + tiffFile.getName());
                 runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/A2LS_Astro", Toast.LENGTH_LONG).show());
             } catch (Exception e) {
                 addLog("Save failed: " + e.getMessage());
                 Log.e(TAG, "Save failed", e);
-                runOnUiThread(() -> Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
@@ -543,6 +611,7 @@ public class MainActivity extends Activity {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         int[] rowPixels = new int[w];
         float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
+        float whiteClip = (1023.0f - currentBlackLevel) * (isSum ? frameCount : 1.0f) * 0.95f;
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
@@ -553,6 +622,12 @@ public class MainActivity extends Activity {
                 float g2 = (buffer[(by + 1) * w + bx] - effectiveBlack) * currentGGain;
                 float g = (g1 + g2) / 2.0f;
                 float b = (buffer[(by + 1) * w + (bx + 1)] - effectiveBlack) * currentBGain;
+
+                // Purple Highlight Fix
+                if (r > whiteClip || g > whiteClip || b > whiteClip) {
+                    float m = Math.max(r, Math.max(g, b));
+                    if (m > whiteClip) { r = g = b = m; }
+                }
 
                 int ri = Math.min(255, (int) (Math.max(0, r / maxVal) * 255));
                 int gi = Math.min(255, (int) (Math.max(0, g / maxVal) * 255));

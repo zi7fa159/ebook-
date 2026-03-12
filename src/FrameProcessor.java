@@ -68,6 +68,7 @@ public class FrameProcessor {
     }
 
     public void resetStack() {
+        processingHandler.removeCallbacksAndMessages(null);
         processingHandler.post(() -> {
             stackEngine.reset();
         });

@@ -168,6 +168,15 @@ public class Renderer {
                 g = (g - effectiveBlack - manualBlackOffset) * greenGain;
                 b = (b - effectiveBlack - manualBlackOffset) * blueGain;
 
+                // Purple Highlight Fix: If value is near saturation, clamp to avoid tint
+                float whiteClip = (whiteLevel - blackLevel) * 0.95f;
+                if (r > whiteClip || g > whiteClip || b > whiteClip) {
+                    float max = Math.max(r, Math.max(g, b));
+                    if (max > whiteClip) {
+                        r = g = b = max;
+                    }
+                }
+
                 int ri, gi, bi;
                 if (isFastLive) {
                     // Faster linear mapping for live view

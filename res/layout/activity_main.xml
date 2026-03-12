@@ -85,9 +85,22 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:background="#FF222222"
-                android:layout_marginLeft="5dp">
+                android:layout_marginLeft="2dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="LIMIT" android:textColor="#FF888888" android:textSize="10sp" />
                 <TextView android:id="@+id/val_limit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="INF" android:textColor="#FFFFFFFF" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ctrl_timer"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="#FF222222"
+                android:layout_marginLeft="2dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TIMER" android:textColor="#FF888888" android:textSize="10sp" />
+                <TextView android:id="@+id/val_timer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0s" android:textColor="#FFFFFFFF" />
             </LinearLayout>
 
             <Button

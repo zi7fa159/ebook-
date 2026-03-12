@@ -201,8 +201,18 @@ public class CameraController {
         if (captureSession != null) startCapture();
     }
 
+    public void close() {
+        closeCamera();
+        if (backgroundThread != null) {
+            backgroundThread.quitSafely();
+            try { backgroundThread.join(); } catch (InterruptedException e) {}
+            backgroundThread = null;
+        }
+    }
+
     private void closeCamera() {
         if (captureSession != null) {
+            try { captureSession.stopRepeating(); } catch (Exception e) {}
             captureSession.close();
             captureSession = null;
         }
