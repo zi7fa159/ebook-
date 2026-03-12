@@ -82,12 +82,15 @@ public class CameraController {
                     if (map != null) {
                         Size[] rawSizes = map.getOutputSizes(ImageFormat.RAW_SENSOR);
                         if (rawSizes != null && rawSizes.length > 0) {
+                            // Find the largest RAW size, ideally matching the full sensor resolution (50MP)
                             rawSize = rawSizes[0];
                             for (Size s : rawSizes) {
+                                Log.i(TAG, "Available RAW Size: " + s.getWidth() + "x" + s.getHeight());
                                 if (s.getWidth() * s.getHeight() > rawSize.getWidth() * rawSize.getHeight()) {
                                     rawSize = s;
                                 }
                             }
+                            Log.i(TAG, "Selected Max RAW Size: " + rawSize.getWidth() + "x" + rawSize.getHeight());
                         }
                     }
                     break;
@@ -180,6 +183,12 @@ public class CameraController {
             builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
             builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
             builder.set(CaptureRequest.SENSOR_FRAME_DURATION, Math.max(exposureTimeNs + 100000000L, frameDurationNs));
+
+            // Force full active array to prevent HAL-level cropping
+            android.graphics.Rect activeArray = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+            if (activeArray != null) {
+                builder.set(CaptureRequest.SCALER_CROP_REGION, activeArray);
+            }
 
             captureSession.setRepeatingRequest(builder.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override

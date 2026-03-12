@@ -74,12 +74,14 @@ public class ColorEngine {
         b *= p.bGain;
 
         // 3. Highlight Handling
-        // Calculate dynamic white level to avoid ISO clipping
-        float dynamicWhite = (p.whiteLevel - p.blackLevel);
-        if (r > dynamicWhite || g > dynamicWhite || b > dynamicWhite) {
+        // Use full bit-depth for highlight clipping calculation
+        float maxSignal = (p.whiteLevel - p.blackLevel);
+
+        // Soft-knee compression or simple desaturation for highlights
+        if (r > maxSignal || g > maxSignal || b > maxSignal) {
             float max = Math.max(r, Math.max(g, b));
             // Desaturate highlights to avoid purple/funky tints in stars
-            r = g = b = max;
+            r = g = b = Math.min(max, maxSignal);
         }
 
         // 4. Stretching & Gamma

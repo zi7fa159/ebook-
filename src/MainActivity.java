@@ -355,10 +355,12 @@ public class MainActivity extends Activity {
 
         // Sections
         android.widget.LinearLayout stretchLayout = new android.widget.LinearLayout(this);
+        stretchLayout.setLayoutParams(new android.widget.LinearLayout.LayoutParams(-1, -2));
         stretchLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
         stretchLayout.setPadding(30, 10, 30, 10);
 
         android.widget.LinearLayout colorLayout = new android.widget.LinearLayout(this);
+        colorLayout.setLayoutParams(new android.widget.LinearLayout.LayoutParams(-1, -2));
         colorLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
         colorLayout.setPadding(30, 10, 30, 10);
         colorLayout.setVisibility(View.GONE);
@@ -484,7 +486,9 @@ public class MainActivity extends Activity {
         builder.setNeutralButton("Auto WB", (dialog, which) -> {
             autoWb();
         });
-        builder.setNegativeButton("Cancel", null);
+        builder.setNegativeButton("Auto Stretch", (dialog, which) -> {
+            if (renderer != null) renderer.setAutoStretch(true);
+        });
         builder.show();
     }
 
@@ -601,6 +605,12 @@ public class MainActivity extends Activity {
                 final android.util.Size size = cameraController.getRawSize();
                 final android.hardware.camera2.CameraCharacteristics chars = cameraController.getCharacteristics();
                 if (size != null && chars != null) {
+                    android.graphics.Rect activeRect = chars.get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+                    addLog("RAW Size: " + size.getWidth() + "x" + size.getHeight());
+                    if (activeRect != null) {
+                        addLog("Active Array: " + activeRect.width() + "x" + activeRect.height());
+                    }
+
                     runOnUiThread(() -> {
                         // Extract sensor black/white levels
                         android.hardware.camera2.params.BlackLevelPattern blp = chars.get(android.hardware.camera2.CameraCharacteristics.SENSOR_BLACK_LEVEL_PATTERN);
@@ -755,6 +765,21 @@ public class MainActivity extends Activity {
             }
             try (FileOutputStream out = new FileOutputStream(file);
                  android.hardware.camera2.DngCreator dngCreator = new android.hardware.camera2.DngCreator(charac, res)) {
+
+                // Set orientation for DNG
+                int orientation = 90;
+                Integer ori = charac.get(android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION);
+                if (ori != null) orientation = ori;
+
+                int dngOrientation;
+                switch (orientation) {
+                    case 90: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_90; break;
+                    case 180: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_180; break;
+                    case 270: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_270; break;
+                    default: dngOrientation = android.media.ExifInterface.ORIENTATION_NORMAL; break;
+                }
+                dngCreator.setOrientation(dngOrientation);
+
                 dngCreator.writeImage(out, img);
                 addLog("Saved: " + file.getName());
             }
