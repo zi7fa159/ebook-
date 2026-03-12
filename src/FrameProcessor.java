@@ -31,7 +31,8 @@ public class FrameProcessor {
 
     // Professional Hot Pixel tracking
     private byte[] hotPixelMap; // 0: clear, 255: confirmed hot
-    private int[] outlierVotes;
+    private byte[] outlierVotes;
+    private int hotAggression = 50;
 
     public FrameProcessor(int width, int height, Renderer renderer) {
         this.width = width;
@@ -46,7 +47,7 @@ public class FrameProcessor {
         this.processingHandler = new Handler(processingThread.getLooper());
 
         this.hotPixelMap = new byte[width * height];
-        this.outlierVotes = new int[width * height];
+        this.outlierVotes = new byte[width * height];
     }
 
     public void setState(State state) {
@@ -74,11 +75,15 @@ public class FrameProcessor {
         stackEngine.setStackMethod(method);
     }
 
+    public void setHotAggression(int aggression) {
+        this.hotAggression = aggression;
+    }
+
     public void resetStack() {
         processingHandler.removeCallbacksAndMessages(null);
         processingHandler.post(() -> {
             stackEngine.reset();
-            java.util.Arrays.fill(outlierVotes, 0);
+            java.util.Arrays.fill(outlierVotes, (byte)0);
             java.util.Arrays.fill(hotPixelMap, (byte)0);
         });
     }
@@ -195,33 +200,31 @@ public class FrameProcessor {
 
     private void removeHotPixels(short[] data, int w, int h) {
         int step = 2;
-        int frameIdx = stackEngine.getFrameCount();
+        // 0 to 100 range. 0=disabled, 100=most aggressive
+        if (hotAggression <= 0) return;
+
+        float thresholdMultiplier = 4.0f - (hotAggression / 100.0f) * 3.0f; // 4.0 to 1.0
+        int minDiff = 500 - (hotAggression * 4); // 500 to 100
 
         for (int y = step; y < h - step; y++) {
             for (int x = step; x < w - step; x++) {
                 int idx = y * w + x;
 
-                // If confirmed hot from previous frames, fix immediately
                 if (hotPixelMap[idx] == (byte)255) {
                     data[idx] = (short) (( (data[idx-step]&0xFFFF) + (data[idx+step]&0xFFFF) ) / 2);
                     continue;
                 }
 
                 int val = data[idx] & 0xFFFF;
-                if (val > 300) {
+                if (val > 100) {
                     int v1 = data[idx - step] & 0xFFFF;
                     int v2 = data[idx + step] & 0xFFFF;
                     int v3 = data[idx - step * w] & 0xFFFF;
                     int v4 = data[idx + step * w] & 0xFFFF;
 
                     int maxN = Math.max(Math.max(v1, v2), Math.max(v3, v4));
-                    int medianN = (v1 + v2 + v3 + v4) / 4;
-
-                    // Outlier detection: significantly brighter than neighbors
-                    if (val > maxN * 2.0 && val > medianN + 200) {
-                        // Temporal verification: star would move due to drift/alignment,
-                        // but a hot pixel stays at the same sensor coordinate.
-                        outlierVotes[idx]++;
+                    if (val > maxN * thresholdMultiplier && val > maxN + minDiff) {
+                        if (outlierVotes[idx] < 127) outlierVotes[idx]++;
                         if (outlierVotes[idx] > 3) {
                             hotPixelMap[idx] = (byte)255;
                         }

@@ -37,6 +37,7 @@ public class HistogramView extends View {
 
         // Use logarithmic scale for Y axis to see faint background signal
         double maxLog = 0;
+        // Skip first bin (pure black) which often has spikes
         for (int i = 1; i < 256; i++) {
             if (data[i] > 0) {
                 double val = Math.log10(data[i]);
@@ -60,7 +61,7 @@ public class HistogramView extends View {
         for (int i = 0; i < 256; i++) {
             if (data[i] > 0) {
                 float val = (float) (Math.log10(data[i]) / maxLog);
-                float barHeight = val * h;
+                float barHeight = Math.min(h, val * h);
                 canvas.drawRect(i * barWidth, h - barHeight, (i + 1) * barWidth, h, paint);
             }
         }

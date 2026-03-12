@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private FrameProcessor frameProcessor;
     private Renderer renderer;
     private WebServer webServer;
+    private boolean webServerRunning = false;
 
     private TextView statusText;
     private TextView frameCounter;
@@ -50,6 +51,7 @@ public class MainActivity extends Activity {
     private float stretchBlack = 0.0f;
     private float stretchMid = 0.5f;
     private float stretchWhite = 1.0f;
+    private int currentHotAggression = 50;
     private int startTimerSec = 0;
     private boolean isStacking = false;
     private boolean isDestroyed = false;
@@ -138,11 +140,9 @@ public class MainActivity extends Activity {
         if (logScroll != null) logScroll.setVisibility(View.VISIBLE);
 
         addLog("Application Initialized");
+        addLog("Ready. Select target and Exposure.");
 
-        webServer = new WebServer(8080, this);
-        webServer.start();
-        String ip = getLocalIpAddress();
-        addLog("Web Remote: http://" + ip + ":8080");
+        findViewById(R.id.btn_web).setOnClickListener(v -> toggleWebServer());
 
         findViewById(R.id.ctrl_exp).setOnClickListener(v -> {
             android.util.Range<Long> range = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
@@ -413,27 +413,33 @@ public class MainActivity extends Activity {
         detailLayout.addView(createLabel("Denoise Strength:"));
         final android.widget.SeekBar denoiseBar = new android.widget.SeekBar(this); denoiseBar.setMax(100); denoiseBar.setProgress(0);
         detailLayout.addView(denoiseBar);
-        detailLayout.addView(createLabel("Hot Pixel Aggression:"));
-        final android.widget.SeekBar hotBar = new android.widget.SeekBar(this); hotBar.setMax(100); hotBar.setProgress(50);
+        final TextView hotLbl = createLabel("Hot Pixel Aggression: " + currentHotAggression);
+        detailLayout.addView(hotLbl);
+        final android.widget.SeekBar hotBar = new android.widget.SeekBar(this); hotBar.setMax(100); hotBar.setProgress(currentHotAggression);
         detailLayout.addView(hotBar);
 
         // Preview interaction
         android.widget.SeekBar.OnSeekBarChangeListener listener = new android.widget.SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) {
-                float bl = blackBar.getProgress()/100f;
-                float mi = midBar.getProgress()/100f;
-                float wh = whiteBar.getProgress()/100f;
-                blackLbl.setText("Black: " + String.format("%.2f", bl));
-                midLbl.setText("Mid: " + String.format("%.2f", mi));
-                whiteLbl.setText("White: " + String.format("%.2f", wh));
-                histView.setMarkers(bl, mi, wh);
-                if (renderer != null) renderer.setStretch(bl, mi, wh);
+                if (s == blackBar || s == midBar || s == whiteBar) {
+                    float bl = blackBar.getProgress()/100f;
+                    float mi = midBar.getProgress()/100f;
+                    float wh = whiteBar.getProgress()/100f;
+                    blackLbl.setText("Black: " + String.format("%.2f", bl));
+                    midLbl.setText("Mid: " + String.format("%.2f", mi));
+                    whiteLbl.setText("White: " + String.format("%.2f", wh));
+                    histView.setMarkers(bl, mi, wh);
+                    if (renderer != null) renderer.setStretch(bl, mi, wh);
+                } else if (s == hotBar) {
+                    hotLbl.setText("Hot Pixel Aggression: " + p);
+                }
             }
             public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
         };
         blackBar.setOnSeekBarChangeListener(listener);
         midBar.setOnSeekBarChangeListener(listener);
         whiteBar.setOnSeekBarChangeListener(listener);
+        hotBar.setOnSeekBarChangeListener(listener);
 
         builder.setView(mainLayout);
         builder.setPositiveButton("OK", (dialog, which) -> {
@@ -445,6 +451,8 @@ public class MainActivity extends Activity {
                 stretchBlack = blackBar.getProgress() / 100.0f;
                 stretchMid = midBar.getProgress() / 100.0f;
                 stretchWhite = whiteBar.getProgress() / 100.0f;
+                currentHotAggression = hotBar.getProgress();
+                if (frameProcessor != null) frameProcessor.setHotAggression(currentHotAggression);
                 if (renderer != null) {
                     renderer.setWbGains(currentRGain, currentGGain, currentBGain);
                     renderer.setBlackLevel(currentBlackLevel);
@@ -492,6 +500,24 @@ public class MainActivity extends Activity {
         int frames = (frameProcessor != null) ? frameProcessor.getFrameCount() : 0;
         String status = statusText.getText().toString();
         return "{\"frames\":" + frames + ", \"status\":\"" + status + "\"}";
+    }
+
+    private void toggleWebServer() {
+        if (!webServerRunning) {
+            if (webServer == null) webServer = new WebServer(8080, this);
+            webServer.start();
+            webServerRunning = true;
+            String ip = getLocalIpAddress();
+            addLog("Web Remote Started: http://" + ip + ":8080");
+            findViewById(R.id.btn_web).setBackgroundColor(0xFF00AA00);
+            Toast.makeText(this, "Web Server Started", Toast.LENGTH_SHORT).show();
+        } else {
+            if (webServer != null) webServer.stop();
+            webServerRunning = false;
+            addLog("Web Remote Stopped");
+            findViewById(R.id.btn_web).setBackgroundColor(0xFF444444);
+            Toast.makeText(this, "Web Server Stopped", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void addLog(String msg) {
