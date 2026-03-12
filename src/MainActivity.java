@@ -27,8 +27,6 @@ public class MainActivity extends Activity {
     private CameraController cameraController;
     private FrameProcessor frameProcessor;
     private Renderer renderer;
-    private WebServer webServer;
-    private boolean webServerRunning = false;
 
     private TextView statusText;
     private TextView frameCounter;
@@ -142,8 +140,6 @@ public class MainActivity extends Activity {
         addLog("Application Initialized");
         addLog("Ready. Select target and Exposure.");
 
-        findViewById(R.id.btn_web).setOnClickListener(v -> toggleWebServer());
-
         findViewById(R.id.ctrl_exp).setOnClickListener(v -> {
             android.util.Range<Long> range = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
             String hint = "1.0";
@@ -250,7 +246,7 @@ public class MainActivity extends Activity {
             layout.addView(cbPng);
 
             builder.setView(layout);
-            builder.setPositiveButton("Export All", (dialog, which) -> {
+            builder.setPositiveButton("SAVE SELECTED", (dialog, which) -> {
                 if (cbLinear.isChecked()) saveResult(false);
                 if (cbStretch.isChecked()) saveResult(true);
                 if (cbDng.isChecked()) {
@@ -260,8 +256,6 @@ public class MainActivity extends Activity {
                     saveDng(new File(path, "A2LS_Raw_" + System.currentTimeMillis() + ".dng"));
                 }
                 if (cbPng.isChecked() && !cbLinear.isChecked()) {
-                    // PNG is normally saved inside saveResult(false) for efficiency,
-                    // but if linear is unchecked, we trigger it separately
                     savePngOnly();
                 }
             });
@@ -358,23 +352,15 @@ public class MainActivity extends Activity {
         colorLayout.setPadding(30, 10, 30, 10);
         colorLayout.setVisibility(View.GONE);
 
-        android.widget.LinearLayout detailLayout = new android.widget.LinearLayout(this);
-        detailLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        detailLayout.setPadding(30, 10, 30, 10);
-        detailLayout.setVisibility(View.GONE);
-
         contentFrame.addView(stretchLayout);
         contentFrame.addView(colorLayout);
-        contentFrame.addView(detailLayout);
 
         // Tab Buttons
         Button btnStretch = new Button(this); btnStretch.setText("STRETCH"); tabLayout.addView(btnStretch);
         Button btnColor = new Button(this); btnColor.setText("COLOR"); tabLayout.addView(btnColor);
-        Button btnDetail = new Button(this); btnDetail.setText("DETAIL"); tabLayout.addView(btnDetail);
 
-        btnStretch.setOnClickListener(v -> { stretchLayout.setVisibility(View.VISIBLE); colorLayout.setVisibility(View.GONE); detailLayout.setVisibility(View.GONE); });
-        btnColor.setOnClickListener(v -> { stretchLayout.setVisibility(View.GONE); colorLayout.setVisibility(View.VISIBLE); detailLayout.setVisibility(View.GONE); });
-        btnDetail.setOnClickListener(v -> { stretchLayout.setVisibility(View.GONE); colorLayout.setVisibility(View.GONE); detailLayout.setVisibility(View.VISIBLE); });
+        btnStretch.setOnClickListener(v -> { stretchLayout.setVisibility(View.VISIBLE); colorLayout.setVisibility(View.GONE); });
+        btnColor.setOnClickListener(v -> { stretchLayout.setVisibility(View.GONE); colorLayout.setVisibility(View.VISIBLE); });
 
         // Stretch Content
         HistogramView histView = new HistogramView(this);
@@ -409,37 +395,23 @@ public class MainActivity extends Activity {
         final EditText bLevel = new EditText(this); bLevel.setText(String.valueOf(currentBlackLevel)); bLevel.setInputType(InputType.TYPE_CLASS_NUMBER);
         colorLayout.addView(bLevel);
 
-        // Detail Content
-        detailLayout.addView(createLabel("Denoise Strength:"));
-        final android.widget.SeekBar denoiseBar = new android.widget.SeekBar(this); denoiseBar.setMax(100); denoiseBar.setProgress(0);
-        detailLayout.addView(denoiseBar);
-        final TextView hotLbl = createLabel("Hot Pixel Aggression: " + currentHotAggression);
-        detailLayout.addView(hotLbl);
-        final android.widget.SeekBar hotBar = new android.widget.SeekBar(this); hotBar.setMax(100); hotBar.setProgress(currentHotAggression);
-        detailLayout.addView(hotBar);
-
         // Preview interaction
         android.widget.SeekBar.OnSeekBarChangeListener listener = new android.widget.SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) {
-                if (s == blackBar || s == midBar || s == whiteBar) {
-                    float bl = blackBar.getProgress()/100f;
-                    float mi = midBar.getProgress()/100f;
-                    float wh = whiteBar.getProgress()/100f;
-                    blackLbl.setText("Black: " + String.format("%.2f", bl));
-                    midLbl.setText("Mid: " + String.format("%.2f", mi));
-                    whiteLbl.setText("White: " + String.format("%.2f", wh));
-                    histView.setMarkers(bl, mi, wh);
-                    if (renderer != null) renderer.setStretch(bl, mi, wh);
-                } else if (s == hotBar) {
-                    hotLbl.setText("Hot Pixel Aggression: " + p);
-                }
+                float bl = blackBar.getProgress()/100f;
+                float mi = midBar.getProgress()/100f;
+                float wh = whiteBar.getProgress()/100f;
+                blackLbl.setText("Black: " + String.format("%.2f", bl));
+                midLbl.setText("Mid: " + String.format("%.2f", mi));
+                whiteLbl.setText("White: " + String.format("%.2f", wh));
+                histView.setMarkers(bl, mi, wh);
+                if (renderer != null) renderer.setStretch(bl, mi, wh);
             }
             public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
         };
         blackBar.setOnSeekBarChangeListener(listener);
         midBar.setOnSeekBarChangeListener(listener);
         whiteBar.setOnSeekBarChangeListener(listener);
-        hotBar.setOnSeekBarChangeListener(listener);
 
         builder.setView(mainLayout);
         builder.setPositiveButton("OK", (dialog, which) -> {
@@ -451,8 +423,6 @@ public class MainActivity extends Activity {
                 stretchBlack = blackBar.getProgress() / 100.0f;
                 stretchMid = midBar.getProgress() / 100.0f;
                 stretchWhite = whiteBar.getProgress() / 100.0f;
-                currentHotAggression = hotBar.getProgress();
-                if (frameProcessor != null) frameProcessor.setHotAggression(currentHotAggression);
                 if (renderer != null) {
                     renderer.setWbGains(currentRGain, currentGGain, currentBGain);
                     renderer.setBlackLevel(currentBlackLevel);
@@ -481,44 +451,6 @@ public class MainActivity extends Activity {
         return tv;
     }
 
-    private String getLocalIpAddress() {
-        try {
-            for (java.util.Enumeration<java.net.NetworkInterface> en = java.net.NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-                java.net.NetworkInterface intf = en.nextElement();
-                for (java.util.Enumeration<java.net.InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                    java.net.InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof java.net.Inet4Address) {
-                        return inetAddress.getHostAddress();
-                    }
-                }
-            }
-        } catch (Exception ex) {}
-        return "127.0.0.1";
-    }
-
-    public String getStatusJson() {
-        int frames = (frameProcessor != null) ? frameProcessor.getFrameCount() : 0;
-        String status = statusText.getText().toString();
-        return "{\"frames\":" + frames + ", \"status\":\"" + status + "\"}";
-    }
-
-    private void toggleWebServer() {
-        if (!webServerRunning) {
-            if (webServer == null) webServer = new WebServer(8080, this);
-            webServer.start();
-            webServerRunning = true;
-            String ip = getLocalIpAddress();
-            addLog("Web Remote Started: http://" + ip + ":8080");
-            findViewById(R.id.btn_web).setBackgroundColor(0xFF00AA00);
-            Toast.makeText(this, "Web Server Started", Toast.LENGTH_SHORT).show();
-        } else {
-            if (webServer != null) webServer.stop();
-            webServerRunning = false;
-            addLog("Web Remote Stopped");
-            findViewById(R.id.btn_web).setBackgroundColor(0xFF444444);
-            Toast.makeText(this, "Web Server Stopped", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     private void addLog(String msg) {
         runOnUiThread(() -> {
@@ -580,7 +512,6 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         isDestroyed = true;
         if (cameraController != null) cameraController.close();
-        if (webServer != null) webServer.stop();
         super.onDestroy();
     }
 
@@ -737,14 +668,6 @@ public class MainActivity extends Activity {
                     TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum);
                 }
 
-                if (!stretched) {
-                    File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
-                    float maxValFound = 0;
-                    for (int i = 0; i < buffer.length; i += 1000) if (buffer[i] > maxValFound) maxValFound = buffer[i];
-                    float whiteLimit = (1023.0f - currentBlackLevel) * (isSum ? frameCount : 1.0f);
-                    float maxVal = Math.max(maxValFound - effectiveBlack, whiteLimit * 0.1f);
-                    savePngOptimized(pngFile, buffer, w, h, maxVal, frameCount, isSum);
-                }
 
                 addLog("Saved: " + tiffFile.getName());
                 runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/A2LS_Astro", Toast.LENGTH_LONG).show());

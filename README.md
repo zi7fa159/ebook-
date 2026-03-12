@@ -1,15 +1,17 @@
-# ALS Android Clone (Astro Live Stacker)
+# A2LS (Astro Live Stacker for Android)
 
-A 1:1 Android clone of Astro Live Stacker (ALS) for the Realme 8i (RMX3151), providing live RAW stacking with full manual camera control.
+A native Android application for high-performance astrophotography, performing real-time RAW stacking and star alignment.
 
 ## Features
-- Full 50MP RAW capture (DNG) using Camera2 API.
+- Full resolution RAW capture (DNG) using Camera2 API.
 - Live stacking with Mean, Sum, and Sigma Clipping methods.
-- Translation-only star alignment (ALS-style) on full 50MP frames.
-- Manual control over Exposure (1s - 32s), ISO (100 - 6400), and Focus.
-- Real-time preview with auto-scaling and square-root stretch for star visibility.
-- Manual Color Calibration (R/G/B gains and Black Level) to eliminate sensor tint.
-- Lossless output: 16-bit Color TIFF, full-res PNG, and exact sensor RAW (DNG).
+- Translation-only star alignment on full-resolution frames.
+- Manual control over Exposure, ISO, and Focus.
+- Real-time preview with professional power-law (Gamma) stretch.
+- Integrated Histogram with logarithmic visualization and manual stretch markers.
+- Lossless output: 16-bit Color TIFF (Linear and Stretched), PNG, and exact sensor RAW (DNG).
+- Fully native Java implementation with no external library dependencies.
+- Build system designed for command-line use without Gradle or Android Studio.
 
 ## Build Requirements
 - Android SDK Command-line Tools
@@ -46,4 +48,4 @@ Run the installation script:
 This will install the APK to your connected device and launch it.
 
 ## Hardware Support
-Optimized for Realme 8i (MediaTek Helio G96). Ensure the device is connected via ADB and has "USB Debugging" enabled.
+Designed for Android devices with RAW_SENSOR support. While optimized for high-resolution sensors (like the 50MP sensor on Realme 8i), it is compatible with most modern Android devices providing manual camera control.
