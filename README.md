@@ -3,15 +3,29 @@
 A native Android application for high-performance astrophotography, performing real-time RAW stacking and star alignment.
 
 ## Features
-- Full resolution RAW capture (DNG) using Camera2 API.
-- Live stacking with Mean, Sum, and Sigma Clipping methods.
-- Translation-only star alignment on full-resolution frames.
-- Manual control over Exposure, ISO, and Focus.
-- Real-time preview with professional power-law (Gamma) stretch.
-- Integrated Histogram with logarithmic visualization and manual stretch markers.
-- Lossless output: 16-bit Color TIFF (Linear and Stretched), PNG, and exact sensor RAW (DNG).
-- Fully native Java implementation with no external library dependencies.
-- Build system designed for command-line use without Gradle or Android Studio.
+- **Full 50MP RAW Capture**: Utilizes the maximum sensor resolution of the Realme 8i (RMX3151) for maximum detail.
+- **Professional Camera Control**: Full manual overrides for Exposure (up to 32s), ISO (100-6400), and Focus (Infinite/Macro).
+- **A2LS-Style Live Stacking**: Incremental averaging at 32-bit floating-point precision for noise reduction.
+- **High-Quality Alignment**: Translation-only star alignment using 2D cross-correlation to preserve sharp star points.
+- **Advanced Stacking Methods**:
+    - **Mean Stacking**: Optimal for static scenes.
+    - **Sum Stacking**: Maximizes signal for very faint deep-sky objects.
+    - **Kappa-Sigma Clipping**: Advanced outlier rejection to eliminate satellites, planes, and cosmic rays (Sequator/DSS style).
+- **Tune Studio**: Real-time post-processing engine featuring:
+    - **Live Histogram**: Logarithmic visualization of data distribution.
+    - **Dynamic Stretching**: Precise control over Black, Mid, and White points.
+    - **Auto-Stretch**: One-tap optimization for faint nebulosity.
+- **Color Calibration Engine**:
+    - **Temperature (Kelvin) & Tint**: Pro-grade color correction.
+    - **Auto White Balance**: Intelligent gain extraction from sensor metadata.
+    - **Hot Pixel Removal**: Aggressive outlier suppression for long exposures.
+- **Lossless Export Options**:
+    - **16-bit Linear TIFF**: For professional post-processing (PixInsight/Siril).
+    - **16-bit Stretched TIFF**: Ready-to-use high-dynamic-range output.
+    - **RAW DNG**: Exact sensor data with correct orientation and metadata.
+    - **Full-Res PNG**: High-quality preview-style export.
+- **No Heavy Frameworks**: Pure Java implementation for maximum efficiency on MediaTek Helio G96.
+- **Build-System Agnostic**: No Gradle or Android Studio required. Built with raw SDK tools.
 
 ## Build Requirements
 - Android SDK Command-line Tools

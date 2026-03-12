@@ -773,9 +773,9 @@ public class MainActivity extends Activity {
 
                 int dngOrientation;
                 switch (orientation) {
-                    case 90: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_90; break;
+                    case 90: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_270; break; // Inverted for Realme 8i
                     case 180: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_180; break;
-                    case 270: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_270; break;
+                    case 270: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_90; break;
                     default: dngOrientation = android.media.ExifInterface.ORIENTATION_NORMAL; break;
                 }
                 dngCreator.setOrientation(dngOrientation);
