@@ -132,6 +132,18 @@ public class Renderer {
         float effectiveBlack = isSumStacking ? (blackLevel * currentStackFrames) : blackLevel;
         float effectiveWhite = isSumStacking ? (whiteLevel * currentStackFrames) : whiteLevel;
 
+        // Sky background normalization (median background estimation)
+        float backgroundMedian = 0;
+        if (stackBuffer != null) {
+            float sum = 0;
+            int count = 0;
+            for (int i = 0; i < stackBuffer.length; i += 10000) {
+                sum += stackBuffer[i];
+                count++;
+            }
+            backgroundMedian = (sum / count) - effectiveBlack;
+        }
+
         // Brightness scaling for preview
         float scale;
         float midFactor;
@@ -185,28 +197,30 @@ public class Renderer {
             for (int x = 0; x < sw; x += 2) {
                 int ox = x * step;
 
-                float v00, v01, v10, v11;
+                float r, g, b;
                 if (stackBuffer != null) {
-                    v00 = stackBuffer[oy * width + ox];
-                    v01 = stackBuffer[oy * width + (ox + 1)];
-                    v10 = stackBuffer[(oy + 1) * width + ox];
-                    v11 = stackBuffer[(oy + 1) * width + (ox + 1)];
+                    int idx = (oy * width + ox) * 3;
+                    r = stackBuffer[idx];
+                    g = stackBuffer[idx+1];
+                    b = stackBuffer[idx+2];
                 } else {
-                    v00 = (rawBuffer[oy * width + ox] & 0xFFFF);
-                    v01 = (rawBuffer[oy * width + (ox + 1)] & 0xFFFF);
-                    v10 = (rawBuffer[(oy + 1) * width + ox] & 0xFFFF);
-                    v11 = (rawBuffer[(oy + 1) * width + (ox + 1)] & 0xFFFF);
+                    int idx = oy * width + ox;
+                    float v00 = (rawBuffer[idx] & 0xFFFF);
+                    float v01 = (rawBuffer[idx + 1] & 0xFFFF);
+                    float v10 = (rawBuffer[idx + width] & 0xFFFF);
+                    float v11 = (rawBuffer[idx + width + 1] & 0xFFFF);
+                    switch(cfaPattern) {
+                        case 1: r=v01; g=(v00+v11)/2f; b=v10; break;
+                        case 2: r=v10; g=(v00+v11)/2f; b=v01; break;
+                        case 3: r=v11; g=(v01+v10)/2f; b=v00; break;
+                        default: r=v00; g=(v01+v10)/2f; b=v11; break;
+                    }
                 }
 
-                float r, g1, g2, b;
-                switch(cfaPattern) {
-                    case 1: r=v01; g1=v00; g2=v11; b=v10; break; // GRBG
-                    case 2: r=v10; g1=v00; g2=v11; b=v01; break; // GBRG
-                    case 3: r=v11; g1=v01; g2=v10; b=v00; break; // BGGR
-                    default: r=v00; g1=v01; g2=v10; b=v11; break; // RGGB
-                }
+                // Apply simple gradient correction if requested (stub)
+                // r -= backgroundMedian * 0.5f;
 
-                int argb = ColorEngine.processPixel(r, g1, g2, b, colorParams, effectiveBlack);
+                int argb = ColorEngine.processPixel(r, g, g, b, colorParams, effectiveBlack);
 
                 // Set 2x2 block
                 argbBuffer[y * sw + x] = argb;

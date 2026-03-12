@@ -17,7 +17,7 @@ public class StarDetector {
         this.threshold = 40; // Basic brightness threshold, can be adjusted
     }
 
-    public List<Point> detectStars(byte[] grayData) {
+    public List<float[]> detectStarsCentroid(byte[] grayData) {
         // 1. Simple 3x3 Blur (Box filter) to reduce noise
         byte[] blurred = new byte[width * height];
         for (int y = 1; y < height - 1; y++) {
@@ -51,20 +51,44 @@ public class StarDetector {
         }
 
         // Sort by brightness and take top 50
-        Collections.sort(candidates, new Comparator<StarCandidate>() {
-            @Override
-            public int compare(StarCandidate o1, StarCandidate o2) {
-                return Integer.compare(o2.brightness, o1.brightness);
-            }
-        });
+        Collections.sort(candidates, (o1, o2) -> Integer.compare(o2.brightness, o1.brightness));
 
-        List<Point> stars = new ArrayList<>();
+        List<float[]> stars = new ArrayList<>();
         int limit = Math.min(candidates.size(), 50);
         for (int i = 0; i < limit; i++) {
-            stars.add(new Point(candidates.get(i).x, candidates.get(i).y));
+            StarCandidate c = candidates.get(i);
+            // Calculate sub-pixel centroid
+            float sumX = 0, sumY = 0, sumW = 0;
+            int r = 3;
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    int ix = c.x + dx;
+                    int iy = c.y + dy;
+                    if (ix >= 0 && ix < width && iy >= 0 && iy < height) {
+                        float w = (grayData[iy * width + ix] & 0xFF);
+                        sumX += ix * w;
+                        sumY += iy * w;
+                        sumW += w;
+                    }
+                }
+            }
+            if (sumW > 0) {
+                stars.add(new float[]{sumX / sumW, sumY / sumW, (float)c.brightness});
+            } else {
+                stars.add(new float[]{(float)c.x, (float)c.y, (float)c.brightness});
+            }
         }
 
         return stars;
+    }
+
+    public List<Point> detectStars(byte[] grayData) {
+        List<float[]> centroids = detectStarsCentroid(grayData);
+        List<Point> points = new ArrayList<>();
+        for (float[] c : centroids) {
+            points.add(new Point(Math.round(c[0]), Math.round(c[1])));
+        }
+        return points;
     }
 
     private boolean isLocalMaximum(byte[] data, int cx, int cy, int radius) {

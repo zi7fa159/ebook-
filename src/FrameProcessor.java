@@ -16,7 +16,7 @@ public class FrameProcessor {
     private final HandlerThread processingThread;
     private final Handler processingHandler;
 
-    public enum State { IDLE, LIVE, STACKING, PAUSED }
+    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK }
     private State currentState = State.IDLE;
     private boolean showStack = false;
     private int width, height;
@@ -33,6 +33,10 @@ public class FrameProcessor {
     private byte[] hotPixelMap; // 0: clear, 255: confirmed hot
     private byte[] outlierVotes;
     private int hotAggression = 50;
+
+    private float[] masterDark;
+    private int darkCount = 0;
+    private int rejectedCount = 0;
 
     public FrameProcessor(int width, int height, Renderer renderer) {
         this.width = width;
@@ -75,6 +79,10 @@ public class FrameProcessor {
         stackEngine.setStackMethod(method);
     }
 
+    public void setCfaPattern(int cfa) {
+        stackEngine.setCfaPattern(cfa);
+    }
+
     public void setHotAggression(int aggression) {
         this.hotAggression = aggression;
     }
@@ -85,6 +93,15 @@ public class FrameProcessor {
             stackEngine.reset();
             java.util.Arrays.fill(outlierVotes, (byte)0);
             java.util.Arrays.fill(hotPixelMap, (byte)0);
+            rejectedCount = 0;
+        });
+    }
+
+    public void startDarkCalibration() {
+        processingHandler.post(() -> {
+            masterDark = new float[width * height];
+            darkCount = 0;
+            currentState = State.CALIBRATING_DARK;
         });
     }
 
@@ -149,6 +166,22 @@ public class FrameProcessor {
                 return;
             }
 
+            if (currentState == State.CALIBRATING_DARK) {
+                for (int i = 0; i < width * height; i++) {
+                    masterDark[i] = (masterDark[i] * darkCount + (currentRaw[i] & 0xFFFF)) / (darkCount + 1);
+                }
+                darkCount++;
+                if (darkCount >= 10) currentState = State.PAUSED; // Done after 10 frames
+                return;
+            }
+
+            if (masterDark != null) {
+                for (int i = 0; i < width * height; i++) {
+                    int val = (currentRaw[i] & 0xFFFF) - (int)masterDark[i];
+                    currentRaw[i] = (short) Math.max(0, val);
+                }
+            }
+
             // Downscale for star detection speed (4x if 50MP, else 2x)
             int step = (width > 6000) ? 4 : 2;
             int dw = width / step;
@@ -163,20 +196,26 @@ public class FrameProcessor {
 
             // Use the pre-allocated star detector or create one for the correct size
             StarDetector sd = new StarDetector(dw, dh);
-            List<Point> stars = sd.detectStars(grayBuffer);
+            List<float[]> stars = sd.detectStarsCentroid(grayBuffer);
 
-            int dx = 0, dy = 0;
+            // Frame Quality Rejection (FWHM estimate)
+            if (stars.size() < 5) {
+                rejectedCount++;
+                return;
+            }
+
+            FrameAligner.Alignment alignment = new FrameAligner.Alignment(0,0,0);
             if (stackEngine.getFrameCount() == 0) {
-                frameAligner.setReferenceStars(stars);
+                frameAligner.setReferenceStars(stars, dw, dh);
             } else {
-                Point shift = frameAligner.computeShift(stars);
-                // Refined shift logic: Use even shifts to preserve Bayer pattern
-                dx = Math.round((shift.x * (float)step) / 2.0f) * 2;
-                dy = Math.round((shift.y * (float)step) / 2.0f) * 2;
+                alignment = frameAligner.computeAlignment(stars);
+                // Scale back to full resolution
+                alignment.dx *= step;
+                alignment.dy *= step;
             }
 
             removeHotPixels(currentRaw, width, height);
-            stackEngine.addFrame(currentRaw, dx, dy);
+            stackEngine.addFrame(currentRaw, alignment);
 
             if (showStack) {
                 renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
@@ -188,6 +227,10 @@ public class FrameProcessor {
 
     public int getFrameCount() {
         return stackEngine.getFrameCount();
+    }
+
+    public int getRejectedCount() {
+        return rejectedCount;
     }
 
     public float[] getResultBuffer() {

@@ -73,15 +73,22 @@ public class ColorEngine {
         g *= p.gGain;
         b *= p.bGain;
 
-        // 3. Highlight Handling
-        // Use full bit-depth for highlight clipping calculation
+        // 3. Highlight Handling (Star Color Preservation)
         float maxSignal = (p.whiteLevel - p.blackLevel);
 
-        // Soft-knee compression or simple desaturation for highlights
+        // Preserve color in highlights by desaturating ONLY when exceeding clip
         if (r > maxSignal || g > maxSignal || b > maxSignal) {
             float max = Math.max(r, Math.max(g, b));
-            // Desaturate highlights to avoid purple/funky tints in stars
-            r = g = b = Math.min(max, maxSignal);
+            float over = max - maxSignal;
+            if (over > 0) {
+                // Mix with white as it clips
+                float factor = maxSignal / max;
+                r *= factor; g *= factor; b *= factor;
+                // Add back some intensity to avoid total blackness if extreme
+                r += (max - maxSignal) * 0.5f;
+                g += (max - maxSignal) * 0.5f;
+                b += (max - maxSignal) * 0.5f;
+            }
         }
 
         // 4. Stretching & Gamma

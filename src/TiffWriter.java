@@ -66,29 +66,10 @@ public class TiffWriter {
                         sy = dy;
                     }
 
-                    int bx = (sx / 2) * 2;
-                    int by = (sy / 2) * 2;
-                    int b00 = by * width + bx;
-                    int b01 = b00 + 1;
-                    int b10 = (by + 1) * width + bx;
-                    int b11 = b10 + 1;
-
-                    float v00 = data[b00];
-                    float v01 = data[b01];
-                    float v10 = data[b10];
-                    float v11 = data[b11];
-
-                    float r, g1, g2, b;
-                    switch(cfa) {
-                        case 1: r=v01; g1=v00; g2=v11; b=v10; break; // GRBG
-                        case 2: r=v10; g1=v00; g2=v11; b=v01; break; // GBRG
-                        case 3: r=v11; g1=v01; g2=v10; b=v00; break; // BGGR
-                        default: r=v00; g1=v01; g2=v10; b=v11; break; // RGGB
-                    }
-
-                    r = (r - effectiveBlack) * rGain;
-                    float g = ((g1 + g2) / 2.0f - effectiveBlack) * gGain;
-                    b = (b - effectiveBlack) * bGain;
+                    int idx = (sy * width + sx) * 3;
+                    float r = (data[idx] - effectiveBlack) * rGain;
+                    float g = (data[idx+1] - effectiveBlack) * gGain;
+                    float b = (data[idx+2] - effectiveBlack) * bGain;
 
                     if (r > clip || g > clip || b > clip) {
                         float m = Math.max(r, Math.max(g, b));

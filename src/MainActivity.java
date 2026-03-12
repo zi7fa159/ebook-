@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
 
     private TextView statusText;
     private TextView frameCounter;
+    private TextView frameRejectionText;
     private android.view.View captureProgress;
 
     private TextView valExp, valIso, valFocus, valLimit, valTimer, logText;
@@ -113,6 +114,7 @@ public class MainActivity extends Activity {
         statusText = findViewById(R.id.status_text);
         statusText.setText("LIVE VIEW");
         frameCounter = findViewById(R.id.frame_counter);
+        frameRejectionText = new TextView(this); // Dynamically adding for now or find in layout
         captureProgress = findViewById(R.id.capture_progress);
 
         valExp = findViewById(R.id.val_exp);
@@ -216,6 +218,14 @@ public class MainActivity extends Activity {
         }));
 
         findViewById(R.id.btn_tune).setOnClickListener(v -> showTuneDialog());
+
+        findViewById(R.id.btn_dark).setOnClickListener(v -> {
+            if (frameProcessor != null) {
+                addLog("Capturing 10 Dark Frames...");
+                frameProcessor.startDarkCalibration();
+                statusText.setText("CALIBRATING DARKS...");
+            }
+        });
 
         btnMainAction.setOnClickListener(v -> {
             if (!isStacking) {
@@ -632,6 +642,7 @@ public class MainActivity extends Activity {
                         }
 
                         frameProcessor = new FrameProcessor(size.getWidth(), size.getHeight(), renderer);
+                        if (cfa != null) frameProcessor.setCfaPattern(cfa);
                         frameProcessor.setState(FrameProcessor.State.LIVE);
                         cameraController.setFrameProcessor(frameProcessor);
                         updateCamera();
@@ -651,16 +662,20 @@ public class MainActivity extends Activity {
             while (isStacking && !isDestroyed) {
                 if (frameProcessor != null) {
                     int count = frameProcessor.getFrameCount();
+                    int rejected = frameProcessor.getRejectedCount();
                     if (count != lastCount) {
                         lastCount = count;
                         final int c = count;
+                        final int r = rejected;
+                        final double nr = Math.sqrt(c);
                         runOnUiThread(() -> {
-                            frameCounter.setText(c + " Frames");
+                            frameCounter.setText(c + " Frames (NR: " + String.format("%.1fx", nr) + ")");
+                            statusText.setText("STACKING (Rejected: " + r + ")");
                             if (frameLimit > 0 && c >= frameLimit) {
                                 stopStacking();
                             }
                         });
-                        addLog("Frame " + c + " stacked");
+                        if (c > 0) addLog("Frame " + c + " stacked. Rejected: " + r);
                     }
                 }
 
@@ -796,60 +811,34 @@ public class MainActivity extends Activity {
 
         Bitmap bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888);
         float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
-        int cfa = 0;
-        if (cameraController != null) {
-            Integer cfaInt = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
-            if (cfaInt != null) cfa = cfaInt;
-        }
 
-        // Process in 2x2 blocks from the source buffer
-        for (int y = 0; y < h; y += 2) {
-            for (int x = 0; x < w; x += 2) {
-                int b00 = y * w + x;
-                int b01 = b00 + 1;
-                int b10 = (y + 1) * w + x;
-                int b11 = b10 + 1;
+        // Process from RGB buffer
+        for (int y = 0; y < h; y += 1) {
+            for (int x = 0; x < w; x += 1) {
+                int idx = (y * w + x) * 3;
+                float r = buffer[idx];
+                float g = buffer[idx + 1];
+                float b = buffer[idx + 2];
 
-                float v00 = buffer[b00];
-                float v01 = buffer[b01];
-                float v10 = buffer[b10];
-                float v11 = buffer[b11];
+                int argb = ColorEngine.processPixel(r, g, g, b, params, effectiveBlack);
 
-                float r, g1, g2, b;
-                switch(cfa) {
-                    case 1: r=v01; g1=v00; g2=v11; b=v10; break; // GRBG
-                    case 2: r=v10; g1=v00; g2=v11; b=v01; break; // GBRG
-                    case 3: r=v11; g1=v01; g2=v10; b=v00; break; // BGGR
-                    default: r=v00; g1=v01; g2=v10; b=v11; break; // RGGB
+                int destX, destY;
+                if (orientation == 90) {
+                    destX = (h - 1) - y;
+                    destY = x;
+                } else if (orientation == 270) {
+                    destX = y;
+                    destY = (w - 1) - x;
+                } else if (orientation == 180) {
+                    destX = (w - 1) - x;
+                    destY = (h - 1) - y;
+                } else {
+                    destX = x;
+                    destY = y;
                 }
 
-                int argb = ColorEngine.processPixel(r, g1, g2, b, params, effectiveBlack);
-
-                // Map to output coordinates based on orientation
-                for (int dy = 0; dy < 2; dy++) {
-                    for (int dx = 0; dx < 2; dx++) {
-                        int srcX = x + dx;
-                        int srcY = y + dy;
-                        int destX, destY;
-
-                        if (orientation == 90) {
-                            destX = (h - 1) - srcY;
-                            destY = srcX;
-                        } else if (orientation == 270) {
-                            destX = srcY;
-                            destY = (w - 1) - srcX;
-                        } else if (orientation == 180) {
-                            destX = (w - 1) - srcX;
-                            destY = (h - 1) - srcY;
-                        } else {
-                            destX = srcX;
-                            destY = srcY;
-                        }
-
-                        if (destX >= 0 && destX < outW && destY >= 0 && destY < outH) {
-                            bitmap.setPixel(destX, destY, argb);
-                        }
-                    }
+                if (destX >= 0 && destX < outW && destY >= 0 && destY < outH) {
+                    bitmap.setPixel(destX, destY, argb);
                 }
             }
         }
