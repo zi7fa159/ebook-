@@ -192,14 +192,22 @@ public class FrameProcessor {
 
         if (state == State.CALIBRATING_DARK) {
             if (masterDark != null) {
+                long start = System.currentTimeMillis();
                 for (int i = 0; i < width * height; i++) {
-                    masterDark[i] = (masterDark[i] * darkCount + (currentRaw[i] & 0xFFFF)) / (darkCount + 1);
+                    masterDark[i] += (currentRaw[i] & 0xFFFF);
                 }
                 darkCount++;
+                long end = System.currentTimeMillis();
+                android.util.Log.i("FrameProcessor", "Dark frame " + darkCount + " processed in " + (end-start) + "ms");
+
                 renderer.setDebugInfo("Dark: " + darkCount + "/20");
                 if (darkCount >= 20) {
+                    for (int i = 0; i < width * height; i++) {
+                        masterDark[i] /= 20.0f;
+                    }
                     currentState = State.LIVE;
                     renderer.setDebugInfo("Darks Ready");
+                    android.util.Log.i("FrameProcessor", "Dark Calibration Complete");
                 }
             }
             return;

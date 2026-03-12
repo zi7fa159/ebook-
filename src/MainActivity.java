@@ -247,10 +247,12 @@ public class MainActivity extends Activity {
             final android.widget.CheckBox cbLinear = new android.widget.CheckBox(this); cbLinear.setText("Linear TIFF (16-bit)"); cbLinear.setChecked(true);
             final android.widget.CheckBox cbStretch = new android.widget.CheckBox(this); cbStretch.setText("Stretched TIFF (16-bit)"); cbStretch.setChecked(true);
             final android.widget.CheckBox cbPng = new android.widget.CheckBox(this); cbPng.setText("High-res PNG (Preview Style)"); cbPng.setChecked(true);
+            final android.widget.CheckBox cbDng = new android.widget.CheckBox(this); cbDng.setText("RAW DNG (Single Frame)"); cbDng.setChecked(false);
 
             layout.addView(cbLinear);
             layout.addView(cbStretch);
             layout.addView(cbPng);
+            layout.addView(cbDng);
 
             builder.setView(layout);
             builder.setPositiveButton("SAVE SELECTED", (dialog, which) -> {
@@ -258,9 +260,8 @@ public class MainActivity extends Activity {
                     try {
                         if (cbLinear.isChecked()) saveResultSync(false);
                         if (cbStretch.isChecked()) saveResultSync(true);
-                        if (cbPng.isChecked()) {
-                            savePngOnlySync();
-                        }
+                        if (cbPng.isChecked()) savePngOnlySync();
+                        if (cbDng.isChecked()) saveDngSync();
                         runOnUiThread(() -> Toast.makeText(this, "Export Complete", Toast.LENGTH_SHORT).show());
                     } catch (Exception e) {
                         Log.e(TAG, "Sequential Export Failed", e);
@@ -659,18 +660,15 @@ public class MainActivity extends Activity {
     private void startProgressThread() {
         new Thread(() -> {
             int lastCount = -1;
-            int lastRejected = -1;
             FrameProcessor.State lastState = null;
 
             while (!isDestroyed) {
                 if (frameProcessor != null) {
                     final int count = frameProcessor.getFrameCount();
-                    final int rejected = frameProcessor.getRejectedCount();
                     final FrameProcessor.State state = frameProcessor.getState();
 
-                    if (count != lastCount || rejected != lastRejected || state != lastState) {
+                    if (count != lastCount || state != lastState) {
                         lastCount = count;
-                        lastRejected = rejected;
                         lastState = state;
 
                         final double nr = Math.sqrt(count);
@@ -785,10 +783,35 @@ public class MainActivity extends Activity {
         addLog("Saved: " + tiffFile.getName());
     }
 
-    private void saveDng(File file) {
-        // DNG saving requires the actual Image object which we now close immediately for stability.
-        // We will implement DNG saving by triggering a single dedicated capture in the future if needed.
-        addLog("DNG Save is currently disabled for stability. Use TIFF.");
+    private void saveDngSync() throws IOException {
+        if (frameProcessor == null || cameraController == null) return;
+        short[] raw = frameProcessor.getRawBuffer();
+        if (raw == null) return;
+
+        android.util.Size size = cameraController.getRawSize();
+        android.hardware.camera2.CameraCharacteristics chars = cameraController.getCharacteristics();
+        android.hardware.camera2.TotalCaptureResult result = cameraController.getLastCaptureResult();
+
+        if (size == null || chars == null || result == null) {
+            addLog("DNG Export Error: Missing metadata");
+            return;
+        }
+
+        File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File path = new File(pictures, "A2LS_Astro");
+        if (!path.exists()) path.mkdirs();
+        File dngFile = new File(path, "A2LS_Capture_" + System.currentTimeMillis() + ".dng");
+
+        try (android.hardware.camera2.DngCreator dngCreator = new android.hardware.camera2.DngCreator(chars, result)) {
+            java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocateDirect(raw.length * 2);
+            buffer.order(java.nio.ByteOrder.nativeOrder());
+            buffer.asShortBuffer().put(raw);
+            dngCreator.writeByteBuffer(new FileOutputStream(dngFile), size, buffer, 0);
+            addLog("Saved: " + dngFile.getName());
+        } catch (Exception e) {
+            Log.e(TAG, "DNG Write Failed", e);
+            addLog("DNG Error: " + e.getMessage());
+        }
     }
 
     private void savePngOptimized(File file, float[] buffer, int w, int h, int frameCount, boolean isSum, ColorEngine.Params params, int orientation) throws IOException {
