@@ -249,17 +249,25 @@ public class MainActivity extends Activity {
 
             builder.setView(layout);
             builder.setPositiveButton("SAVE SELECTED", (dialog, which) -> {
-                if (cbLinear.isChecked()) saveResult(false);
-                if (cbStretch.isChecked()) saveResult(true);
-                if (cbDng.isChecked()) {
-                    File pictures = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES);
-                    File path = new File(pictures, "A2LS_Astro");
-                    if (!path.exists()) path.mkdirs();
-                    saveDng(new File(path, "A2LS_Raw_" + System.currentTimeMillis() + ".dng"));
-                }
-                if (cbPng.isChecked()) {
-                    savePngOnly();
-                }
+                new Thread(() -> {
+                    try {
+                        if (cbLinear.isChecked()) saveResultSync(false);
+                        if (cbStretch.isChecked()) saveResultSync(true);
+                        if (cbDng.isChecked()) {
+                            File pictures = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES);
+                            File path = new File(pictures, "A2LS_Astro");
+                            if (!path.exists()) path.mkdirs();
+                            saveDng(new File(path, "A2LS_Raw_" + System.currentTimeMillis() + ".dng"));
+                        }
+                        if (cbPng.isChecked()) {
+                            savePngOnlySync();
+                        }
+                        runOnUiThread(() -> Toast.makeText(this, "Export Complete", Toast.LENGTH_SHORT).show());
+                    } catch (Exception e) {
+                        Log.e(TAG, "Sequential Export Failed", e);
+                        addLog("Export Error: " + e.getMessage());
+                    }
+                }).start();
             });
             builder.setNegativeButton("Cancel", null);
             builder.show();
@@ -670,7 +678,7 @@ public class MainActivity extends Activity {
         }).start();
     }
 
-    private void savePngOnly() {
+    private void savePngOnlySync() throws IOException {
         if (frameProcessor == null || cameraController == null || renderer == null) return;
         final float[] buffer = frameProcessor.getResultBuffer();
         if (buffer == null) return;
@@ -680,20 +688,21 @@ public class MainActivity extends Activity {
         final int frameCount = frameProcessor.getFrameCount();
         final ColorEngine.Params params = renderer.getColorParams();
 
-        new Thread(() -> {
-            try {
-                File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-                File path = new File(pictures, "A2LS_Astro");
-                if (!path.exists()) path.mkdirs();
-                String ts = String.valueOf(System.currentTimeMillis());
-                File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
-                savePngOptimized(pngFile, buffer, w, h, frameCount, isSum, params);
-                addLog("Saved: " + pngFile.getName());
-            } catch (Exception e) {}
-        }).start();
+        File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File path = new File(pictures, "A2LS_Astro");
+        if (!path.exists()) path.mkdirs();
+        String ts = String.valueOf(System.currentTimeMillis());
+        File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
+
+        int orientation = 90;
+        Integer ori = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION);
+        if (ori != null) orientation = ori;
+
+        savePngOptimized(pngFile, buffer, w, h, frameCount, isSum, params, orientation);
+        addLog("Saved: " + pngFile.getName());
     }
 
-    private void saveResult(boolean stretched) {
+    private void saveResultSync(boolean stretched) throws IOException {
         if (frameProcessor == null || cameraController == null || renderer == null) return;
         final float[] buffer = frameProcessor.getResultBuffer();
         if (buffer == null) return;
@@ -703,66 +712,72 @@ public class MainActivity extends Activity {
         final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
         final int frameCount = frameProcessor.getFrameCount();
 
-        // Force one final render update to ensure params are fresh
-        renderer.updateStack(buffer, w, h, frameCount, isSum);
         final ColorEngine.Params params = renderer.getColorParams();
 
         int cfa = 0;
         Integer cfaInt = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
         if (cfaInt != null) cfa = cfaInt;
-        final int finalCfa = cfa;
+
+        int orientation = 90;
+        Integer ori = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION);
+        if (ori != null) orientation = ori;
 
         addLog("Saving 16-bit TIFF (" + (stretched ? "Stretched" : "Linear") + ")...");
 
-        new Thread(() -> {
-            try {
-                File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-                File path = new File(pictures, "A2LS_Astro");
-                if (!path.exists()) path.mkdirs();
+        File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File path = new File(pictures, "A2LS_Astro");
+        if (!path.exists()) path.mkdirs();
 
-                String ts = String.valueOf(System.currentTimeMillis());
-                File tiffFile = new File(path, "A2LS_Stack_" + (stretched ? "Stretched_" : "") + ts + ".tiff");
+        String ts = String.valueOf(System.currentTimeMillis());
+        File tiffFile = new File(path, "A2LS_Stack_" + (stretched ? "Stretched_" : "") + ts + ".tiff");
 
-                float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
+        float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
 
-                if (stretched) {
-                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, params, finalCfa);
-                } else {
-                    TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum, finalCfa);
-                }
+        if (stretched) {
+            TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, params, cfa, orientation);
+        } else {
+            TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum, cfa, orientation);
+        }
 
-                addLog("Saved: " + tiffFile.getName());
-                runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/A2LS_Astro", Toast.LENGTH_LONG).show());
-            } catch (Exception e) {
-                addLog("Save failed: " + e.getMessage());
-                Log.e(TAG, "Save failed", e);
-            }
-        }).start();
+        addLog("Saved: " + tiffFile.getName());
     }
 
     private void saveDng(File file) {
         if (frameProcessor == null || cameraController == null) return;
         addLog("Saving RAW DNG...");
-        Image img = frameProcessor.getLastImage();
-        android.hardware.camera2.TotalCaptureResult res = cameraController.getLastCaptureResult();
-        android.hardware.camera2.CameraCharacteristics charac = cameraController.getCharacteristics();
-        if (img == null || res == null || charac == null) {
-            addLog("DNG Save: Metadata or Image missing");
-            return;
-        }
-        try (FileOutputStream out = new FileOutputStream(file);
-             android.hardware.camera2.DngCreator dngCreator = new android.hardware.camera2.DngCreator(charac, res)) {
-            dngCreator.writeImage(out, img);
-        } catch (IOException e) {
+        try {
+            Image img = frameProcessor.getLastImage();
+            android.hardware.camera2.TotalCaptureResult res = cameraController.getLastCaptureResult();
+            android.hardware.camera2.CameraCharacteristics charac = cameraController.getCharacteristics();
+            if (img == null || res == null || charac == null) {
+                addLog("DNG Save: Metadata or Image missing");
+                return;
+            }
+            try (FileOutputStream out = new FileOutputStream(file);
+                 android.hardware.camera2.DngCreator dngCreator = new android.hardware.camera2.DngCreator(charac, res)) {
+                dngCreator.writeImage(out, img);
+                addLog("Saved: " + file.getName());
+            }
+        } catch (Exception e) {
             Log.e(TAG, "DNG save failed", e);
+            addLog("DNG Error: " + e.getMessage());
         }
     }
 
-    private void savePngOptimized(File file, float[] buffer, int w, int h, int frameCount, boolean isSum, ColorEngine.Params params) throws IOException {
-        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        int[] rowPixels = new int[w];
-        float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
+    private void savePngOptimized(File file, float[] buffer, int w, int h, int frameCount, boolean isSum, ColorEngine.Params params, int orientation) throws IOException {
+        // Handle orientation by potentially swapping dimensions
+        int outW = (orientation == 90 || orientation == 270) ? h : w;
+        int outH = (orientation == 90 || orientation == 270) ? w : h;
 
+        Bitmap bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888);
+        float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
+        int cfa = 0;
+        if (cameraController != null) {
+            Integer cfaInt = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
+            if (cfaInt != null) cfa = cfaInt;
+        }
+
+        // Process in 2x2 blocks from the source buffer
         for (int y = 0; y < h; y += 2) {
             for (int x = 0; x < w; x += 2) {
                 int b00 = y * w + x;
@@ -776,13 +791,6 @@ public class MainActivity extends Activity {
                 float v11 = buffer[b11];
 
                 float r, g1, g2, b;
-                // Use the same CFA logic as Renderer
-                int cfa = 0;
-                if (cameraController != null) {
-                    Integer cfaInt = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT);
-                    if (cfaInt != null) cfa = cfaInt;
-                }
-
                 switch(cfa) {
                     case 1: r=v01; g1=v00; g2=v11; b=v10; break; // GRBG
                     case 2: r=v10; g1=v00; g2=v11; b=v01; break; // GBRG
@@ -792,14 +800,36 @@ public class MainActivity extends Activity {
 
                 int argb = ColorEngine.processPixel(r, g1, g2, b, params, effectiveBlack);
 
-                rowPixels[x] = argb;
-                rowPixels[x+1] = argb;
+                // Map to output coordinates based on orientation
+                for (int dy = 0; dy < 2; dy++) {
+                    for (int dx = 0; dx < 2; dx++) {
+                        int srcX = x + dx;
+                        int srcY = y + dy;
+                        int destX, destY;
+
+                        if (orientation == 90) {
+                            destX = (h - 1) - srcY;
+                            destY = srcX;
+                        } else if (orientation == 270) {
+                            destX = srcY;
+                            destY = (w - 1) - srcX;
+                        } else if (orientation == 180) {
+                            destX = (w - 1) - srcX;
+                            destY = (h - 1) - srcY;
+                        } else {
+                            destX = srcX;
+                            destY = srcY;
+                        }
+
+                        if (destX >= 0 && destX < outW && destY >= 0 && destY < outH) {
+                            bitmap.setPixel(destX, destY, argb);
+                        }
+                    }
+                }
             }
-            bitmap.setPixels(rowPixels, 0, w, 0, y, w, 1);
-            bitmap.setPixels(rowPixels, 0, w, 0, y + 1, w, 1);
         }
         try (FileOutputStream out = new FileOutputStream(file)) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 95, out);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
         }
         bitmap.recycle();
     }

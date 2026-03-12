@@ -47,6 +47,7 @@ public class CameraController {
     }
 
     public void start() {
+        if (backgroundThread != null) return;
         backgroundThread = new HandlerThread("CameraBackground");
         backgroundThread.start();
         backgroundHandler = new Handler(backgroundThread.getLooper());
@@ -142,7 +143,12 @@ public class CameraController {
     private void createCaptureSession() {
         if (cameraDevice == null || rawImageReader == null) return;
         try {
-            cameraDevice.createCaptureSession(Arrays.asList(rawImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
+            Surface surface = rawImageReader.getSurface();
+            if (surface == null || !surface.isValid()) {
+                Log.e(TAG, "Invalid surface");
+                return;
+            }
+            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
                     captureSession = session;

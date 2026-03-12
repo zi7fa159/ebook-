@@ -9,19 +9,22 @@ import java.nio.ByteOrder;
  * Robust 16-bit RGB TIFF writer for A2LS results.
  */
 public class TiffWriter {
-    public static void saveTiff16Color(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, int blackLevel, int frameCount, boolean isSum, int cfa) throws IOException {
-        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, (float)blackLevel, (float)frameCount, isSum, false, null, cfa);
+    public static void saveTiff16Color(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, int blackLevel, int frameCount, boolean isSum, int cfa, int orientation) throws IOException {
+        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, (float)blackLevel, (float)frameCount, isSum, false, null, cfa, orientation);
     }
 
-    public static void saveTiff16Stretched(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float effectiveBlack, ColorEngine.Params params, int cfa) throws IOException {
-        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, effectiveBlack, 1.0f, false, true, params, cfa);
+    public static void saveTiff16Stretched(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float effectiveBlack, ColorEngine.Params params, int cfa, int orientation) throws IOException {
+        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, effectiveBlack, 1.0f, false, true, params, cfa, orientation);
     }
 
-    private static void saveTiff16Internal(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float black, float frameCount, boolean isSum, boolean stretched, ColorEngine.Params params, int cfa) throws IOException {
+    private static void saveTiff16Internal(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float black, float frameCount, boolean isSum, boolean stretched, ColorEngine.Params params, int cfa, int orientation) throws IOException {
+        int outW = (orientation == 90 || orientation == 270) ? height : width;
+        int outH = (orientation == 90 || orientation == 270) ? width : height;
+
         try (FileOutputStream out = new FileOutputStream(path)) {
             // TIFF Header
             out.write(new byte[]{0x49, 0x49, 0x2A, 0x00});
-            int pixelDataSize = width * height * 3 * 2;
+            int pixelDataSize = outW * outH * 3 * 2;
             int extraDataSize = 6 + 16; // BitsPerSample values + Resolution values
             int ifdOffset = 8 + pixelDataSize + extraDataSize;
             out.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ifdOffset).array());
@@ -34,22 +37,37 @@ public class TiffWriter {
             if (!stretched) {
                 float maxValFound = 0;
                 for (int i = 0; i < data.length; i += 2000) {
-                    float v = data[i] - effectiveBlack;
+                    float v = (data[i] - effectiveBlack) * Math.max(rGain, Math.max(gGain, bGain));
                     if (v > maxValFound) maxValFound = v;
                 }
-                targetMax = Math.max(maxValFound, clip * 0.05f);
+                // Robust normalization: use the higher of peak value or 20% of sensor range to avoid noise-floor scaling
+                targetMax = Math.max(maxValFound, clip * 0.2f);
             }
 
-            byte[] rowBuf = new byte[width * 3 * 2];
+            byte[] rowBuf = new byte[outW * 3 * 2];
             ByteBuffer bb = ByteBuffer.wrap(rowBuf).order(ByteOrder.LITTLE_ENDIAN);
 
-            for (int y = 0; y < height; y++) {
+            for (int dy = 0; dy < outH; dy++) {
                 bb.clear();
-                int rowOff = y * width;
+                for (int dx = 0; dx < outW; dx++) {
+                    // Map output coords (dx, dy) back to source coords (sx, sy)
+                    int sx, sy;
+                    if (orientation == 90) {
+                        sx = dy;
+                        sy = (outW - 1) - dx;
+                    } else if (orientation == 270) {
+                        sx = (outH - 1) - dy;
+                        sy = dx;
+                    } else if (orientation == 180) {
+                        sx = (outW - 1) - dx;
+                        sy = (outH - 1) - dy;
+                    } else {
+                        sx = dx;
+                        sy = dy;
+                    }
 
-                for (int x = 0; x < width; x++) {
-                    int bx = (x / 2) * 2;
-                    int by = (y / 2) * 2;
+                    int bx = (sx / 2) * 2;
+                    int by = (sy / 2) * 2;
                     int b00 = by * width + bx;
                     int b01 = b00 + 1;
                     int b10 = (by + 1) * width + bx;
@@ -115,14 +133,14 @@ public class TiffWriter {
             short numEntries = 13;
             out.write(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(numEntries).array());
             // Tags MUST be sorted by tag number
-            writeTag(out, (short) 256, (short) 4, 1, width); // ImageWidth
-            writeTag(out, (short) 257, (short) 4, 1, height); // ImageLength
+            writeTag(out, (short) 256, (short) 4, 1, outW); // ImageWidth
+            writeTag(out, (short) 257, (short) 4, 1, outH); // ImageLength
             writeTag(out, (short) 258, (short) 3, 3, (int)bitsPerSampleOffset); // BitsPerSample
             writeTag(out, (short) 259, (short) 3, 1, 1); // Compression (none)
             writeTag(out, (short) 262, (short) 3, 1, 2); // PhotometricInterpretation (RGB)
             writeTag(out, (short) 273, (short) 4, 1, 8); // StripOffsets
             writeTag(out, (short) 277, (short) 3, 1, 3); // SamplesPerPixel
-            writeTag(out, (short) 278, (short) 4, 1, height); // RowsPerStrip
+            writeTag(out, (short) 278, (short) 4, 1, outH); // RowsPerStrip
             writeTag(out, (short) 279, (short) 4, 1, pixelDataSize); // StripByteCounts
             writeTag(out, (short) 282, (short) 5, 1, (int)resOffset); // XResolution
             writeTag(out, (short) 283, (short) 5, 1, (int)resOffset + 8); // YResolution

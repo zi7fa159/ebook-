@@ -58,12 +58,13 @@ public class StackEngine {
                         stackBuffer[sIdx] += newVal;
                     }
                 }
-            } else if (stackMethod == 2) { // Sigma Clip (Refined)
+            } else if (stackMethod == 2) { // Kappa-Sigma Clipping (High-Quality rejection)
                 if (m2Buffer == null) m2Buffer = new float[width * height];
                 float n = (float) frameCount;
                 float nextN = n + 1.0f;
-                // Tighten sigma factor as we get more data
-                float sigmaFactor = (n < 10) ? 10.0f : (n < 30 ? 4.0f : 3.0f);
+
+                // Kappa-Sigma: typically 2.0 to 3.0. Lower = more aggressive rejection of planes/satellites
+                float kappa = 2.5f;
 
                 for (int y = 0; y < height; y++) {
                     int sy = y + dy;
@@ -78,16 +79,23 @@ public class StackEngine {
 
                         float mean = stackBuffer[sIdx];
                         float m2 = m2Buffer[sIdx];
-                        float std = (float) Math.sqrt(m2 / Math.max(1, n));
 
-                        // Reject if > 3 sigma (only after some frames)
-                        if (n > 5 && Math.abs(newVal - mean) > sigmaFactor * std) {
-                            continue; // Skip outlier
+                        if (n > 4) {
+                            float variance = m2 / n;
+                            float std = (float) Math.sqrt(variance);
+
+                            // Rejection logic: if value is too far from mean, don't include it in average
+                            if (Math.abs(newVal - mean) > kappa * std) {
+                                continue;
+                            }
                         }
 
+                        // Welford's algorithm for online mean and variance
                         float delta = newVal - mean;
-                        stackBuffer[sIdx] += delta / nextN;
-                        float delta2 = newVal - stackBuffer[sIdx];
+                        float newMean = mean + delta / nextN;
+                        float delta2 = newVal - newMean;
+
+                        stackBuffer[sIdx] = newMean;
                         m2Buffer[sIdx] += delta * delta2;
                     }
                 }

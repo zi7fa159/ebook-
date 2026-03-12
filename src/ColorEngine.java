@@ -73,10 +73,12 @@ public class ColorEngine {
         g *= p.gGain;
         b *= p.bGain;
 
-        // 3. Simple Highlight Recovery (Desaturate if any channel clips)
-        float clip = (p.whiteLevel - p.blackLevel) * (effectiveBlack / p.blackLevel); // Scaled white level
-        if (r > clip || g > clip || b > clip) {
+        // 3. Highlight Handling
+        // Calculate dynamic white level to avoid ISO clipping
+        float dynamicWhite = (p.whiteLevel - p.blackLevel);
+        if (r > dynamicWhite || g > dynamicWhite || b > dynamicWhite) {
             float max = Math.max(r, Math.max(g, b));
+            // Desaturate highlights to avoid purple/funky tints in stars
             r = g = b = max;
         }
 
