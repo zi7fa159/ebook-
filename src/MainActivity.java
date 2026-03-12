@@ -246,12 +246,10 @@ public class MainActivity extends Activity {
 
             final android.widget.CheckBox cbLinear = new android.widget.CheckBox(this); cbLinear.setText("Linear TIFF (16-bit)"); cbLinear.setChecked(true);
             final android.widget.CheckBox cbStretch = new android.widget.CheckBox(this); cbStretch.setText("Stretched TIFF (16-bit)"); cbStretch.setChecked(true);
-            final android.widget.CheckBox cbDng = new android.widget.CheckBox(this); cbDng.setText("RAW DNG (Reference Frame)"); cbDng.setChecked(false);
             final android.widget.CheckBox cbPng = new android.widget.CheckBox(this); cbPng.setText("High-res PNG (Preview Style)"); cbPng.setChecked(true);
 
             layout.addView(cbLinear);
             layout.addView(cbStretch);
-            layout.addView(cbDng);
             layout.addView(cbPng);
 
             builder.setView(layout);
@@ -260,12 +258,6 @@ public class MainActivity extends Activity {
                     try {
                         if (cbLinear.isChecked()) saveResultSync(false);
                         if (cbStretch.isChecked()) saveResultSync(true);
-                        if (cbDng.isChecked()) {
-                            File pictures = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES);
-                            File path = new File(pictures, "A2LS_Astro");
-                            if (!path.exists()) path.mkdirs();
-                            saveDng(new File(path, "A2LS_Raw_" + System.currentTimeMillis() + ".dng"));
-                        }
                         if (cbPng.isChecked()) {
                             savePngOnlySync();
                         }
@@ -688,7 +680,7 @@ public class MainActivity extends Activity {
                             if (state == FrameProcessor.State.CALIBRATING_DARK) {
                                 statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/20)");
                             } else if (state == FrameProcessor.State.STACKING) {
-                                statusText.setText("STACKING (Rejected: " + rejected + ")");
+                                statusText.setText("STACKING");
                                 if (frameLimit > 0 && count >= frameLimit) {
                                     stopStacking();
                                 }
@@ -700,7 +692,7 @@ public class MainActivity extends Activity {
                         });
 
                         if (count > 0 && state == FrameProcessor.State.STACKING) {
-                            addLog("Frame " + count + " stacked. Total rejected: " + rejected);
+                            addLog("Frame " + count + " stacked");
                         }
                     }
                 }
@@ -794,40 +786,9 @@ public class MainActivity extends Activity {
     }
 
     private void saveDng(File file) {
-        if (frameProcessor == null || cameraController == null) return;
-        addLog("Saving RAW DNG...");
-        try {
-            Image img = frameProcessor.acquireLastImage();
-            android.hardware.camera2.TotalCaptureResult res = cameraController.getLastCaptureResult();
-            android.hardware.camera2.CameraCharacteristics charac = cameraController.getCharacteristics();
-            if (img == null || res == null || charac == null) {
-                addLog("DNG Save: Metadata or Image missing");
-                return;
-            }
-            try (FileOutputStream out = new FileOutputStream(file);
-                 android.hardware.camera2.DngCreator dngCreator = new android.hardware.camera2.DngCreator(charac, res)) {
-
-                // Set orientation for DNG
-                int orientation = 90;
-                Integer ori = charac.get(android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION);
-                if (ori != null) orientation = ori;
-
-                int dngOrientation;
-                switch (orientation) {
-                    case 90: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_90; break;
-                    case 180: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_180; break;
-                    case 270: dngOrientation = android.media.ExifInterface.ORIENTATION_ROTATE_270; break;
-                    default: dngOrientation = android.media.ExifInterface.ORIENTATION_NORMAL; break;
-                }
-                dngCreator.setOrientation(dngOrientation);
-
-                dngCreator.writeImage(out, img);
-                addLog("Saved: " + file.getName());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "DNG save failed", e);
-            addLog("DNG Error: " + e.getMessage());
-        }
+        // DNG saving requires the actual Image object which we now close immediately for stability.
+        // We will implement DNG saving by triggering a single dedicated capture in the future if needed.
+        addLog("DNG Save is currently disabled for stability. Use TIFF.");
     }
 
     private void savePngOptimized(File file, float[] buffer, int w, int h, int frameCount, boolean isSum, ColorEngine.Params params, int orientation) throws IOException {

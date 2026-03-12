@@ -19,25 +19,22 @@ public class FrameProcessor {
     public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK }
     private volatile State currentState = State.IDLE;
     private boolean showStack = false;
-    private int width, height;
+    private final int width, height;
     private int frameLimit = 0;
     private int currentMethod = 0;
 
     // Using two buffers for efficient handover from Camera thread
-    private short[][] rawBufferPool = new short[2][];
+    private final short[][] rawBufferPool = new short[2][];
     private int poolIdx = 0;
     private byte[] grayBuffer;
-    private volatile Image lastImage;
-    private final Object imageLock = new Object();
-
     // Professional Hot Pixel tracking
     private byte[] hotPixelMap; // 0: clear, 255: confirmed hot
     private byte[] outlierVotes;
     private int hotAggression = 50;
 
     private float[] masterDark;
-    private int darkCount = 0;
-    private int rejectedCount = 0;
+    private volatile int darkCount = 0;
+    private volatile boolean isProcessing = false;
 
     public FrameProcessor(int width, int height, Renderer renderer) {
         this.width = width;
@@ -56,6 +53,7 @@ public class FrameProcessor {
     }
 
     public void setState(State state) {
+        android.util.Log.i("FrameProcessor", "State Change: " + state);
         this.currentState = state;
         if (state == State.STACKING) {
             this.showStack = true;
@@ -64,6 +62,7 @@ public class FrameProcessor {
         }
         if (state == State.IDLE) {
             processingHandler.removeCallbacksAndMessages(null);
+            isProcessing = false;
         }
     }
 
@@ -90,20 +89,29 @@ public class FrameProcessor {
     }
 
     public void resetStack() {
-        processingHandler.removeCallbacksAndMessages(null);
         processingHandler.post(() -> {
             stackEngine.reset();
-            java.util.Arrays.fill(outlierVotes, (byte)0);
-            java.util.Arrays.fill(hotPixelMap, (byte)0);
-            rejectedCount = 0;
+            if (outlierVotes != null) java.util.Arrays.fill(outlierVotes, (byte)0);
+            if (hotPixelMap != null) java.util.Arrays.fill(hotPixelMap, (byte)0);
+            isProcessing = false;
+            android.util.Log.i("FrameProcessor", "Stack Reset Complete");
         });
     }
 
     public void startDarkCalibration() {
         processingHandler.post(() -> {
-            masterDark = new float[width * height];
+            if (masterDark == null) {
+                try {
+                    masterDark = new float[width * height];
+                } catch (OutOfMemoryError e) {
+                    android.util.Log.e("FrameProcessor", "OOM Allocating Dark Buffer");
+                    return;
+                }
+            }
+            java.util.Arrays.fill(masterDark, 0.0f);
             darkCount = 0;
             currentState = State.CALIBRATING_DARK;
+            android.util.Log.i("FrameProcessor", "Dark Calibration Started");
         });
     }
 
@@ -111,17 +119,20 @@ public class FrameProcessor {
         processingHandler.post(() -> {
             masterDark = null;
             darkCount = 0;
+            isProcessing = false;
             currentState = State.LIVE;
+            android.util.Log.i("FrameProcessor", "Master Dark Cleared");
         });
     }
 
     public synchronized void processFrame(Image image) {
-        if (currentState == State.IDLE) {
+        if (currentState == State.IDLE || isProcessing) {
             image.close();
             return;
         }
 
         try {
+            isProcessing = true;
             Image.Plane plane = image.getPlanes()[0];
             ByteBuffer buffer = plane.getBuffer();
             buffer.order(java.nio.ByteOrder.nativeOrder());
@@ -142,55 +153,65 @@ public class FrameProcessor {
                 }
             }
 
-            // Handle image lifecycle for DNG save
-            synchronized(imageLock) {
-                if (lastImage != null) {
-                    try { lastImage.close(); } catch (Exception ignored) {}
-                }
-                lastImage = image;
-            }
-
+            // Copy to raw buffer then CLOSE camera image immediately to free HAL buffers
             submitToProcessing(currentRaw);
+            image.close();
         } catch (Exception e) {
             android.util.Log.e("FrameProcessor", "Error copying image", e);
             image.close();
+            isProcessing = false;
         }
     }
 
     private void submitToProcessing(final short[] currentRaw) {
         processingHandler.post(() -> {
-            if (currentState == State.PAUSED) {
-                if (showStack) {
-                    renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
-                } else {
-                    renderer.updateLive(currentRaw, width, height);
-                }
-                return;
+            try {
+                processInternal(currentRaw);
+            } finally {
+                isProcessing = false;
             }
+        });
+    }
 
-            if (currentState == State.LIVE) {
+    private void processInternal(final short[] currentRaw) {
+        State state = currentState;
+
+        if (state == State.PAUSED) {
+            if (showStack) {
+                renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
+            } else {
                 renderer.updateLive(currentRaw, width, height);
-                return;
             }
+            return;
+        }
 
-            if (frameLimit > 0 && stackEngine.getFrameCount() >= frameLimit) {
-                currentState = State.PAUSED; // Auto-switch to paused when limit reached
-                return;
-            }
+        if (state == State.LIVE) {
+            renderer.updateLive(currentRaw, width, height);
+            return;
+        }
 
-            if (currentState == State.CALIBRATING_DARK) {
+        if (state == State.CALIBRATING_DARK) {
+            if (masterDark != null) {
                 for (int i = 0; i < width * height; i++) {
                     masterDark[i] = (masterDark[i] * darkCount + (currentRaw[i] & 0xFFFF)) / (darkCount + 1);
                 }
                 darkCount++;
+                renderer.setDebugInfo("Dark: " + darkCount + "/20");
                 if (darkCount >= 20) {
-                    currentState = State.LIVE; // Go back to LIVE after darks are done
-                    renderer.setDebugInfo("Dark Calibration Complete");
+                    currentState = State.LIVE;
+                    renderer.setDebugInfo("Darks Ready");
                 }
+            }
+            return;
+        }
+
+        if (state == State.STACKING) {
+            if (frameLimit > 0 && stackEngine.getFrameCount() >= frameLimit) {
+                currentState = State.PAUSED;
                 return;
             }
 
-            if (masterDark != null) {
+        if (masterDark != null) {
                 for (int i = 0; i < width * height; i++) {
                     int val = (currentRaw[i] & 0xFFFF) - (int)masterDark[i];
                     currentRaw[i] = (short) Math.max(0, val);
@@ -226,7 +247,6 @@ public class FrameProcessor {
             removeHotPixels(currentRaw, width, height);
             stackEngine.addFrame(currentRaw, alignment);
 
-            // Log frame completion immediately
             android.util.Log.i("FrameProcessor", "Frame " + stackEngine.getFrameCount() + " stacked");
 
             if (showStack) {
@@ -234,7 +254,7 @@ public class FrameProcessor {
             } else {
                 renderer.updateLive(currentRaw, width, height);
             }
-        });
+        }
     }
 
     public int getFrameCount() {
@@ -242,7 +262,7 @@ public class FrameProcessor {
     }
 
     public int getRejectedCount() {
-        return rejectedCount;
+        return 0; // Removed rejection system
     }
 
     public State getState() {
@@ -257,12 +277,8 @@ public class FrameProcessor {
         return stackEngine.getStackBuffer();
     }
 
-    public Image acquireLastImage() {
-        return lastImage;
-    }
-
-    public void releaseLastImage(Image img) {
-        // img.close() will be handled by the next processFrame or manual close
+    public short[] getRawBuffer() {
+        return rawBufferPool[(poolIdx + 1) % 2];
     }
 
     private void removeHotPixels(short[] data, int w, int h) {

@@ -115,10 +115,12 @@ public class Renderer {
     }
 
     private void processAndDraw(float[] stackBuffer, short[] rawBuffer, int width, int height) {
+        if (width <= 0 || height <= 0) return;
         // Increased downscale for 50MP performance (4x = 16x area reduction)
         int step = (width > 6000) ? 4 : 2;
         int sw = (width / step) / 2 * 2; // Ensure even
         int sh = (height / step) / 2 * 2;
+        if (sw <= 0 || sh <= 0) return;
 
         synchronized(this) {
             if (previewBitmap == null || previewBitmap.getWidth() != sw || previewBitmap.getHeight() != sh) {
@@ -137,11 +139,12 @@ public class Renderer {
         if (stackBuffer != null) {
             float sum = 0;
             int count = 0;
-            for (int i = 0; i < stackBuffer.length; i += 10000) {
+            int len = stackBuffer.length;
+            for (int i = 0; i < len; i += 10000) {
                 sum += stackBuffer[i];
                 count++;
             }
-            backgroundMedian = (sum / count) - effectiveBlack;
+            if (count > 0) backgroundMedian = (sum / count) - effectiveBlack;
         }
 
         // Brightness scaling for preview
