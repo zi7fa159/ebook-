@@ -10,14 +10,14 @@ import java.nio.ByteOrder;
  */
 public class TiffWriter {
     public static void saveTiff16Color(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, int blackLevel, int frameCount, boolean isSum) throws IOException {
-        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, (float)blackLevel, (float)frameCount, isSum, false, 0.5f, 0);
+        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, (float)blackLevel, (float)frameCount, isSum, false, null);
     }
 
-    public static void saveTiff16Stretched(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float effectiveBlack, float midPoint, float whitePoint) throws IOException {
-        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, effectiveBlack, 1.0f, false, true, midPoint, whitePoint);
+    public static void saveTiff16Stretched(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float effectiveBlack, StretchParams params) throws IOException {
+        saveTiff16Internal(path, data, width, height, rGain, gGain, bGain, effectiveBlack, 1.0f, false, true, params);
     }
 
-    private static void saveTiff16Internal(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float black, float frameCount, boolean isSum, boolean stretched, float midPoint, float whitePoint) throws IOException {
+    private static void saveTiff16Internal(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float black, float frameCount, boolean isSum, boolean stretched, StretchParams params) throws IOException {
         try (FileOutputStream out = new FileOutputStream(path)) {
             out.write(new byte[]{0x49, 0x49, 0x2A, 0x00});
             int pixelDataSize = width * height * 3 * 2;
@@ -25,12 +25,16 @@ public class TiffWriter {
             out.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ifdOffset).array());
 
             float effectiveBlack = isSum ? (black * frameCount) : black;
-            float targetMax = 0;
+            float targetMax = 65535; // Default for linear
+            float midFactor = 1.0f;
+            float manualBlackOffset = 0;
+            float whiteClip = (1023.0f - black) * (isSum ? frameCount : 1.0f) * 0.95f;
 
-            float midFactor = (float) (Math.log(0.5) / Math.log(midPoint));
-
-            if (stretched) {
-                targetMax = whitePoint - effectiveBlack;
+            if (stretched && params != null) {
+                // Use unified parameters from live preview
+                // targetMax in preview logic is part of 'scale'
+                midFactor = params.midFactor;
+                manualBlackOffset = params.blackOffset;
             } else {
                 float maxValFound = 0;
                 for (int i = 0; i < data.length; i += 1000) {
@@ -40,11 +44,9 @@ public class TiffWriter {
                 float whiteLimit = (1023.0f - black) * (isSum ? frameCount : 1.0f);
                 targetMax = Math.max(maxValFound, whiteLimit * 0.1f);
             }
-            if (targetMax <= 0) targetMax = 1;
 
             byte[] rowBuf = new byte[width * 3 * 2];
             ByteBuffer bb = ByteBuffer.wrap(rowBuf).order(ByteOrder.LITTLE_ENDIAN);
-            float whiteClip = (1023.0f - black) * (isSum ? frameCount : 1.0f) * 0.95f;
 
             for (int y = 0; y < height; y++) {
                 bb.clear();
@@ -61,14 +63,23 @@ public class TiffWriter {
                         if (m > whiteClip) { r = g = b = m; }
                     }
 
-                    if (stretched) {
-                        // Professional Midtones Stretch (Power Law) for "Stretched" output
-                        float normR = Math.max(0, Math.min(1.0f, r / targetMax));
-                        float normG = Math.max(0, Math.min(1.0f, g / targetMax));
-                        float normB = Math.max(0, Math.min(1.0f, b / targetMax));
-                        r = (float) Math.pow(normR, midFactor) * 65535;
-                        g = (float) Math.pow(normG, midFactor) * 65535;
-                        b = (float) Math.pow(normB, midFactor) * 65535;
+                    if (stretched && params != null) {
+                        r = (r - manualBlackOffset) * params.scale;
+                        g = (g - manualBlackOffset) * params.scale;
+                        b = (b - manualBlackOffset) * params.scale;
+
+                        if (params.useAuto) {
+                            r = (float) Math.sqrt(Math.max(0, r / 255.0)) * 65535;
+                            g = (float) Math.sqrt(Math.max(0, g / 255.0)) * 65535;
+                            b = (float) Math.sqrt(Math.max(0, b / 255.0)) * 65535;
+                        } else {
+                            float normR = Math.max(0, Math.min(1.0f, r / 255.0f));
+                            float normG = Math.max(0, Math.min(1.0f, g / 255.0f));
+                            float normB = Math.max(0, Math.min(1.0f, b / 255.0f));
+                            r = (float) Math.pow(normR, midFactor) * 65535;
+                            g = (float) Math.pow(normG, midFactor) * 65535;
+                            b = (float) Math.pow(normB, midFactor) * 65535;
+                        }
                     } else {
                         r = (r / targetMax) * 65535;
                         g = (g / targetMax) * 65535;

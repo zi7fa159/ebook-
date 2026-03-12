@@ -612,13 +612,14 @@ public class MainActivity extends Activity {
     }
 
     private void savePngOnly() {
-        if (frameProcessor == null || cameraController == null) return;
+        if (frameProcessor == null || cameraController == null || renderer == null) return;
         final float[] buffer = frameProcessor.getResultBuffer();
         if (buffer == null) return;
         final int w = cameraController.getRawSize().getWidth();
         final int h = cameraController.getRawSize().getHeight();
         final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
         final int frameCount = frameProcessor.getFrameCount();
+        final StretchParams params = renderer.getCurrentParams();
 
         new Thread(() -> {
             try {
@@ -627,19 +628,14 @@ public class MainActivity extends Activity {
                 if (!path.exists()) path.mkdirs();
                 String ts = String.valueOf(System.currentTimeMillis());
                 File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
-                float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
-                float maxValFound = 0;
-                for (int i = 0; i < buffer.length; i += 1000) if (buffer[i] > maxValFound) maxValFound = buffer[i];
-                float whiteLimit = (1023.0f - currentBlackLevel) * (isSum ? frameCount : 1.0f);
-                float maxVal = Math.max(maxValFound - effectiveBlack, whiteLimit * 0.1f);
-                savePngOptimized(pngFile, buffer, w, h, maxVal, frameCount, isSum);
+                savePngOptimized(pngFile, buffer, w, h, frameCount, isSum, params);
                 addLog("Saved: " + pngFile.getName());
             } catch (Exception e) {}
         }).start();
     }
 
     private void saveResult(boolean stretched) {
-        if (frameProcessor == null || cameraController == null) return;
+        if (frameProcessor == null || cameraController == null || renderer == null) return;
         final float[] buffer = frameProcessor.getResultBuffer();
         if (buffer == null) return;
 
@@ -647,6 +643,7 @@ public class MainActivity extends Activity {
         final int h = cameraController.getRawSize().getHeight();
         final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
         final int frameCount = frameProcessor.getFrameCount();
+        final StretchParams params = renderer.getCurrentParams();
 
         addLog("Saving 16-bit TIFF (" + (stretched ? "Stretched" : "Linear") + ")...");
 
@@ -662,12 +659,10 @@ public class MainActivity extends Activity {
                 float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
 
                 if (stretched) {
-                    float whitePoint = (stretchWhite * 1023) * (isSum ? frameCount : 1);
-                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, stretchMid, whitePoint);
+                    TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, params);
                 } else {
                     TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum);
                 }
-
 
                 addLog("Saved: " + tiffFile.getName());
                 runOnUiThread(() -> Toast.makeText(this, "Saved to Pictures/A2LS_Astro", Toast.LENGTH_LONG).show());
@@ -695,7 +690,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void savePngOptimized(File file, float[] buffer, int w, int h, float maxVal, int frameCount, boolean isSum) throws IOException {
+    private void savePngOptimized(File file, float[] buffer, int w, int h, int frameCount, boolean isSum, StretchParams params) throws IOException {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         int[] rowPixels = new int[w];
         float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
@@ -706,9 +701,7 @@ public class MainActivity extends Activity {
                 int bx = (x / 2) * 2;
                 int by = (y / 2) * 2;
                 float r = (buffer[by * w + bx] - effectiveBlack) * currentRGain;
-                float g1 = (buffer[by * w + (bx + 1)] - effectiveBlack) * currentGGain;
-                float g2 = (buffer[(by + 1) * w + bx] - effectiveBlack) * currentGGain;
-                float g = (g1 + g2) / 2.0f;
+                float g = ((buffer[by * w + (bx + 1)] + buffer[(by + 1) * w + bx]) / 2.0f - effectiveBlack) * currentGGain;
                 float b = (buffer[(by + 1) * w + (bx + 1)] - effectiveBlack) * currentBGain;
 
                 // Purple Highlight Fix
@@ -717,15 +710,31 @@ public class MainActivity extends Activity {
                     if (m > whiteClip) { r = g = b = m; }
                 }
 
-                int ri = Math.min(255, (int) (Math.max(0, r / maxVal) * 255));
-                int gi = Math.min(255, (int) (Math.max(0, g / maxVal) * 255));
-                int bi = Math.min(255, (int) (Math.max(0, b / maxVal) * 255));
+                // Apply Stretch
+                r = (r - params.blackOffset) * params.scale;
+                g = (g - params.blackOffset) * params.scale;
+                b = (b - params.blackOffset) * params.scale;
+
+                int ri, gi, bi;
+                if (params.useAuto) {
+                    ri = (int) (Math.sqrt(Math.max(0, r) / 255.0) * 255.0);
+                    gi = (int) (Math.sqrt(Math.max(0, g) / 255.0) * 255.0);
+                    bi = (int) (Math.sqrt(Math.max(0, b) / 255.0) * 255.0);
+                } else {
+                    ri = (int) (Math.pow(Math.max(0, r/255f), params.midFactor) * 255);
+                    gi = (int) (Math.pow(Math.max(0, g/255f), params.midFactor) * 255);
+                    bi = (int) (Math.pow(Math.max(0, b/255f), params.midFactor) * 255);
+                }
+
+                ri = Math.min(255, Math.max(0, ri));
+                gi = Math.min(255, Math.max(0, gi));
+                bi = Math.min(255, Math.max(0, bi));
                 rowPixels[x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
             }
             bitmap.setPixels(rowPixels, 0, w, 0, y, w, 1);
         }
         try (FileOutputStream out = new FileOutputStream(file)) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 95, out);
         }
         bitmap.recycle();
     }

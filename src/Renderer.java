@@ -32,6 +32,7 @@ public class Renderer {
     private int currentStackFrames = 1;
     private boolean isSumStacking = false;
     private int[] histogram = new int[256];
+    private final StretchParams currentParams = new StretchParams();
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
@@ -53,6 +54,7 @@ public class Renderer {
         this.midPoint = mid;
         this.whitePoint = white;
         this.useAutoStretch = false;
+        currentParams.useAuto = false;
     }
 
     public int[] getHistogram() {
@@ -61,6 +63,11 @@ public class Renderer {
 
     public void setAutoStretch(boolean auto) {
         this.useAutoStretch = auto;
+        currentParams.useAuto = auto;
+    }
+
+    public StretchParams getCurrentParams() {
+        return currentParams;
     }
 
     private String debugInfo = "";
@@ -99,49 +106,44 @@ public class Renderer {
 
         // Brightness scaling for preview
         float scale;
-        float maxObserved = 0;
-        float avg = 0;
-        float midFactor = (float) (Math.log(0.5) / Math.log(midPoint));
+        float midFactor;
+        float manualBlackOffset = useAutoStretch ? 0 : blackPoint * effectiveWhite;
 
         if (useAutoStretch) {
+            float maxObserved = 0;
             int sampleCount = 0;
             float sum = 0;
             int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
-            for (int i = 0; i < len; i += 4000) { // Sparse sampling
+            for (int i = 0; i < len; i += 4000) {
                 float val = (stackBuffer != null) ? stackBuffer[i] : (rawBuffer[i] & 0xFFFF);
                 if (val > maxObserved) maxObserved = val;
                 sum += val;
                 sampleCount++;
             }
-            avg = sum / sampleCount;
-
-            // ALS-style stretch: Map background to ~15% grey
-            // Background is roughly 'avg'.
-            // Stretch factor = Target / (Background - Black)
-            // Target is say 40 out of 255
-            float background = avg;
-            float signalRange = Math.max(1, background - effectiveBlack);
+            float avg = sum / sampleCount;
+            float signalRange = Math.max(1, avg - effectiveBlack);
             scale = 40.0f / signalRange;
-
-            // Clamp scale so we don't over-amplify noise if it's pure black
             if (scale > 10.0f) scale = 10.0f;
-
-            if (frameCount % 30 == 0) {
-                Log.d(TAG, "AutoScale: max=" + maxObserved + " avg=" + avg + " effBl=" + effectiveBlack + " scale=" + scale);
-            }
+            midFactor = (float) (Math.log(0.5) / Math.log(0.5)); // Neutral for auto
         } else {
             scale = 255.0f / (Math.max(1, (whitePoint - blackPoint) * effectiveWhite));
+            midFactor = (float) (Math.log(0.5) / Math.log(midPoint));
         }
+
+        // Sync params for export
+        currentParams.scale = scale;
+        currentParams.midFactor = midFactor;
+        currentParams.blackOffset = manualBlackOffset;
+        currentParams.whiteClip = (whiteLevel - blackLevel) * 0.95f;
 
         if (stackBuffer == null && rawBuffer != null) {
             // Sample a few pixels to see if they are non-zero
             int mid = rawBuffer.length / 2;
-            debugInfo = "RawSample: " + (rawBuffer[mid] & 0xFFFF) + ", Max: " + (int)maxObserved + ", Scale: " + String.format("%.2f", scale);
+            debugInfo = "RawSample: " + (rawBuffer[mid] & 0xFFFF) + ", Scale: " + String.format("%.2f", scale);
         }
         frameCount++;
 
         // Simple Debayering for live preview (pattern aware)
-        float manualBlackOffset = useAutoStretch ? 0 : blackPoint * effectiveWhite;
         boolean isFastLive = (stackBuffer == null);
 
         for (int i = 0; i < 256; i++) histogram[i] = 0;

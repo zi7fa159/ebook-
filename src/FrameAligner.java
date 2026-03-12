@@ -15,8 +15,6 @@ public class FrameAligner {
             return new Point(0, 0);
         }
 
-        // Optimized displacement histogram approach
-        // Max expected shift is say 200 pixels in downscaled coords
         int limit = 200;
         int size = limit * 2 + 1;
         int[] hist = new int[size * size];
@@ -25,7 +23,6 @@ public class FrameAligner {
             for (Point c : currentStars) {
                 int dx = r.x - c.x;
                 int dy = r.y - c.y;
-
                 if (Math.abs(dx) <= limit && Math.abs(dy) <= limit) {
                     hist[(dy + limit) * size + (dx + limit)]++;
                 }
@@ -35,8 +32,6 @@ public class FrameAligner {
         int maxVotes = 0;
         int bestDx = 0;
         int bestDy = 0;
-
-        // Find peak in histogram with a small 3x3 window to handle slight noise/centroiding jitter
         for (int y = 1; y < size - 1; y++) {
             for (int x = 1; x < size - 1; x++) {
                 int votes = 0;
@@ -53,9 +48,28 @@ public class FrameAligner {
             }
         }
 
-        // If very few stars match, assume no movement to avoid jumping on noise
         if (maxVotes < 3) return new Point(0, 0);
 
-        return new Point(bestDx, bestDy);
+        // Sub-pixel centroid estimation on the histogram peak
+        float sumX = 0, sumY = 0, sumV = 0;
+        int bx = bestDx + limit;
+        int by = bestDy + limit;
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                int v = hist[(by + dy) * size + (bx + dx)];
+                sumX += (bestDx + dx) * v;
+                sumY += (bestDy + dy) * v;
+                sumV += v;
+            }
+        }
+
+        float subDx = bestDx;
+        float subDy = bestDy;
+        if (sumV > 0) {
+            subDx = sumX / sumV;
+            subDy = sumY / sumV;
+        }
+
+        return new Point(Math.round(subDx), Math.round(subDy));
     }
 }

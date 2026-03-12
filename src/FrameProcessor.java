@@ -170,9 +170,9 @@ public class FrameProcessor {
                 frameAligner.setReferenceStars(stars);
             } else {
                 Point shift = frameAligner.computeShift(stars);
-                // Shift must be even to keep Bayer pattern aligned, and account for downscale
-                dx = (shift.x * step / 2) * 2;
-                dy = (shift.y * step / 2) * 2;
+                // Refined shift logic: Use even shifts to preserve Bayer pattern
+                dx = Math.round((shift.x * (float)step) / 2.0f) * 2;
+                dy = Math.round((shift.y * (float)step) / 2.0f) * 2;
             }
 
             removeHotPixels(currentRaw, width, height);

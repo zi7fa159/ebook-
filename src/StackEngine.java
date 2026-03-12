@@ -58,11 +58,12 @@ public class StackEngine {
                         stackBuffer[sIdx] += newVal;
                     }
                 }
-            } else if (stackMethod == 2) { // Sigma Clip (Basic)
+            } else if (stackMethod == 2) { // Sigma Clip (Refined)
                 if (m2Buffer == null) m2Buffer = new float[width * height];
                 float n = (float) frameCount;
                 float nextN = n + 1.0f;
-                float sigmaFactor = 3.0f;
+                // Higher factor initially to allow signal buildup, then tighten
+                float sigmaFactor = (n < 20) ? 4.0f : 3.0f;
 
                 for (int y = 0; y < height; y++) {
                     int sy = y + dy;
