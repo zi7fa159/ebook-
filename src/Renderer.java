@@ -30,6 +30,7 @@ public class Renderer {
     private int frameCount = 0;
     private int currentStackFrames = 1;
     private boolean isSumStacking = false;
+    private int[] histogram = new int[256];
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
@@ -50,6 +51,10 @@ public class Renderer {
         this.blackPoint = black;
         this.whitePoint = white;
         this.useAutoStretch = false;
+    }
+
+    public int[] getHistogram() {
+        return histogram;
     }
 
     public void setAutoStretch(boolean auto) {
@@ -135,6 +140,8 @@ public class Renderer {
         float manualBlackOffset = useAutoStretch ? 0 : blackPoint * effectiveWhite;
         boolean isFastLive = (stackBuffer == null);
 
+        for (int i = 0; i < 256; i++) histogram[i] = 0;
+
         for (int y = 0; y < sh; y++) {
             int oy = y * step;
             for (int x = 0; x < sw; x++) {
@@ -193,6 +200,10 @@ public class Renderer {
                 ri = Math.max(0, Math.min(255, ri));
                 gi = Math.max(0, Math.min(255, gi));
                 bi = Math.max(0, Math.min(255, bi));
+
+                // Update histogram with average luminance
+                int lum = (ri + gi + bi) / 3;
+                histogram[lum]++;
 
                 argbBuffer[y * sw + x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
             }

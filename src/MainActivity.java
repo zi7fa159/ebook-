@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
     private CameraController cameraController;
     private FrameProcessor frameProcessor;
     private Renderer renderer;
+    private WebServer webServer;
 
     private TextView statusText;
     private TextView frameCounter;
@@ -137,6 +138,11 @@ public class MainActivity extends Activity {
 
         addLog("Application Initialized");
 
+        webServer = new WebServer(8080, this);
+        webServer.start();
+        String ip = getLocalIpAddress();
+        addLog("Web Remote: http://" + ip + ":8080");
+
         findViewById(R.id.ctrl_exp).setOnClickListener(v -> {
             android.util.Range<Long> range = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
             String hint = "1.0";
@@ -226,18 +232,39 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.btn_save).setOnClickListener(v -> {
             android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-            builder.setTitle("Save Result");
-            String[] options = {"Linear TIFF (16-bit)", "Stretched TIFF (16-bit)", "DNG (RAW Sensor)"};
-            builder.setItems(options, (dialog, which) -> {
-                if (which == 0) saveResult(false);
-                else if (which == 1) saveResult(true);
-                else {
+            builder.setTitle("Export Options");
+
+            android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+            layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+            layout.setPadding(50, 20, 50, 20);
+
+            final android.widget.CheckBox cbLinear = new android.widget.CheckBox(this); cbLinear.setText("Linear TIFF (16-bit)"); cbLinear.setChecked(true);
+            final android.widget.CheckBox cbStretch = new android.widget.CheckBox(this); cbStretch.setText("Stretched TIFF (16-bit)"); cbStretch.setChecked(true);
+            final android.widget.CheckBox cbDng = new android.widget.CheckBox(this); cbDng.setText("RAW DNG (Reference Frame)"); cbDng.setChecked(false);
+            final android.widget.CheckBox cbPng = new android.widget.CheckBox(this); cbPng.setText("High-res PNG (Preview Style)"); cbPng.setChecked(true);
+
+            layout.addView(cbLinear);
+            layout.addView(cbStretch);
+            layout.addView(cbDng);
+            layout.addView(cbPng);
+
+            builder.setView(layout);
+            builder.setPositiveButton("Export All", (dialog, which) -> {
+                if (cbLinear.isChecked()) saveResult(false);
+                if (cbStretch.isChecked()) saveResult(true);
+                if (cbDng.isChecked()) {
                     File pictures = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES);
                     File path = new File(pictures, "A2LS_Astro");
                     if (!path.exists()) path.mkdirs();
                     saveDng(new File(path, "A2LS_Raw_" + System.currentTimeMillis() + ".dng"));
                 }
+                if (cbPng.isChecked() && !cbLinear.isChecked()) {
+                    // PNG is normally saved inside saveResult(false) for efficiency,
+                    // but if linear is unchecked, we trigger it separately
+                    savePngOnly();
+                }
             });
+            builder.setNegativeButton("Cancel", null);
             builder.show();
         });
 
@@ -329,6 +356,11 @@ public class MainActivity extends Activity {
 
         layout.addView(createLabel("--- Manual Stretch ---"));
 
+        HistogramView histView = new HistogramView(this);
+        histView.setLayoutParams(new android.widget.LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, 200));
+        if (renderer != null) histView.setData(renderer.getHistogram());
+        layout.addView(histView);
+
         final TextView blackLbl = createLabel("Black Point: " + String.format("%.2f", stretchBlack));
         layout.addView(blackLbl);
         final android.widget.SeekBar blackBar = new android.widget.SeekBar(this);
@@ -381,6 +413,27 @@ public class MainActivity extends Activity {
         tv.setPadding(0, 10, 0, 0);
         tv.setTextColor(0xFFCCCCCC);
         return tv;
+    }
+
+    private String getLocalIpAddress() {
+        try {
+            for (java.util.Enumeration<java.net.NetworkInterface> en = java.net.NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                java.net.NetworkInterface intf = en.nextElement();
+                for (java.util.Enumeration<java.net.InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    java.net.InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof java.net.Inet4Address) {
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ex) {}
+        return "127.0.0.1";
+    }
+
+    public String getStatusJson() {
+        int frames = (frameProcessor != null) ? frameProcessor.getFrameCount() : 0;
+        String status = statusText.getText().toString();
+        return "{\"frames\":" + frames + ", \"status\":\"" + status + "\"}";
     }
 
     private void addLog(String msg) {
@@ -443,6 +496,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         isDestroyed = true;
         if (cameraController != null) cameraController.close();
+        if (webServer != null) webServer.stop();
         super.onDestroy();
     }
 
@@ -539,6 +593,33 @@ public class MainActivity extends Activity {
                     captureProgress.setLayoutParams(lp);
                 }
             });
+        }).start();
+    }
+
+    private void savePngOnly() {
+        if (frameProcessor == null || cameraController == null) return;
+        final float[] buffer = frameProcessor.getResultBuffer();
+        if (buffer == null) return;
+        final int w = cameraController.getRawSize().getWidth();
+        final int h = cameraController.getRawSize().getHeight();
+        final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
+        final int frameCount = frameProcessor.getFrameCount();
+
+        new Thread(() -> {
+            try {
+                File pictures = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+                File path = new File(pictures, "A2LS_Astro");
+                if (!path.exists()) path.mkdirs();
+                String ts = String.valueOf(System.currentTimeMillis());
+                File pngFile = new File(path, "A2LS_Stack_" + ts + ".png");
+                float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
+                float maxValFound = 0;
+                for (int i = 0; i < buffer.length; i += 1000) if (buffer[i] > maxValFound) maxValFound = buffer[i];
+                float whiteLimit = (1023.0f - currentBlackLevel) * (isSum ? frameCount : 1.0f);
+                float maxVal = Math.max(maxValFound - effectiveBlack, whiteLimit * 0.1f);
+                savePngOptimized(pngFile, buffer, w, h, maxVal, frameCount, isSum);
+                addLog("Saved: " + pngFile.getName());
+            } catch (Exception e) {}
         }).start();
     }
 

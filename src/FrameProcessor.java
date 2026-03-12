@@ -185,18 +185,29 @@ public class FrameProcessor {
     }
 
     private void removeHotPixels(short[] data, int w, int h) {
-        int threshold = 8000;
-        for (int y = 1; y < h - 1; y++) {
-            for (int x = 1; x < w - 1; x++) {
+        // Advanced Hot Pixel Removal (Median-based Outlier Detection)
+        // Only target pixels that are significantly brighter than their same-color neighbors
+        int step = 2; // Bayer pattern step
+        for (int y = step; y < h - step; y++) {
+            for (int x = step; x < w - step; x++) {
                 int idx = y * w + x;
                 int val = data[idx] & 0xFFFF;
-                if (val > threshold) {
-                    int maxNeighbor = 0;
-                    maxNeighbor = Math.max(maxNeighbor, data[idx - 1] & 0xFFFF);
-                    maxNeighbor = Math.max(maxNeighbor, data[idx + 1] & 0xFFFF);
-                    maxNeighbor = Math.max(maxNeighbor, data[idx - w] & 0xFFFF);
-                    maxNeighbor = Math.max(maxNeighbor, data[idx + w] & 0xFFFF);
-                    if (val > maxNeighbor * 2) data[idx] = (short) maxNeighbor;
+
+                // Only check if it's potentially a hot pixel (above a noise floor)
+                if (val > 500) {
+                    // Compare with same-color neighbors in a 5x5 area (at step 2)
+                    // Neighbors: (x-2, y), (x+2, y), (x, y-2), (x, y+2)
+                    int v1 = data[idx - step] & 0xFFFF;
+                    int v2 = data[idx + step] & 0xFFFF;
+                    int v3 = data[idx - step * w] & 0xFFFF;
+                    int v4 = data[idx + step * w] & 0xFFFF;
+
+                    int median = Math.max(Math.min(v1, v2), Math.min(Math.max(v1, v2), Math.min(v3, v4)));
+
+                    // If pixel is > 2.5x the median of its neighbors AND > 100 counts above it
+                    if (val > median * 2.5 && val > median + 100) {
+                        data[idx] = (short) median;
+                    }
                 }
             }
         }
