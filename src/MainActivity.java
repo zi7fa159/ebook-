@@ -255,7 +255,7 @@ public class MainActivity extends Activity {
                     if (!path.exists()) path.mkdirs();
                     saveDng(new File(path, "A2LS_Raw_" + System.currentTimeMillis() + ".dng"));
                 }
-                if (cbPng.isChecked() && !cbLinear.isChecked()) {
+                if (cbPng.isChecked()) {
                     savePngOnly();
                 }
             });
@@ -644,6 +644,8 @@ public class MainActivity extends Activity {
         final boolean isSum = spinMethod.getSelectedItemPosition() == 1;
         final int frameCount = frameProcessor.getFrameCount();
         final StretchParams params = renderer.getCurrentParams();
+        // Force one final render update to ensure params are fresh
+        renderer.updateStack(buffer, w, h, frameCount, isSum);
 
         addLog("Saving 16-bit TIFF (" + (stretched ? "Stretched" : "Linear") + ")...");
 

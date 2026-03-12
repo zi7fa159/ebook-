@@ -31,7 +31,8 @@ public class Renderer {
     private int frameCount = 0;
     private int currentStackFrames = 1;
     private boolean isSumStacking = false;
-    private int[] histogram = new int[256];
+    private final int[] histogram = new int[256];
+    private final Object histLock = new Object();
     private final StretchParams currentParams = new StretchParams();
 
     public Renderer(TextureView textureView) {
@@ -58,7 +59,9 @@ public class Renderer {
     }
 
     public int[] getHistogram() {
-        return histogram;
+        synchronized(histLock) {
+            return histogram.clone();
+        }
     }
 
     public void setAutoStretch(boolean auto) {
@@ -146,7 +149,9 @@ public class Renderer {
         // Simple Debayering for live preview (pattern aware)
         boolean isFastLive = (stackBuffer == null);
 
-        for (int i = 0; i < 256; i++) histogram[i] = 0;
+        synchronized(histLock) {
+            for (int i = 0; i < 256; i++) histogram[i] = 0;
+        }
 
         for (int y = 0; y < sh; y++) {
             int oy = y * step;
@@ -219,7 +224,9 @@ public class Renderer {
 
                 // Update histogram with average luminance
                 int lum = (ri + gi + bi) / 3;
-                histogram[lum]++;
+                synchronized(histLock) {
+                    histogram[lum]++;
+                }
 
                 argbBuffer[y * sw + x] = 0xFF000000 | (ri << 16) | (gi << 8) | bi;
             }

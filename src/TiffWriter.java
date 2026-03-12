@@ -19,9 +19,12 @@ public class TiffWriter {
 
     private static void saveTiff16Internal(String path, float[] data, int width, int height, float rGain, float gGain, float bGain, float black, float frameCount, boolean isSum, boolean stretched, StretchParams params) throws IOException {
         try (FileOutputStream out = new FileOutputStream(path)) {
+            // TIFF Header (Little Endian)
             out.write(new byte[]{0x49, 0x49, 0x2A, 0x00});
+
             int pixelDataSize = width * height * 3 * 2;
-            int ifdOffset = 8 + pixelDataSize + 6;
+            // IFD structure: 8 (header) + pixelData + 6 (BitsPerSample) + 16 (Resolution values)
+            int ifdOffset = 8 + pixelDataSize + 6 + 16;
             out.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ifdOffset).array());
 
             float effectiveBlack = isSum ? (black * frameCount) : black;
@@ -93,25 +96,34 @@ public class TiffWriter {
                 out.write(rowBuf);
             }
 
-            // BitsPerSample array (3 values of 16)
+            // 1. BitsPerSample array (3 values of 16)
             long bitsPerSampleOffset = 8 + pixelDataSize;
             out.write(ByteBuffer.allocate(6).order(ByteOrder.LITTLE_ENDIAN)
                 .putShort((short)16).putShort((short)16).putShort((short)16).array());
 
-            // IFD
-            short numEntries = 10;
+            // 2. Resolution values (72/1)
+            long resOffset = bitsPerSampleOffset + 6;
+            out.write(ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
+                .putInt(72).putInt(1)   // XRes numerator/denominator
+                .putInt(72).putInt(1).array()); // YRes numerator/denominator
+
+            // IFD (Entries MUST be sorted by tag)
+            short numEntries = 13;
             out.write(ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(numEntries).array());
 
-            writeTag(out, (short) 256, (short) 3, 1, width); // Width
-            writeTag(out, (short) 257, (short) 3, 1, height); // Height
-            writeTag(out, (short) 258, (short) 3, 3, (int)bitsPerSampleOffset); // BitsPerSample (Points to array)
-            writeTag(out, (short) 259, (short) 3, 1, 1); // Compression (None)
-            writeTag(out, (short) 262, (short) 3, 1, 2); // Photometric (RGB)
-            writeTag(out, (short) 273, (short) 4, 1, 8); // StripOffsets
-            writeTag(out, (short) 277, (short) 3, 1, 3); // SamplesPerPixel
-            writeTag(out, (short) 278, (short) 3, 1, height); // RowsPerStrip
-            writeTag(out, (short) 279, (short) 4, 1, pixelDataSize); // StripByteCounts
-            writeTag(out, (short) 284, (short) 3, 1, 1); // PlanarConfig (Chunky)
+            writeTag(out, (short) 256, (short) 3, 1, width);               // ImageWidth (256)
+            writeTag(out, (short) 257, (short) 3, 1, height);              // ImageLength (257)
+            writeTag(out, (short) 258, (short) 3, 3, (int)bitsPerSampleOffset); // BitsPerSample (258)
+            writeTag(out, (short) 259, (short) 3, 1, 1);                   // Compression (259)
+            writeTag(out, (short) 262, (short) 3, 1, 2);                   // PhotometricInterpretation (262)
+            writeTag(out, (short) 273, (short) 4, 1, 8);                   // StripOffsets (273)
+            writeTag(out, (short) 277, (short) 3, 1, 3);                   // SamplesPerPixel (277)
+            writeTag(out, (short) 278, (short) 3, 1, height);              // RowsPerStrip (278)
+            writeTag(out, (short) 279, (short) 4, 1, pixelDataSize);       // StripByteCounts (279)
+            writeTag(out, (short) 282, (short) 5, 1, (int)resOffset);      // XResolution (282)
+            writeTag(out, (short) 283, (short) 5, 1, (int)resOffset + 8);  // YResolution (283)
+            writeTag(out, (short) 284, (short) 3, 1, 1);                   // PlanarConfiguration (284)
+            writeTag(out, (short) 296, (short) 3, 1, 2);                   // ResolutionUnit (296) - Inches
 
             out.write(new byte[]{0x00, 0x00, 0x00, 0x00});
         }
