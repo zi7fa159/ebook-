@@ -106,6 +106,20 @@ public class MainActivity extends Activity {
         } catch (IOException ignored) {}
     }
 
+    public void applyFocus(float f) {
+        currentFocus = f;
+        runOnUiThread(() -> {
+            valFocus.setText(f == 0 ? "INF" : String.format("%.2f", f));
+            addLog("Focus Applied: " + String.format("%.2f", f));
+        });
+        updateCamera();
+    }
+
+    public void setFocusInternal(float f) {
+        currentFocus = f;
+        updateCamera();
+    }
+
     private void initUI() {
         TextureView preview = findViewById(R.id.preview);
         renderer = new Renderer(preview);
@@ -183,19 +197,38 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.ctrl_focus).setOnClickListener(v -> {
             Float minFocus = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
-            String hint = "0.0";
-            if (minFocus != null) hint = "0.0 to " + minFocus;
-            final Float fMinFocus = minFocus;
-            showEntryDialog("Focus (0=INF, Higher=Macro)", hint, s -> {
-                try {
-                    float f = Float.parseFloat(s);
-                    if (f < 0) f = 0;
-                    if (fMinFocus != null && f > fMinFocus) f = fMinFocus;
+            float maxFocus = (minFocus != null) ? minFocus : 10.0f;
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Manual Focus");
+
+            android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+            layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+            layout.setPadding(50, 20, 50, 20);
+
+            final TextView focusLbl = new TextView(this);
+            focusLbl.setText("Current: " + (currentFocus == 0 ? "INF" : String.format("%.2f", currentFocus)));
+            layout.addView(focusLbl);
+
+            final android.widget.SeekBar focusBar = new android.widget.SeekBar(this);
+            focusBar.setMax(1000);
+            focusBar.setProgress((int)(currentFocus / maxFocus * 1000));
+            focusBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+                public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) {
+                    float f = (p / 1000.0f) * maxFocus;
                     currentFocus = f;
-                    valFocus.setText(f == 0 ? "INF" : String.format("%.1f", f));
+                    focusLbl.setText("Current: " + (f == 0 ? "INF" : String.format("%.2f", f)));
+                    valFocus.setText(f == 0 ? "INF" : String.format("%.2f", f));
                     updateCamera();
-                } catch (Exception e) {}
+                }
+                public void onStartTrackingTouch(android.widget.SeekBar s) {}
+                public void onStopTrackingTouch(android.widget.SeekBar s) {}
             });
+            layout.addView(focusBar);
+
+            builder.setView(layout);
+            builder.setPositiveButton("OK", null);
+            builder.show();
         });
 
         findViewById(R.id.ctrl_limit).setOnClickListener(v -> showEntryDialog("Frame Limit (0 for INF)", "20", s -> {
@@ -216,6 +249,13 @@ public class MainActivity extends Activity {
         }));
 
         findViewById(R.id.btn_tune).setOnClickListener(v -> showTuneDialog());
+
+        findViewById(R.id.btn_af).setOnClickListener(v -> {
+            if (frameProcessor != null) {
+                addLog("Starting Star AF Sweep...");
+                frameProcessor.startStarAF();
+            }
+        });
 
         findViewById(R.id.btn_dark).setOnClickListener(v -> {
             if (frameProcessor != null) {
@@ -534,7 +574,7 @@ public class MainActivity extends Activity {
     }
 
 
-    private void addLog(String msg) {
+    public void addLog(String msg) {
         runOnUiThread(() -> {
             if (logText != null) {
                 logText.append("\n" + msg);
@@ -660,15 +700,18 @@ public class MainActivity extends Activity {
     private void startProgressThread() {
         new Thread(() -> {
             int lastCount = -1;
+            int lastDarkCount = -1;
             FrameProcessor.State lastState = null;
 
             while (!isDestroyed) {
                 if (frameProcessor != null) {
                     final int count = frameProcessor.getFrameCount();
+                    final int darkCount = frameProcessor.getDarkCount();
                     final FrameProcessor.State state = frameProcessor.getState();
 
-                    if (count != lastCount || state != lastState) {
+                    if (count != lastCount || darkCount != lastDarkCount || state != lastState) {
                         lastCount = count;
+                        lastDarkCount = darkCount;
                         lastState = state;
 
                         final double nr = Math.sqrt(count);

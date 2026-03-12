@@ -39,6 +39,10 @@ public class Renderer {
         this.textureView = textureView;
     }
 
+    public android.content.Context getContext() {
+        return textureView.getContext();
+    }
+
     public synchronized void setBlackLevel(int bl) { this.blackLevel = bl; }
     public synchronized void setWhiteLevel(float wl) { this.whiteLevel = wl; }
     public synchronized void setSensorOrientation(int orientation) { this.sensorOrientation = orientation; }

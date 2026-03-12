@@ -17,6 +17,33 @@ public class StarDetector {
         this.threshold = 40; // Basic brightness threshold, can be adjusted
     }
 
+    public float calculateSharpness(byte[] grayData) {
+        List<float[]> stars = detectStarsCentroid(grayData);
+        if (stars.isEmpty()) return 0;
+
+        float totalSharpness = 0;
+        int count = 0;
+        for (float[] star : stars) {
+            int sx = Math.round(star[0]);
+            int sy = Math.round(star[1]);
+            if (sx < 2 || sy < 2 || sx >= width - 2 || sy >= height - 2) continue;
+
+            // Local Laplacian (rough measure of high frequency/tightness)
+            float center = grayData[sy * width + sx] & 0xFF;
+            float neighbors = (grayData[sy * width + sx - 1] & 0xFF) +
+                              (grayData[sy * width + sx + 1] & 0xFF) +
+                              (grayData[(sy - 1) * width + sx] & 0xFF) +
+                              (grayData[(sy + 1) * width + sx] & 0xFF);
+
+            float laplacian = 4 * center - neighbors;
+            if (laplacian > 0) {
+                totalSharpness += laplacian;
+                count++;
+            }
+        }
+        return count > 0 ? totalSharpness / count : 0;
+    }
+
     public List<float[]> detectStarsCentroid(byte[] grayData) {
         // 1. Simple 3x3 Blur (Box filter) to reduce noise
         byte[] blurred = new byte[width * height];

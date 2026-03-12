@@ -1,5 +1,6 @@
 package com.alsclone.astrostacker;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.media.Image;
 import android.os.Handler;
@@ -16,7 +17,7 @@ public class FrameProcessor {
     private final HandlerThread processingThread;
     private final Handler processingHandler;
 
-    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK }
+    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK, AUTOFOCUS }
     private volatile State currentState = State.IDLE;
     private boolean showStack = false;
     private final int width, height;
@@ -167,8 +168,18 @@ public class FrameProcessor {
         processingHandler.post(() -> {
             try {
                 processInternal(currentRaw);
+            } catch (Exception e) {
+                android.util.Log.e("FrameProcessor", "Error in processInternal", e);
             } finally {
                 isProcessing = false;
+            }
+
+            // Log memory usage periodically
+            if (System.currentTimeMillis() % 10000 < 500) {
+                Runtime runtime = Runtime.getRuntime();
+                long usedMem = (runtime.totalMemory() - runtime.freeMemory()) / 1048576;
+                long maxMem = runtime.maxMemory() / 1048576;
+                android.util.Log.i("FrameProcessor", "Memory Usage: " + usedMem + "MB / " + maxMem + "MB");
             }
         });
     }
@@ -190,6 +201,53 @@ public class FrameProcessor {
             return;
         }
 
+        if (state == State.AUTOFOCUS) {
+            // Downscale for star detection speed
+            int step = (width > 6000) ? 4 : 2;
+            int dw = width / step;
+            int dh = height / step;
+            if (grayBuffer == null || grayBuffer.length != dw * dh) grayBuffer = new byte[dw * dh];
+            for (int y = 0; y < dh; y++) {
+                for (int x = 0; x < dw; x++) {
+                    grayBuffer[y * dw + x] = (byte) ((currentRaw[(y * step) * width + (x * step)] & 0xFFFF) >> 8);
+                }
+            }
+
+            float sharpness = starDetector.calculateSharpness(grayBuffer);
+            float currentFocus = (afStep * 0.01f); // Range 0.0 to 0.1
+
+            android.util.Log.i("FrameProcessor", "AF Step " + afStep + " Focus " + currentFocus + " Sharpness " + sharpness);
+
+            if (sharpness > bestSharpness) {
+                bestSharpness = sharpness;
+                bestFocus = currentFocus;
+            }
+
+            afStep++;
+            if (afStep >= AF_STEPS) {
+                currentState = State.LIVE;
+                renderer.setDebugInfo("AF Complete: " + bestFocus);
+                final float finalFocus = bestFocus;
+                new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    Context ctx = renderer.getContext();
+                    if (ctx instanceof MainActivity) {
+                        ((MainActivity)ctx).applyFocus(finalFocus);
+                    }
+                });
+            } else {
+                renderer.setDebugInfo("AF Step " + afStep + "/" + AF_STEPS);
+                final float nextFocus = (afStep * 0.01f);
+                new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    Context ctx = renderer.getContext();
+                    if (ctx instanceof MainActivity) {
+                        ((MainActivity)ctx).setFocusInternal(nextFocus);
+                    }
+                });
+            }
+            renderer.updateLive(currentRaw, width, height);
+            return;
+        }
+
         if (state == State.CALIBRATING_DARK) {
             if (masterDark != null) {
                 long start = System.currentTimeMillis();
@@ -198,16 +256,30 @@ public class FrameProcessor {
                 }
                 darkCount++;
                 long end = System.currentTimeMillis();
-                android.util.Log.i("FrameProcessor", "Dark frame " + darkCount + " processed in " + (end-start) + "ms");
+                final int currentCount = darkCount;
+                android.util.Log.i("FrameProcessor", "Dark frame " + currentCount + " processed in " + (end-start) + "ms");
 
-                renderer.setDebugInfo("Dark: " + darkCount + "/20");
-                if (darkCount >= 20) {
+                new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    Context ctx = renderer.getContext();
+                    if (ctx instanceof MainActivity) {
+                        ((MainActivity)ctx).addLog("Dark Frame " + currentCount + "/20 captured");
+                    }
+                });
+
+                renderer.setDebugInfo("Dark: " + currentCount + "/20");
+                if (currentCount >= 20) {
                     for (int i = 0; i < width * height; i++) {
                         masterDark[i] /= 20.0f;
                     }
                     currentState = State.LIVE;
                     renderer.setDebugInfo("Darks Ready");
                     android.util.Log.i("FrameProcessor", "Dark Calibration Complete");
+                    new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        Context ctx = renderer.getContext();
+                        if (ctx instanceof MainActivity) {
+                            ((MainActivity)ctx).addLog("Master Dark Ready");
+                        }
+                    });
                 }
             }
             return;
@@ -279,6 +351,21 @@ public class FrameProcessor {
 
     public int getDarkCount() {
         return darkCount;
+    }
+
+    private float bestSharpness = -1;
+    private float bestFocus = 0;
+    private int afStep = 0;
+    private static final int AF_STEPS = 10;
+
+    public void startStarAF() {
+        processingHandler.post(() -> {
+            bestSharpness = -1;
+            bestFocus = 0;
+            afStep = 0;
+            currentState = State.AUTOFOCUS;
+            android.util.Log.i("FrameProcessor", "Star AF Started");
+        });
     }
 
     public float[] getResultBuffer() {

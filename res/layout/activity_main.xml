@@ -104,12 +104,20 @@
             </LinearLayout>
 
             <Button
+                android:id="@+id/btn_af"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="STAR AF"
+                android:textSize="10sp"
+                android:layout_marginLeft="2dp" />
+
+            <Button
                 android:id="@+id/btn_tune"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="TUNE"
                 android:textSize="10sp"
-                android:layout_marginLeft="5dp" />
+                android:layout_marginLeft="2dp" />
         </LinearLayout>
 
         <LinearLayout
