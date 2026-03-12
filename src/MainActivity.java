@@ -219,9 +219,8 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.btn_dark).setOnClickListener(v -> {
             if (frameProcessor != null) {
-                addLog("Capturing 10 Dark Frames...");
+                addLog("Capturing 20 Dark Frames...");
                 frameProcessor.startDarkCalibration();
-                statusText.setText("CALIBRATING DARKS...");
             }
         });
 
@@ -288,6 +287,7 @@ public class MainActivity extends Activity {
                 b.setItems(new String[]{"Clear Stack Only", "Clear Master Dark Only", "Clear Everything"}, (dialog, which) -> {
                     if (which == 0 || which == 2) {
                         frameProcessor.resetStack();
+                        frameProcessor.setState(FrameProcessor.State.LIVE);
                         isStacking = false;
                         runOnUiThread(() -> {
                             btnMainAction.setText("START");
@@ -299,6 +299,7 @@ public class MainActivity extends Activity {
                     }
                     if (which == 1 || which == 2) {
                         frameProcessor.clearMasterDark();
+                        addLog("Master Dark Cleared");
                     }
                     Toast.makeText(this, "Data cleared", Toast.LENGTH_SHORT).show();
                 });

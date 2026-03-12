@@ -111,6 +111,7 @@ public class FrameProcessor {
         processingHandler.post(() -> {
             masterDark = null;
             darkCount = 0;
+            currentState = State.LIVE;
         });
     }
 
@@ -183,7 +184,7 @@ public class FrameProcessor {
                 }
                 darkCount++;
                 if (darkCount >= 20) {
-                    currentState = State.PAUSED; // Done after 20 frames
+                    currentState = State.LIVE; // Go back to LIVE after darks are done
                     renderer.setDebugInfo("Dark Calibration Complete");
                 }
                 return;
@@ -212,24 +213,11 @@ public class FrameProcessor {
             StarDetector sd = new StarDetector(dw, dh);
             List<float[]> stars = sd.detectStarsCentroid(grayBuffer);
 
-            // Frame Quality Rejection (FWHM estimate and star count)
-            // Handheld check: if too few stars detected compared to reference or too many stars are missing
-            if (stars.size() < 5) {
-                rejectedCount++;
-                renderer.setDebugInfo("Rejected: Too few stars (" + stars.size() + ")");
-                return;
-            }
-
             FrameAligner.Alignment alignment = new FrameAligner.Alignment(0,0,0);
             if (stackEngine.getFrameCount() == 0) {
                 frameAligner.setReferenceStars(stars, dw, dh);
             } else {
                 alignment = frameAligner.computeAlignment(stars);
-                if (Float.isNaN(alignment.dx)) {
-                    rejectedCount++;
-                    renderer.setDebugInfo("Rejected: Poor star matching");
-                    return;
-                }
                 // Scale back to full resolution
                 alignment.dx *= step;
                 alignment.dy *= step;
