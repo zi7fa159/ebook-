@@ -1,6 +1,6 @@
 # A2LS (Astro Live Stacker for Android)
 
-A native Android application for high-performance astrophotography, performing real-time RAW stacking and star alignment. Designed for the Realme 8i (RMX3151) 50MP sensor.
+A native Android application for high-performance astrophotography, performing real-time RAW stacking and star alignment. Optimized for the Realme 8i (RMX3151) 50MP sensor.
 
 ## Key Features
 
@@ -10,57 +10,37 @@ A native Android application for high-performance astrophotography, performing r
 
 ### 🎨 Tune Studio (Professional Grading)
 - **Live Histogram**: Real-time logarithmic view of the image data.
-- **Advanced Stretching**:
-    - **Black Point**: Set the floor to remove sky glow.
-    - **Mid Point (Gamma)**: Stretch the signal to reveal faint nebulosity.
-    - **White Point**: Control highlight clipping.
-- **Color Correction**: Adjustable Color Temperature (K) and Tint, with one-tap Auto White Balance.
-- **Hot Pixel Removal**: Vote-based outlier suppression with a dedicated "Aggression" slider to clean up sensor noise during long exposures.
+- **Advanced Stretching**: Black Point, Mid Point (Gamma), and White Point controls.
+- **Hot Pixel Removal**: Vote-based outlier suppression with a dedicated "Aggression" slider.
 
 ### 🎯 Manual Focus Tools
-- **Overlaid Focus Slider**: A transparent, vertical slider on the live preview for ergonomic, real-time focus adjustments.
-- **Focus Zoom**: 800x800 pixel center-crop at full sensor resolution. Allows precise focusing on distant stars.
+- **Overlaid Focus Slider**: Transparent vertical slider for real-time focus adjustments.
+- **Focus Zoom**: 800x800 pixel center-crop at full sensor resolution for precise star focusing.
 
 ### 🛡️ Noise & Calibration
-- **30-Frame Dark Calibration**: Automated sequence to create a clean Master Dark for thermal noise subtraction.
-- **Kappa-Sigma Clipping**: Advanced stacking method that automatically identifies and removes satellites, planes, and cosmic rays.
+- **30-Frame Dark Calibration**: Automated Master Dark sequence for thermal noise subtraction.
+- **Kappa-Sigma Clipping**: Removes satellites, planes, and cosmic rays from the final stack.
 
-### 💾 High-End Exports
-- **16-bit TIFF**: Available in both Linear (for Siril/PixInsight) and Stretched (ready for viewing) formats.
-- **RAW DNG**: Standard DNG export for single-frame calibration or editing.
-- **Optimized PNG**: High-resolution, processed output for quick sharing.
+## Resource & RAM Analysis (Realme 8i)
+Running 50MP stacking in Java is an intensive operation. The app is optimized to run within the following footprint:
 
-## Build Requirements
-- Android SDK Command-line Tools (build-tools, platforms)
-- Java Development Kit (JDK) 11+
-- `adb` for device deployment
+- **Baseline Pipeline**: ~905 MB (Mean Stacking)
+- **Advanced Mode**: ~1105 MB (Sigma Clipping)
+- **Heap Status**: Monitored via the "MEM" display in the status bar.
 
-## Environment Setup
-Ensure `ANDROID_HOME` is exported in your shell:
-```bash
-export ANDROID_HOME=/path/to/your/android-sdk
-```
+### Roadmap for Higher Sharpness
+The following features are proposed for further improving results:
+1. **Software Drizzle (1.5x)**: Sub-pixel alignment to recover resolution (+200MB RAM).
+2. **Flat Field Correction**: Vignetting and dust removal (+200MB RAM).
+3. **Richardson-Lucy Deconvolution**: Post-processing sharpness recovery (+400MB RAM).
+4. **Adaptive Star Sharpening**: Localized high-pass filter on star points (Negligible RAM).
 
 ## Compilation & Installation
-A2LS is designed to be built **without Gradle** for maximum speed and simplicity.
+1. **Build**: `./scripts/build.sh`
+2. **Install**: `./scripts/install.sh`
 
-1. **Build the APK**:
-   ```bash
-   ./scripts/build.sh
-   ```
-2. **Install to Device**:
-   ```bash
-   ./scripts/install.sh
-   ```
-
-## Astrophotography Tips for Realme 8i
-1. **Tripod is Mandatory**: Stacking requires steady frames for the star alignment algorithm to work.
-2. **Dark Frames First**: Always perform a Dark Frame Calibration (30 frames) with the lens covered before starting your session to ensure a clean result.
-3. **Use Focus Zoom**: Toggle Focus Zoom and use the vertical slider to make the stars as small and sharp as possible.
-4. **Exposure Timing**: For the Realme 8i, 15-20s exposures at ISO 1600 are usually the "sweet spot" for deep sky objects.
-5. **Hot Pixel Aggression**: Start with 50%. If you see "static" noise, increase it; if faint stars are disappearing, decrease it.
-
-## Technical Notes
-- **Memory**: A2LS uses `largeHeap` to manage the massive memory requirements of 50MP Bayer stacking (~200MB per buffer).
-- **Architecture**: Asynchronous pipeline ensures the Camera HAL remains responsive while heavy math is performed in the background.
-- **No Libraries**: 100% pure Java implementation of TIFF writers, Star Detection, and Alignment logic.
+## Astrophotography Tips
+- **Tripod is Mandatory**.
+- **Run Darks First**: Cover the lens and capture 30 frames.
+- **Use Focus Zoom**: Toggle zoom and adjust the vertical slider until stars are pin-sharp points.
+- **Monitor Memory**: If the MEM value exceeds 90% of the total, consider resetting the stack or using Mean instead of Sigma clipping.

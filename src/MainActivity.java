@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
 
     private TextView statusText;
     private TextView frameCounter;
+    private TextView memMonitor;
 
     private TextView valExp, valIso, valFocus, valLimit, valTimer, logText;
     private Button btnMainAction;
@@ -136,6 +137,7 @@ public class MainActivity extends Activity {
         statusText = findViewById(R.id.status_text);
         statusText.setText("LIVE VIEW");
         frameCounter = findViewById(R.id.frame_counter);
+        memMonitor = findViewById(R.id.mem_monitor);
 
         valExp = findViewById(R.id.val_exp);
         valIso = findViewById(R.id.val_iso);
@@ -755,6 +757,11 @@ public class MainActivity extends Activity {
                         final double nr = Math.sqrt(count);
                         runOnUiThread(() -> {
                             frameCounter.setText(count + " Frames (NR: " + String.format("%.1fx", nr) + ")");
+
+                            Runtime r = Runtime.getRuntime();
+                            long used = (r.totalMemory() - r.freeMemory()) / 1048576;
+                            long total = r.maxMemory() / 1048576;
+                            memMonitor.setText("MEM: " + used + "/" + total + "MB");
 
                             if (state == FrameProcessor.State.CALIBRATING_DARK) {
                                 statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/30)");
