@@ -31,8 +31,7 @@ public class FrameProcessor {
     private int poolIdx = 0;
     private byte[] grayBuffer;
     // Professional Hot Pixel tracking
-    private byte[] hotPixelMap; // 0: clear, 255: confirmed hot
-    private byte[] outlierVotes;
+    private byte[] hotPixelData; // 0-254: votes, 255: confirmed hot
     private int hotAggression = 50;
 
     private float[] masterDark;
@@ -51,8 +50,7 @@ public class FrameProcessor {
         this.processingThread.start();
         this.processingHandler = new Handler(processingThread.getLooper());
 
-        this.hotPixelMap = new byte[width * height];
-        this.outlierVotes = new byte[width * height];
+        this.hotPixelData = new byte[width * height];
     }
 
     public void setState(State state) {
@@ -97,8 +95,7 @@ public class FrameProcessor {
     public void resetStack() {
         processingHandler.post(() -> {
             stackEngine.reset();
-            if (outlierVotes != null) java.util.Arrays.fill(outlierVotes, (byte)0);
-            if (hotPixelMap != null) java.util.Arrays.fill(hotPixelMap, (byte)0);
+            if (hotPixelData != null) java.util.Arrays.fill(hotPixelData, (byte)0);
             isProcessing = false;
             android.util.Log.i("FrameProcessor", "Stack Reset Complete");
         });
@@ -177,6 +174,12 @@ public class FrameProcessor {
             } finally {
                 isProcessing = false;
             }
+
+            if (System.currentTimeMillis() % 10000 < 1000) {
+                Runtime r = Runtime.getRuntime();
+                long used = (r.totalMemory() - r.freeMemory()) / 1048576;
+                android.util.Log.i("FrameProcessor", "Stability Check - Memory Used: " + used + "MB");
+            }
         });
     }
 
@@ -212,15 +215,15 @@ public class FrameProcessor {
                     Context ctx = renderer.getContext();
                     if (ctx instanceof MainActivity) {
                         if (currentCount % 5 == 0) {
-                            ((MainActivity)ctx).addLog("Dark Frame " + currentCount + "/20 captured");
+                            ((MainActivity)ctx).addLog("Dark Frame " + currentCount + "/30 captured");
                         }
                     }
                 });
 
-                renderer.setDebugInfo("Dark: " + currentCount + "/20");
-                if (currentCount >= 20) {
+                renderer.setDebugInfo("Dark: " + currentCount + "/30");
+                if (currentCount >= 30) {
                     for (int i = 0; i < width * height; i++) {
-                        masterDark[i] /= 20.0f;
+                        masterDark[i] /= 30.0f;
                     }
                     currentState = State.LIVE;
                     renderer.setDebugInfo("Darks Ready");
@@ -315,30 +318,44 @@ public class FrameProcessor {
         int step = 2;
         if (hotAggression <= 0) return;
 
-        float thresholdMultiplier = 4.0f - (hotAggression / 100.0f) * 3.0f;
-        int minDiff = 500 - (hotAggression * 4);
+        float thresholdMultiplier = 5.0f - (hotAggression / 100.0f) * 4.2f; // 5.0 to 0.8
+        int minDiff = 600 - (hotAggression * 5); // 600 to 100
 
         for (int y = step; y < h - step; y++) {
             for (int x = step; x < w - step; x++) {
                 int idx = y * w + x;
 
-                if (hotPixelMap[idx] == (byte)255) {
-                    data[idx] = (short) (( (data[idx-step]&0xFFFF) + (data[idx+step]&0xFFFF) ) / 2);
+                if (hotPixelData[idx] == (byte)255) {
+                    // Interpolate from 4 immediate neighbors of same color
+                    int sum = (data[idx-step]&0xFFFF) + (data[idx+step]&0xFFFF) +
+                              (data[idx-step*w]&0xFFFF) + (data[idx+step*w]&0xFFFF);
+                    data[idx] = (short) (sum / 4);
                     continue;
                 }
 
                 int val = data[idx] & 0xFFFF;
-                if (val > 100) {
+                if (val > 50) {
+                    // Robust 8-neighbor max check in Bayer domain
                     int v1 = data[idx - step] & 0xFFFF;
                     int v2 = data[idx + step] & 0xFFFF;
                     int v3 = data[idx - step * w] & 0xFFFF;
                     int v4 = data[idx + step * w] & 0xFFFF;
+                    int v5 = data[idx - step * w - step] & 0xFFFF;
+                    int v6 = data[idx - step * w + step] & 0xFFFF;
+                    int v7 = data[idx + step * w - step] & 0xFFFF;
+                    int v8 = data[idx + step * w + step] & 0xFFFF;
 
-                    int maxN = Math.max(Math.max(v1, v2), Math.max(v3, v4));
+                    int maxN = Math.max(Math.max(Math.max(v1, v2), Math.max(v3, v4)),
+                                        Math.max(Math.max(v5, v6), Math.max(v7, v8)));
+
                     if (val > maxN * thresholdMultiplier && val > maxN + minDiff) {
-                        if (outlierVotes[idx] < 127) outlierVotes[idx]++;
-                        if (outlierVotes[idx] > 3) {
-                            hotPixelMap[idx] = (byte)255;
+                        int v = (hotPixelData[idx] & 0xFF);
+                        if (v < 254) {
+                            v++;
+                            hotPixelData[idx] = (byte)v;
+                        }
+                        if (v > 2) {
+                            hotPixelData[idx] = (byte)255;
                         }
                         data[idx] = (short) maxN;
                     }

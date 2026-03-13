@@ -10,6 +10,7 @@ public class StarDetector {
     private final int width;
     private final int height;
     private final int threshold;
+    private byte[] blurred;
 
     public StarDetector(int width, int height) {
         this.width = width;
@@ -49,7 +50,9 @@ public class StarDetector {
 
     public List<float[]> detectStarsCentroid(byte[] grayData) {
         // 1. Simple 3x3 Blur (Box filter) to reduce noise
-        byte[] blurred = new byte[width * height];
+        if (blurred == null || blurred.length != width * height) {
+            blurred = new byte[width * height];
+        }
         for (int y = 1; y < height - 1; y++) {
             for (int x = 1; x < width - 1; x++) {
                 int sum = (grayData[(y-1)*width + (x-1)] & 0xFF) + (grayData[(y-1)*width + x] & 0xFF) + (grayData[(y-1)*width + (x+1)] & 0xFF) +

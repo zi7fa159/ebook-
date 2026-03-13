@@ -286,7 +286,7 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.btn_dark).setOnClickListener(v -> {
             if (frameProcessor != null) {
-                addLog("Capturing 20 Dark Frames...");
+                addLog("Capturing 30 Dark Frames...");
                 frameProcessor.startDarkCalibration();
             }
         });
@@ -468,6 +468,17 @@ public class MainActivity extends Activity {
 
         final TextView whiteLbl = createLabel("White: " + stretchWhite); stretchLayout.addView(whiteLbl);
         final android.widget.SeekBar whiteBar = new android.widget.SeekBar(this); whiteBar.setMax(100); whiteBar.setProgress((int)(stretchWhite*100)); stretchLayout.addView(whiteBar);
+
+        final TextView hotLbl = createLabel("Hot Pixel Aggression: " + currentHotAggression); stretchLayout.addView(hotLbl);
+        final android.widget.SeekBar hotBar = new android.widget.SeekBar(this); hotBar.setMax(100); hotBar.setProgress(currentHotAggression); stretchLayout.addView(hotBar);
+        hotBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar s, int p, boolean b) {
+                hotLbl.setText("Hot Pixel Aggression: " + p);
+                currentHotAggression = p;
+                if (frameProcessor != null) frameProcessor.setHotAggression(p);
+            }
+            public void onStartTrackingTouch(android.widget.SeekBar s) {} public void onStopTrackingTouch(android.widget.SeekBar s) {}
+        });
 
         // Color Content
         final TextView tempLbl = createLabel("Temp: " + (int)currentTemp + "K"); colorLayout.addView(tempLbl);
@@ -746,7 +757,7 @@ public class MainActivity extends Activity {
                             frameCounter.setText(count + " Frames (NR: " + String.format("%.1fx", nr) + ")");
 
                             if (state == FrameProcessor.State.CALIBRATING_DARK) {
-                                statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/20)");
+                                statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/30)");
                             } else if (state == FrameProcessor.State.STACKING) {
                                 statusText.setText("STACKING");
                                 if (frameLimit > 0 && count >= frameLimit) {

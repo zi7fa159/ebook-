@@ -7,6 +7,9 @@ import java.util.List;
 public class FrameAligner {
     private List<float[]> referenceStars;
     private int width, height;
+    private int[] hist;
+    private static final int LIMIT = 200;
+    private static final int HIST_SIZE = LIMIT * 2 + 1;
 
     public static class Alignment {
         public float dx, dy, angle;
@@ -27,16 +30,18 @@ public class FrameAligner {
         }
 
         // 1. Initial translation guess using histogram (translation only)
-        int limit = 200;
-        int size = limit * 2 + 1;
-        int[] hist = new int[size * size];
+        if (hist == null) {
+            hist = new int[HIST_SIZE * HIST_SIZE];
+        } else {
+            java.util.Arrays.fill(hist, 0);
+        }
 
         for (float[] r : referenceStars) {
             for (float[] c : currentStars) {
                 int dx = Math.round(r[0] - c[0]);
                 int dy = Math.round(r[1] - c[1]);
-                if (Math.abs(dx) <= limit && Math.abs(dy) <= limit) {
-                    hist[(dy + limit) * size + (dx + limit)]++;
+                if (Math.abs(dx) <= LIMIT && Math.abs(dy) <= LIMIT) {
+                    hist[(dy + LIMIT) * HIST_SIZE + (dx + LIMIT)]++;
                 }
             }
         }
@@ -44,18 +49,18 @@ public class FrameAligner {
         int maxVotes = 0;
         int bestDx = 0;
         int bestDy = 0;
-        for (int y = 1; y < size - 1; y++) {
-            for (int x = 1; x < size - 1; x++) {
+        for (int y = 1; y < HIST_SIZE - 1; y++) {
+            for (int x = 1; x < HIST_SIZE - 1; x++) {
                 int votes = 0;
                 for (int dy = -1; dy <= 1; dy++) {
                     for (int dx = -1; dx <= 1; dx++) {
-                        votes += hist[(y + dy) * size + (x + dx)];
+                        votes += hist[(y + dy) * HIST_SIZE + (x + dx)];
                     }
                 }
                 if (votes > maxVotes) {
                     maxVotes = votes;
-                    bestDx = x - limit;
-                    bestDy = y - limit;
+                    bestDx = x - LIMIT;
+                    bestDy = y - LIMIT;
                 }
             }
         }
@@ -66,11 +71,11 @@ public class FrameAligner {
 
         // Sub-pixel centroid estimation on the histogram peak
         float sumX = 0, sumY = 0, sumV = 0;
-        int bx = bestDx + limit;
-        int by = bestDy + limit;
+        int bx = bestDx + LIMIT;
+        int by = bestDy + LIMIT;
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
-                int v = hist[(by + dy) * size + (bx + dx)];
+                int v = hist[(by + dy) * HIST_SIZE + (bx + dx)];
                 sumX += (bestDx + dx) * v;
                 sumY += (bestDy + dy) * v;
                 sumV += v;
