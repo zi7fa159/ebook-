@@ -125,8 +125,11 @@ public class Renderer {
 
     private void processAndDraw(float[] stackBuffer, short[] rawBuffer, int width, int height) {
         if (width <= 0 || height <= 0) return;
-        // Increased downscale for 50MP performance (4x = 16x area reduction)
-        int step = (width > 6000) ? 4 : 2;
+
+        // Dynamic downscale: Use higher downscale for 50MP live view to maintain high FPS
+        int step = (width > 6000) ? 8 : 4;
+        if (stackBuffer != null || isZoomed) step = (width > 6000) ? 4 : 2;
+
         int sw = (width / step) / 2 * 2; // Ensure even
         int sh = (height / step) / 2 * 2;
         if (sw <= 0 || sh <= 0) return;
@@ -166,7 +169,9 @@ public class Renderer {
             int sampleCount = 0;
             float sum = 0;
             int len = (stackBuffer != null) ? stackBuffer.length : rawBuffer.length;
-            for (int i = 0; i < len; i += 8000) {
+            // Faster sampling for live view
+            int sampleStep = (stackBuffer == null) ? 20000 : 8000;
+            for (int i = 0; i < len; i += sampleStep) {
                 float val = (stackBuffer != null) ? stackBuffer[i] : (rawBuffer[i] & 0xFFFF);
                 if (val > maxObserved) maxObserved = val;
                 sum += val;
@@ -174,7 +179,7 @@ public class Renderer {
             }
             float avg = sum / Math.max(1, sampleCount);
             float signalRange = Math.max(1, avg - effectiveBlack);
-            scale = 40.0f / signalRange; // Slightly dimmer auto-stretch
+            scale = 40.0f / signalRange;
             if (scale > 30.0f) scale = 30.0f;
             midFactor = 1.0f;
             manualBlackOffset = 0;

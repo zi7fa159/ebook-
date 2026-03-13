@@ -110,7 +110,8 @@ public class FrameProcessor {
             masterFlat = null;
             darkCount = 0;
             flatCount = 0;
-            if (hotPixelData != null) java.util.Arrays.fill(hotPixelData, (byte)0);
+            grayBuffer = null;
+            hotPixelData = null;
             isProcessing = false;
             currentState = State.LIVE;
             System.gc();
@@ -418,6 +419,7 @@ public class FrameProcessor {
     private void removeHotPixels(short[] data, int w, int h) {
         int step = 2;
         if (hotAggression <= 0) return;
+        if (hotPixelData == null) hotPixelData = new byte[w * h];
 
         float thresholdMultiplier = 5.0f - (hotAggression / 100.0f) * 4.2f; // 5.0 to 0.8
         int minDiff = 600 - (hotAggression * 5); // 600 to 100

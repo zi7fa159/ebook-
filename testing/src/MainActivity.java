@@ -374,11 +374,16 @@ public class MainActivity extends Activity {
                     } else if (which == 3) {
                         frameProcessor.clearEverything();
                         isStacking = false;
+                        System.gc();
                         runOnUiThread(() -> {
                             btnMainAction.setText("START");
                             btnMainAction.setBackgroundColor(0xFFFF4444);
                             statusText.setText("LIVE VIEW");
                             frameCounter.setText("0 Frames");
+                            Runtime r = Runtime.getRuntime();
+                            long used = (r.totalMemory() - r.freeMemory()) / 1048576;
+                            long total = r.maxMemory() / 1048576;
+                            memMonitor.setText("MEM: " + used + "/" + total + "MB");
                         });
                         addLog("Deep Reset Complete");
                     }
