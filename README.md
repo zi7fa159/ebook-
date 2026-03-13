@@ -1,65 +1,66 @@
 # A2LS (Astro Live Stacker for Android)
 
-A native Android application for high-performance astrophotography, performing real-time RAW stacking and star alignment.
+A native Android application for high-performance astrophotography, performing real-time RAW stacking and star alignment. Designed for the Realme 8i (RMX3151) 50MP sensor.
 
-## Features
-- **Full 50MP RAW Capture**: Utilizes the maximum sensor resolution of the Realme 8i (RMX3151) for maximum detail.
-- **Professional Camera Control**: Full manual overrides for Exposure (up to 32s), ISO (100-6400), and Focus (Infinite/Macro).
-- **A2LS-Style Live Stacking**: Incremental averaging at 32-bit floating-point precision for noise reduction.
-- **High-Quality Alignment**: Translation-only star alignment using 2D cross-correlation to preserve sharp star points.
-- **Advanced Stacking Methods**:
-    - **Mean Stacking**: Optimal for static scenes.
-    - **Sum Stacking**: Maximizes signal for very faint deep-sky objects.
-    - **Kappa-Sigma Clipping**: Advanced outlier rejection to eliminate satellites, planes, and cosmic rays (Sequator/DSS style).
-- **Tune Studio**: Real-time post-processing engine featuring:
-    - **Live Histogram**: Logarithmic visualization of data distribution.
-    - **Dynamic Stretching**: Precise control over Black, Mid, and White points.
-    - **Auto-Stretch**: One-tap optimization for faint nebulosity.
-- **Color Calibration Engine**:
-    - **Temperature (Kelvin) & Tint**: Pro-grade color correction.
-    - **Auto White Balance**: Intelligent gain extraction from sensor metadata.
-    - **Hot Pixel Removal**: Aggressive outlier suppression for long exposures.
-- **Lossless Export Options**:
-    - **16-bit Linear TIFF**: For professional post-processing (PixInsight/Siril).
-    - **16-bit Stretched TIFF**: Ready-to-use high-dynamic-range output.
-    - **RAW DNG**: Exact sensor data with correct orientation and metadata.
-    - **Full-Res PNG**: High-quality preview-style export.
-- **No Heavy Frameworks**: Pure Java implementation for maximum efficiency on MediaTek Helio G96.
-- **Build-System Agnostic**: No Gradle or Android Studio required. Built with raw SDK tools.
+## Key Features
+
+### 🔭 Full 50MP RAW Pipeline
+- **Lossless Bayer Domain Stacking**: Processes full-resolution RAW frames directly without downscaling, preserving every photon.
+- **Floating Point Precision**: 32-bit incremental averaging ensures no data loss during long stacking sessions.
+
+### 🎨 Tune Studio (Professional Grading)
+- **Live Histogram**: Real-time logarithmic view of the image data.
+- **Advanced Stretching**:
+    - **Black Point**: Set the floor to remove sky glow.
+    - **Mid Point (Gamma)**: Stretch the signal to reveal faint nebulosity.
+    - **White Point**: Control highlight clipping.
+- **Color Correction**: Adjustable Color Temperature (K) and Tint, with one-tap Auto White Balance.
+- **Hot Pixel Removal**: Vote-based outlier suppression with a dedicated "Aggression" slider to clean up sensor noise during long exposures.
+
+### 🎯 Manual Focus Tools
+- **Overlaid Focus Slider**: A transparent, vertical slider on the live preview for ergonomic, real-time focus adjustments.
+- **Focus Zoom**: 800x800 pixel center-crop at full sensor resolution. Allows precise focusing on distant stars.
+
+### 🛡️ Noise & Calibration
+- **30-Frame Dark Calibration**: Automated sequence to create a clean Master Dark for thermal noise subtraction.
+- **Kappa-Sigma Clipping**: Advanced stacking method that automatically identifies and removes satellites, planes, and cosmic rays.
+
+### 💾 High-End Exports
+- **16-bit TIFF**: Available in both Linear (for Siril/PixInsight) and Stretched (ready for viewing) formats.
+- **RAW DNG**: Standard DNG export for single-frame calibration or editing.
+- **Optimized PNG**: High-resolution, processed output for quick sharing.
 
 ## Build Requirements
-- Android SDK Command-line Tools
+- Android SDK Command-line Tools (build-tools, platforms)
 - Java Development Kit (JDK) 11+
-- `adb` for installation
+- `adb` for device deployment
 
 ## Environment Setup
-Set `ANDROID_HOME` to your Android SDK path.
-Example:
+Ensure `ANDROID_HOME` is exported in your shell:
 ```bash
-export ANDROID_HOME=/opt/android-sdk
+export ANDROID_HOME=/path/to/your/android-sdk
 ```
 
-## How to Build
-Run the provided build script:
-```bash
-./scripts/build.sh
-```
-This script will:
-1. Compile resources using `aapt2`.
-2. Generate `R.java`.
-3. Compile Java source using `javac`.
-4. Convert classes to DEX using `d8`.
-5. Package and align the APK using `zipalign`.
-6. Sign the APK using `apksigner`.
+## Compilation & Installation
+A2LS is designed to be built **without Gradle** for maximum speed and simplicity.
 
-The final APK will be located at `bin/app-signed.apk`.
+1. **Build the APK**:
+   ```bash
+   ./scripts/build.sh
+   ```
+2. **Install to Device**:
+   ```bash
+   ./scripts/install.sh
+   ```
 
-## How to Install
-Run the installation script:
-```bash
-./scripts/install.sh
-```
-This will install the APK to your connected device and launch it.
+## Astrophotography Tips for Realme 8i
+1. **Tripod is Mandatory**: Stacking requires steady frames for the star alignment algorithm to work.
+2. **Dark Frames First**: Always perform a Dark Frame Calibration (30 frames) with the lens covered before starting your session to ensure a clean result.
+3. **Use Focus Zoom**: Toggle Focus Zoom and use the vertical slider to make the stars as small and sharp as possible.
+4. **Exposure Timing**: For the Realme 8i, 15-20s exposures at ISO 1600 are usually the "sweet spot" for deep sky objects.
+5. **Hot Pixel Aggression**: Start with 50%. If you see "static" noise, increase it; if faint stars are disappearing, decrease it.
 
-## Hardware Support
-Designed for Android devices with RAW_SENSOR support. While optimized for high-resolution sensors (like the 50MP sensor on Realme 8i), it is compatible with most modern Android devices providing manual camera control.
+## Technical Notes
+- **Memory**: A2LS uses `largeHeap` to manage the massive memory requirements of 50MP Bayer stacking (~200MB per buffer).
+- **Architecture**: Asynchronous pipeline ensures the Camera HAL remains responsive while heavy math is performed in the background.
+- **No Libraries**: 100% pure Java implementation of TIFF writers, Star Detection, and Alignment logic.
