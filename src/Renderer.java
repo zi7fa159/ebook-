@@ -270,8 +270,6 @@ public class Renderer {
                 synchronized(histLock) {
                     histogram[(ri + gi + bi) / 3]++;
                 }
-
-                argbBuffer[y * sw + x] = argb;
             }
         }
 
