@@ -775,47 +775,46 @@ public class MainActivity extends Activity {
                     final int flatCount = frameProcessor.getFlatCount();
                     final FrameProcessor.State state = frameProcessor.getState();
 
+                    final int fLastCount = lastCount;
+                    final int fLastDarkCount = lastDarkCount;
+                    final int fLastFlatCount = lastFlatCount;
+                    final FrameProcessor.State fLastState = lastState;
+
+                    runOnUiThread(() -> {
+                        Runtime r = Runtime.getRuntime();
+                        long used = (r.totalMemory() - r.freeMemory()) / 1048576;
+                        long total = r.maxMemory() / 1048576;
+                        memMonitor.setText("MEM: " + used + "/" + total + "MB");
+
+                        if (count != fLastCount || darkCount != fLastDarkCount || flatCount != fLastFlatCount || state != fLastState) {
+                             final double nr = Math.sqrt(count);
+                             frameCounter.setText(count + " Frames (NR: " + String.format("%.1fx", nr) + ")");
+                             if (state == FrameProcessor.State.CALIBRATING_DARK) {
+                                 statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/30)");
+                             } else if (state == FrameProcessor.State.CALIBRATING_FLAT) {
+                                 statusText.setText("CALIBRATING FLATS (" + frameProcessor.getFlatCount() + "/20)");
+                             } else if (state == FrameProcessor.State.STACKING) {
+                                 statusText.setText("STACKING");
+                                 if (frameLimit > 0 && count >= frameLimit) {
+                                     stopStacking();
+                                 }
+                             } else if (state == FrameProcessor.State.PAUSED) {
+                                 statusText.setText("PAUSED");
+                             } else if (state == FrameProcessor.State.LIVE) {
+                                 statusText.setText("LIVE VIEW");
+                             }
+                        }
+                    });
+
                     if (count != lastCount || darkCount != lastDarkCount || flatCount != lastFlatCount || state != lastState) {
-                        lastCount = count;
-                        lastDarkCount = darkCount;
-                        lastFlatCount = flatCount;
-                        lastState = state;
-
-                        final double nr = Math.sqrt(count);
-                        runOnUiThread(() -> {
-                            frameCounter.setText(count + " Frames (NR: " + String.format("%.1fx", nr) + ")");
-
-                            Runtime r = Runtime.getRuntime();
-                            long used = (r.totalMemory() - r.freeMemory()) / 1048576;
-                            long total = r.maxMemory() / 1048576;
-                            memMonitor.setText("MEM: " + used + "/" + total + "MB");
-
-                            if (state == FrameProcessor.State.CALIBRATING_DARK) {
-                                statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/30)");
-                            } else if (state == FrameProcessor.State.CALIBRATING_FLAT) {
-                                statusText.setText("CALIBRATING FLATS (" + frameProcessor.getFlatCount() + "/20)");
-                            } else if (state == FrameProcessor.State.STACKING) {
-                                statusText.setText("STACKING");
-                                if (frameLimit > 0 && count >= frameLimit) {
-                                    stopStacking();
-                                }
-                            } else if (state == FrameProcessor.State.PAUSED) {
-                                statusText.setText("PAUSED");
-                            } else if (state == FrameProcessor.State.LIVE) {
-                                statusText.setText("LIVE VIEW");
-                            }
-                        });
-
+                        lastCount = count; lastDarkCount = darkCount; lastFlatCount = flatCount; lastState = state;
                         if (count > 0 && state == FrameProcessor.State.STACKING) {
                             addLog("Frame " + count + " stacked");
                         }
                     }
                 }
 
-                for (int i = 0; i <= 100; i += 2) {
-                    if (!isStacking || isDestroyed) break;
-                    try { Thread.sleep(Math.max(10, currentShutterNs / 50000000)); } catch (Exception e) {}
-                }
+                try { Thread.sleep(500); } catch (Exception e) {}
             }
         }).start();
     }

@@ -112,6 +112,9 @@ public class FrameProcessor {
             flatCount = 0;
             grayBuffer = null;
             hotPixelData = null;
+            rawBufferPool[0] = null;
+            rawBufferPool[1] = null;
+            downscaledStarDetector = null;
             isProcessing = false;
             currentState = State.LIVE;
             System.gc();

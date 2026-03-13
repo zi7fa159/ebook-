@@ -127,7 +127,7 @@ public class Renderer {
         if (width <= 0 || height <= 0) return;
 
         // Dynamic downscale: Use higher downscale for 50MP live view to maintain high FPS
-        int step = (width > 6000) ? 8 : 4;
+        int step = (width > 6000) ? 12 : 6;
         if (stackBuffer != null || isZoomed) step = (width > 6000) ? 4 : 2;
 
         int sw = (width / step) / 2 * 2; // Ensure even
