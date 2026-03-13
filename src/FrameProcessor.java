@@ -13,11 +13,13 @@ public class FrameProcessor {
     private final StarDetector starDetector;
     private final FrameAligner frameAligner;
     private final Renderer renderer;
+    private int defaultBlackLevel = 64;
+    private StarDetector downscaledStarDetector;
 
     private final HandlerThread processingThread;
     private final Handler processingHandler;
 
-    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK, AUTOFOCUS }
+    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK }
     private volatile State currentState = State.IDLE;
     private boolean showStack = false;
     private final int width, height;
@@ -82,7 +84,10 @@ public class FrameProcessor {
 
     public void setCfaPattern(int cfa) {
         // stackEngine.setCfaPattern(cfa);
-        // Bayer stacking doesn't need CFA pattern in StackEngine anymore, handled in Renderer/Export
+    }
+
+    public void setDefaultBlackLevel(int bl) {
+        this.defaultBlackLevel = bl;
     }
 
     public void setHotAggression(int aggression) {
@@ -154,7 +159,6 @@ public class FrameProcessor {
                 }
             }
 
-            // Copy to raw buffer then CLOSE camera image immediately to free HAL buffers
             submitToProcessing(currentRaw);
             image.close();
         } catch (Exception e) {
@@ -173,14 +177,6 @@ public class FrameProcessor {
             } finally {
                 isProcessing = false;
             }
-
-            // Log memory usage periodically
-            if (System.currentTimeMillis() % 10000 < 500) {
-                Runtime runtime = Runtime.getRuntime();
-                long usedMem = (runtime.totalMemory() - runtime.freeMemory()) / 1048576;
-                long maxMem = runtime.maxMemory() / 1048576;
-                android.util.Log.i("FrameProcessor", "Memory Usage: " + usedMem + "MB / " + maxMem + "MB");
-            }
         });
     }
 
@@ -189,95 +185,32 @@ public class FrameProcessor {
 
         if (state == State.PAUSED) {
             if (showStack) {
+                if (masterDark != null) renderer.setBlackLevel(0);
+                else renderer.setBlackLevel(defaultBlackLevel);
                 renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
             } else {
+                renderer.setBlackLevel(defaultBlackLevel);
                 renderer.updateLive(currentRaw, width, height);
             }
             return;
         }
 
         if (state == State.LIVE) {
-            renderer.updateLive(currentRaw, width, height);
-            return;
-        }
-
-        if (state == State.AUTOFOCUS) {
-            afSubStep++;
-            if (afSubStep < AF_SETTLE_FRAMES) {
-                renderer.updateLive(currentRaw, width, height);
-                return;
-            }
-            afSubStep = 0;
-
-            // Downscale for star detection speed
-            int step = (width > 6000) ? 4 : 2;
-            int dw = width / step;
-            int dh = height / step;
-            if (grayBuffer == null || grayBuffer.length != dw * dh) grayBuffer = new byte[dw * dh];
-            for (int y = 0; y < dh; y++) {
-                for (int x = 0; x < dw; x++) {
-                    grayBuffer[y * dw + x] = (byte) ((currentRaw[(y * step) * width + (x * step)] & 0xFFFF) >> 8);
-                }
-            }
-
-            float sharpness = starDetector.calculateSharpness(grayBuffer);
-            float currentFocusValue = (afStep * 0.005f); // Range 0.0 to 0.1 in 20 steps
-
-            android.util.Log.i("FrameProcessor", "AF Step " + afStep + " Focus " + currentFocusValue + " Sharpness " + sharpness);
-
-            if (sharpness > bestSharpness) {
-                bestSharpness = sharpness;
-                bestFocus = currentFocusValue;
-            }
-
-            afStep++;
-            final int currentStep = afStep;
-            new Handler(android.os.Looper.getMainLooper()).post(() -> {
-                Context ctx = renderer.getContext();
-                if (ctx instanceof MainActivity) {
-                    ((MainActivity)ctx).setOpProgress(currentStep, AF_STEPS);
-                }
-            });
-
-            if (afStep >= AF_STEPS) {
-                currentState = State.LIVE;
-                renderer.setDebugInfo("AF Complete: " + bestFocus);
-                final float finalFocus = bestFocus;
-                new Handler(android.os.Looper.getMainLooper()).post(() -> {
-                    Context ctx = renderer.getContext();
-                    if (ctx instanceof MainActivity) {
-                        ((MainActivity)ctx).applyFocus(finalFocus);
-                    }
-                });
-            } else {
-                renderer.setDebugInfo("AF Step " + afStep + "/" + AF_STEPS);
-                final float nextFocus = (afStep * 0.005f);
-                new Handler(android.os.Looper.getMainLooper()).post(() -> {
-                    Context ctx = renderer.getContext();
-                    if (ctx instanceof MainActivity) {
-                        ((MainActivity)ctx).setFocusInternal(nextFocus);
-                    }
-                });
-            }
+            renderer.setBlackLevel(defaultBlackLevel);
             renderer.updateLive(currentRaw, width, height);
             return;
         }
 
         if (state == State.CALIBRATING_DARK) {
             if (masterDark != null) {
-                long start = System.currentTimeMillis();
                 for (int i = 0; i < width * height; i++) {
                     masterDark[i] += (currentRaw[i] & 0xFFFF);
                 }
                 darkCount++;
-                long end = System.currentTimeMillis();
                 final int currentCount = darkCount;
-                android.util.Log.i("FrameProcessor", "Dark frame " + currentCount + " processed in " + (end-start) + "ms");
-
                 new Handler(android.os.Looper.getMainLooper()).post(() -> {
                     Context ctx = renderer.getContext();
                     if (ctx instanceof MainActivity) {
-                        ((MainActivity)ctx).setOpProgress(currentCount, 20);
                         if (currentCount % 5 == 0) {
                             ((MainActivity)ctx).addLog("Dark Frame " + currentCount + "/20 captured");
                         }
@@ -291,7 +224,6 @@ public class FrameProcessor {
                     }
                     currentState = State.LIVE;
                     renderer.setDebugInfo("Darks Ready");
-                    android.util.Log.i("FrameProcessor", "Dark Calibration Complete");
                     new Handler(android.os.Looper.getMainLooper()).post(() -> {
                         Context ctx = renderer.getContext();
                         if (ctx instanceof MainActivity) {
@@ -309,14 +241,16 @@ public class FrameProcessor {
                 return;
             }
 
-        if (masterDark != null) {
+            if (masterDark != null) {
                 for (int i = 0; i < width * height; i++) {
                     int val = (currentRaw[i] & 0xFFFF) - (int)masterDark[i];
-                    currentRaw[i] = (short) Math.max(0, val);
+                    currentRaw[i] = (short) Math.max(0, Math.min(65535, val));
                 }
+                renderer.setBlackLevel(0);
+            } else {
+                renderer.setBlackLevel(defaultBlackLevel);
             }
 
-            // Downscale for star detection speed (4x if 50MP, else 2x)
             int step = (width > 6000) ? 4 : 2;
             int dw = width / step;
             int dh = height / step;
@@ -328,24 +262,22 @@ public class FrameProcessor {
                 }
             }
 
-            // Use the pre-allocated star detector or create one for the correct size
-            StarDetector sd = new StarDetector(dw, dh);
-            List<float[]> stars = sd.detectStarsCentroid(grayBuffer);
+            if (downscaledStarDetector == null || downscaledStarDetector.getWidth() != dw) {
+                downscaledStarDetector = new StarDetector(dw, dh);
+            }
+            List<float[]> stars = downscaledStarDetector.detectStarsCentroid(grayBuffer);
 
             FrameAligner.Alignment alignment = new FrameAligner.Alignment(0,0,0);
             if (stackEngine.getFrameCount() == 0) {
                 frameAligner.setReferenceStars(stars, dw, dh);
             } else {
                 alignment = frameAligner.computeAlignment(stars);
-                // Scale back to full resolution
                 alignment.dx *= step;
                 alignment.dy *= step;
             }
 
             removeHotPixels(currentRaw, width, height);
             stackEngine.addFrame(currentRaw, alignment);
-
-            android.util.Log.i("FrameProcessor", "Frame " + stackEngine.getFrameCount() + " stacked");
 
             if (showStack) {
                 renderer.updateStack(stackEngine.getStackBuffer(), width, height, stackEngine.getFrameCount(), currentMethod == 1);
@@ -359,10 +291,6 @@ public class FrameProcessor {
         return stackEngine.getFrameCount();
     }
 
-    public int getRejectedCount() {
-        return 0; // Removed rejection system
-    }
-
     public State getState() {
         return currentState;
     }
@@ -371,22 +299,8 @@ public class FrameProcessor {
         return darkCount;
     }
 
-    private float bestSharpness = -1;
-    private float bestFocus = 0;
-    private int afStep = 0;
-    private int afSubStep = 0;
-    private static final int AF_STEPS = 20; // More steps for better precision
-    private static final int AF_SETTLE_FRAMES = 2; // Wait for lens to move
-
-    public void startStarAF() {
-        processingHandler.post(() -> {
-            bestSharpness = -1;
-            bestFocus = 0;
-            afStep = 0;
-            afSubStep = 0;
-            currentState = State.AUTOFOCUS;
-            android.util.Log.i("FrameProcessor", "Star AF Started");
-        });
+    public boolean hasMasterDark() {
+        return masterDark != null;
     }
 
     public float[] getResultBuffer() {
@@ -399,11 +313,10 @@ public class FrameProcessor {
 
     private void removeHotPixels(short[] data, int w, int h) {
         int step = 2;
-        // 0 to 100 range. 0=disabled, 100=most aggressive
         if (hotAggression <= 0) return;
 
-        float thresholdMultiplier = 4.0f - (hotAggression / 100.0f) * 3.0f; // 4.0 to 1.0
-        int minDiff = 500 - (hotAggression * 4); // 500 to 100
+        float thresholdMultiplier = 4.0f - (hotAggression / 100.0f) * 3.0f;
+        int minDiff = 500 - (hotAggression * 4);
 
         for (int y = step; y < h - step; y++) {
             for (int x = step; x < w - step; x++) {

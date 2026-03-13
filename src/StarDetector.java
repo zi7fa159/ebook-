@@ -17,6 +17,9 @@ public class StarDetector {
         this.threshold = 40; // Basic brightness threshold, can be adjusted
     }
 
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
+
     public float calculateSharpness(byte[] grayData) {
         List<float[]> stars = detectStarsCentroid(grayData);
         if (stars.isEmpty()) return 0;

@@ -9,6 +9,32 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <SeekBar
+        android:id="@+id/focus_slider"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="-100dp"
+        android:rotation="270"
+        android:alpha="0.5"
+        android:progressDrawable="@android:color/transparent"
+        android:thumb="@android:drawable/btn_star_big_on"
+        android:visibility="visible" />
+
+    <Button
+        android:id="@+id/btn_zoom"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:text="ZOOM"
+        android:textSize="10sp"
+        android:alpha="0.6"
+        android:background="#44FFFFFF"
+        android:textColor="#FFFFFFFF" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,22 +58,6 @@
             android:textColor="#FF00FF00" />
     </LinearLayout>
 
-    <View
-        android:id="@+id/capture_progress"
-        android:layout_width="0dp"
-        android:layout_height="4dp"
-        android:layout_alignParentTop="true"
-        android:background="#FFFFFFFF" />
-
-    <ProgressBar
-        android:id="@+id/op_progress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="10dp"
-        android:indeterminate="false"
-        android:visibility="gone" />
 
     <ScrollView
         android:id="@+id/log_scroll"
@@ -113,13 +123,6 @@
                 <TextView android:id="@+id/val_timer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0s" android:textColor="#FFFFFFFF" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/btn_af"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="STAR AF"
-                android:textSize="10sp"
-                android:layout_marginLeft="2dp" />
 
             <Button
                 android:id="@+id/btn_tune"

@@ -34,6 +34,7 @@ public class Renderer {
     private final int[] histogram = new int[256];
     private final Object histLock = new Object();
     private final ColorEngine.Params colorParams = new ColorEngine.Params();
+    private boolean isZoomed = false;
 
     public Renderer(TextureView textureView) {
         this.textureView = textureView;
@@ -104,6 +105,10 @@ public class Renderer {
 
     public void setDebugInfo(String info) {
         this.debugInfo = info;
+    }
+
+    public synchronized void setZoom(boolean zoom) {
+        this.isZoomed = zoom;
     }
 
     public synchronized void updateLive(short[] rawBuffer, int width, int height) {
@@ -199,12 +204,40 @@ public class Renderer {
             for (int i = 0; i < 256; i++) histogram[i] = 0;
         }
 
+        int startX = 0;
+        int startY = 0;
+        int endX = width;
+        int endY = height;
+        int currentStep = step;
+
+        if (isZoomed) {
+            // 400x400 center crop at full resolution
+            int zoomSize = 800; // Increased a bit to fill preview better
+            startX = (width - zoomSize) / 2;
+            startY = (height - zoomSize) / 2;
+            endX = startX + zoomSize;
+            endY = startY + zoomSize;
+            currentStep = 1; // Full resolution for zoom
+
+            // Re-calc sw/sh for zoom
+            sw = zoomSize;
+            sh = zoomSize;
+
+            synchronized(this) {
+                if (previewBitmap == null || previewBitmap.getWidth() != sw || previewBitmap.getHeight() != sh) {
+                    if (previewBitmap != null) previewBitmap.recycle();
+                    previewBitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888);
+                    argbBuffer = new int[sw * sh];
+                }
+            }
+        }
+
         for (int y = 0; y < sh; y += 2) {
-            int oy = y * step;
-            if (oy >= height - 1) continue;
+            int oy = startY + y * currentStep;
+            if (oy >= endY - 1 || oy >= height - 1) continue;
             for (int x = 0; x < sw; x += 2) {
-                int ox = x * step;
-                if (ox >= width - 1) continue;
+                int ox = startX + x * currentStep;
+                if (ox >= endX - 1 || ox >= width - 1) continue;
 
                 int idx = oy * width + ox;
                 float v00 = (stackBuffer != null) ? stackBuffer[idx] : (rawBuffer[idx] & 0xFFFF);

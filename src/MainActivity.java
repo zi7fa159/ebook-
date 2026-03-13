@@ -30,8 +30,6 @@ public class MainActivity extends Activity {
 
     private TextView statusText;
     private TextView frameCounter;
-    private android.view.View captureProgress;
-    private android.widget.ProgressBar opProgress;
 
     private TextView valExp, valIso, valFocus, valLimit, valTimer, logText;
     private Button btnMainAction;
@@ -56,6 +54,7 @@ public class MainActivity extends Activity {
     private int startTimerSec = 0;
     private boolean isStacking = false;
     private boolean isDestroyed = false;
+    private boolean isZoomed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +111,6 @@ public class MainActivity extends Activity {
         runOnUiThread(() -> {
             valFocus.setText(f == 0 ? "INF" : String.format("%.2f", f));
             addLog("Focus Applied: " + String.format("%.2f", f));
-            if (opProgress != null) opProgress.setVisibility(View.GONE);
         });
         updateCamera();
     }
@@ -120,17 +118,16 @@ public class MainActivity extends Activity {
     public void setFocusInternal(float f) {
         currentFocus = f;
         updateCamera();
-    }
-
-    public void setOpProgress(int progress, int max) {
         runOnUiThread(() -> {
-            if (opProgress != null) {
-                opProgress.setVisibility(View.VISIBLE);
-                opProgress.setMax(max);
-                opProgress.setProgress(progress);
-            }
+             android.widget.SeekBar focusSlider = findViewById(R.id.focus_slider);
+             if (cameraController != null) {
+                 Float minFocus = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+                 float maxFocus = (minFocus != null) ? minFocus : 10.0f;
+                 focusSlider.setProgress((int)(f / maxFocus * 1000));
+             }
         });
     }
+
 
     private void initUI() {
         TextureView preview = findViewById(R.id.preview);
@@ -139,8 +136,6 @@ public class MainActivity extends Activity {
         statusText = findViewById(R.id.status_text);
         statusText.setText("LIVE VIEW");
         frameCounter = findViewById(R.id.frame_counter);
-        captureProgress = findViewById(R.id.capture_progress);
-        opProgress = findViewById(R.id.op_progress);
 
         valExp = findViewById(R.id.val_exp);
         valIso = findViewById(R.id.val_iso);
@@ -148,6 +143,31 @@ public class MainActivity extends Activity {
         valLimit = findViewById(R.id.val_limit);
         valTimer = findViewById(R.id.val_timer);
         btnMainAction = findViewById(R.id.btn_main_action);
+
+        android.widget.SeekBar focusSlider = findViewById(R.id.focus_slider);
+        focusSlider.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) {
+                if (cameraController == null) return;
+                Float minFocus = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+                float maxFocus = (minFocus != null) ? minFocus : 10.0f;
+                float f = (progress / 1000.0f) * maxFocus;
+                currentFocus = f;
+                valFocus.setText(f == 0 ? "INF" : String.format("%.2f", f));
+                updateCamera();
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(android.widget.SeekBar seekBar) {}
+        });
+        focusSlider.setMax(1000);
+
+        Button btnZoom = findViewById(R.id.btn_zoom);
+        btnZoom.setOnClickListener(v -> {
+            isZoomed = !isZoomed;
+            if (renderer != null) renderer.setZoom(isZoomed);
+            btnZoom.setBackgroundColor(isZoomed ? 0xAAFF0000 : 0x44FFFFFF);
+            addLog("Focus Zoom: " + (isZoomed ? "ON" : "OFF"));
+        });
         logText = findViewById(R.id.log_text);
 
         spinMethod = findViewById(R.id.spin_method);
@@ -263,12 +283,6 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.btn_tune).setOnClickListener(v -> showTuneDialog());
 
-        findViewById(R.id.btn_af).setOnClickListener(v -> {
-            if (frameProcessor != null) {
-                addLog("Starting Star AF Sweep...");
-                frameProcessor.startStarAF();
-            }
-        });
 
         findViewById(R.id.btn_dark).setOnClickListener(v -> {
             if (frameProcessor != null) {
@@ -753,25 +767,9 @@ public class MainActivity extends Activity {
 
                 for (int i = 0; i <= 100; i += 2) {
                     if (!isStacking || isDestroyed) break;
-                    final int p = i;
-                    runOnUiThread(() -> {
-                        android.view.ViewGroup.LayoutParams lp = captureProgress.getLayoutParams();
-                        if (lp != null) {
-                            lp.width = (captureProgress.getRootView().getWidth() * p) / 100;
-                            captureProgress.setLayoutParams(lp);
-                        }
-                    });
                     try { Thread.sleep(Math.max(10, currentShutterNs / 50000000)); } catch (Exception e) {}
                 }
             }
-            // Reset progress bar on exit
-            runOnUiThread(() -> {
-                android.view.ViewGroup.LayoutParams lp = captureProgress.getLayoutParams();
-                if (lp != null) {
-                    lp.width = 0;
-                    captureProgress.setLayoutParams(lp);
-                }
-            });
         }).start();
     }
 
@@ -828,12 +826,14 @@ public class MainActivity extends Activity {
         String ts = String.valueOf(System.currentTimeMillis());
         File tiffFile = new File(path, "A2LS_Stack_" + (stretched ? "Stretched_" : "") + ts + ".tiff");
 
-        float effectiveBlack = (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
+        boolean usingDarks = frameProcessor.hasMasterDark();
+        float effectiveBlack = usingDarks ? 0 : (currentBlackLevel + stretchBlack * 1024) * (isSum ? frameCount : 1);
+        int tiffBlack = usingDarks ? 0 : currentBlackLevel;
 
         if (stretched) {
             TiffWriter.saveTiff16Stretched(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, effectiveBlack, params, cfa, orientation);
         } else {
-            TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, currentBlackLevel, frameCount, isSum, cfa, orientation);
+            TiffWriter.saveTiff16Color(tiffFile.getAbsolutePath(), buffer, w, h, currentRGain, currentGGain, currentBGain, tiffBlack, frameCount, isSum, cfa, orientation);
         }
 
         addLog("Saved: " + tiffFile.getName());
@@ -877,7 +877,8 @@ public class MainActivity extends Activity {
 
         Bitmap bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888);
         int[] argbArray = new int[outW * outH];
-        float effectiveBlack = isSum ? (currentBlackLevel * frameCount) : currentBlackLevel;
+        boolean usingDarks = frameProcessor.hasMasterDark();
+        float effectiveBlack = usingDarks ? 0 : (isSum ? (currentBlackLevel * frameCount) : currentBlackLevel);
 
         int cfa = 0;
         if (cameraController != null) {
