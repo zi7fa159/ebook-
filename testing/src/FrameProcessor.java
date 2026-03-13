@@ -19,7 +19,7 @@ public class FrameProcessor {
     private final HandlerThread processingThread;
     private final Handler processingHandler;
 
-    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK, CALIBRATING_FLAT }
+    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK, CALIBRATING_FLAT, AUTOFOCUS }
     private volatile State currentState = State.IDLE;
     private boolean showStack = false;
     private final int width, height;
@@ -39,6 +39,19 @@ public class FrameProcessor {
     private volatile int darkCount = 0;
     private volatile int flatCount = 0;
     private volatile boolean isProcessing = false;
+
+    // AF State Variables
+    private int afPointIdx = 0;
+    private static final int AF_COARSE_POINTS = 7;
+    private float[] afPositions = new float[AF_COARSE_POINTS];
+    private float[] afFwhm = new float[AF_COARSE_POINTS];
+    private int afSettleCounter = 0;
+    private static final int AF_SETTLE_FRAMES = 2;
+    private float afBestFocus = 0;
+    private float afBestFwhm = Float.MAX_VALUE;
+    private boolean afRefining = false;
+    private int afRefineIdx = 0;
+    private int afRefineTotal = 0;
 
     public FrameProcessor(int width, int height, Renderer renderer) {
         this.width = width;
@@ -92,6 +105,30 @@ public class FrameProcessor {
 
     public void setHotAggression(int aggression) {
         this.hotAggression = aggression;
+    }
+
+    public void startParabolicAF() {
+        processingHandler.post(() -> {
+            afPointIdx = 0;
+            afSettleCounter = 0;
+            afRefining = false;
+            afBestFwhm = Float.MAX_VALUE;
+            currentState = State.AUTOFOCUS;
+            android.util.Log.i("FrameProcessor", "Parabolic AF Started");
+
+            // Move to first position
+            requestAFPosition(0);
+        });
+    }
+
+    private void requestAFPosition(float pos) {
+        new Handler(android.os.Looper.getMainLooper()).post(() -> {
+            Context ctx = renderer.getContext();
+            if (ctx instanceof MainActivity) {
+                float max = ((MainActivity)ctx).getMaxFocus();
+                ((MainActivity)ctx).setFocusInternal(pos * max);
+            }
+        });
     }
 
     public void resetStack() {
@@ -233,6 +270,80 @@ public class FrameProcessor {
 
     private void processInternal(final short[] currentRaw) {
         State state = currentState;
+
+        if (state == State.AUTOFOCUS) {
+            afSettleCounter++;
+            if (afSettleCounter <= AF_SETTLE_FRAMES) {
+                renderer.updateLive(currentRaw, width, height);
+                return;
+            }
+
+            // Detect stars in center crop for speed (2000x2000)
+            int cs = 1000;
+            int startX = (width/2 - cs) / 2 * 2;
+            int startY = (height/2 - cs) / 2 * 2;
+            byte[] crop = new byte[cs * cs];
+            for (int y = 0; y < cs; y++) {
+                for (int x = 0; x < cs; x++) {
+                    crop[y * cs + x] = (byte) ((currentRaw[(startY + y) * width + (startX + x)] & 0xFFFF) >> 8);
+                }
+            }
+
+            StarDetector sd = new StarDetector(cs, cs);
+            List<float[]> stars = sd.detectStarsCentroid(crop);
+            float fwhm = sd.calculateAverageFWHM(crop, stars);
+
+            android.util.Log.i("FrameProcessor", "AF Sample: Pos=" + (afRefining ? "Refine" : afPointIdx) + " FWHM=" + fwhm + " Stars=" + stars.size());
+
+            if (!afRefining) {
+                afPositions[afPointIdx] = afPointIdx * (1.0f / (AF_COARSE_POINTS - 1));
+                afFwhm[afPointIdx] = fwhm;
+                afPointIdx++;
+
+                if (afPointIdx >= AF_COARSE_POINTS) {
+                    // Fit Parabola
+                    float optimal = fitParabolaAndGetMin(afPositions, afFwhm);
+                    afBestFocus = Math.max(0, Math.min(1.0f, optimal));
+                    afRefining = true;
+                    afRefineIdx = 0;
+                    afRefineTotal = 11; // 0.01 steps around center (+/- 0.05)
+                    android.util.Log.i("FrameProcessor", "Parabolic Fit Optimal: " + afBestFocus + ". Starting Refinement...");
+                }
+
+                if (!afRefining) {
+                    afSettleCounter = 0;
+                    requestAFPosition(afPointIdx * (1.0f / (AF_COARSE_POINTS - 1)));
+                }
+            }
+
+            if (afRefining) {
+                if (fwhm < afBestFwhm && fwhm > 0) {
+                    afBestFwhm = fwhm;
+                    // Current position was set in previous cycle
+                    afBestFocus = Math.max(0, Math.min(1.0f, afBestFocus - 0.05f + (afRefineIdx-1) * 0.01f));
+                }
+
+                if (afRefineIdx >= afRefineTotal) {
+                    currentState = State.LIVE;
+                    final float finalFocus = afBestFocus;
+                    new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        Context ctx = renderer.getContext();
+                        if (ctx instanceof MainActivity) {
+                            ((MainActivity)ctx).applyFocus(finalFocus);
+                            ((MainActivity)ctx).addLog("AUTOFOCUS COMPLETE: " + String.format("%.3f", finalFocus));
+                        }
+                    });
+                } else {
+                    afSettleCounter = 0;
+                    float nextRefine = afBestFocus - 0.05f + afRefineIdx * 0.01f;
+                    requestAFPosition(Math.max(0, Math.min(1.0f, nextRefine)));
+                    afRefineIdx++;
+                }
+            }
+
+            renderer.updateLive(currentRaw, width, height);
+            return;
+        }
 
         if (state == State.PAUSED) {
             if (showStack) {
@@ -417,6 +528,42 @@ public class FrameProcessor {
 
     public short[] getRawBuffer() {
         return rawBufferPool[(poolIdx + 1) % 2];
+    }
+
+    private float fitParabolaAndGetMin(float[] x, float[] y) {
+        int n = x.length;
+        double s0 = n, s1 = 0, s2 = 0, s3 = 0, s4 = 0;
+        double sy = 0, sxy = 0, sx2y = 0;
+        for (int i = 0; i < n; i++) {
+            double xi = x[i];
+            double yi = y[i];
+            double x2 = xi * xi;
+            s1 += xi; s2 += x2; s3 += x2 * xi; s4 += x2 * x2;
+            sy += yi; sxy += xi * yi; sx2y += x2 * yi;
+        }
+
+        // Solve system:
+        // [ s2 s1 s0 ] [ a ]   [ sy ]
+        // [ s3 s2 s1 ] [ b ] = [ sxy ]
+        // [ s4 s3 s2 ] [ c ]   [ sx2y ]
+
+        double det = s2*(s2*s4 - s3*s3) - s1*(s3*s4 - s2*s3) + s0*(s3*s3 - s2*s2);
+        if (Math.abs(det) < 1e-12) return 0.5f;
+
+        double detA = sy*(s2*s4 - s3*s3) - s1*(sxy*s4 - sx2y*s3) + s0*(sxy*s3 - sx2y*s2);
+        double detB = s2*(sxy*s4 - sx2y*s3) - sy*(s3*s4 - s2*s3) + s0*(s3*sx2y - s2*sxy);
+
+        double a = detA / det;
+        double b = detB / det;
+
+        if (a <= 0) { // Not a valley
+            // Fallback: find point with minimum FWHM
+            int minIdx = 0;
+            for (int i = 1; i < n; i++) if (y[i] < y[minIdx]) minIdx = i;
+            return x[minIdx];
+        }
+
+        return (float) (-b / (2.0 * a));
     }
 
     private void removeHotPixels(short[] data, int w, int h) {

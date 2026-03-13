@@ -56,6 +56,8 @@ public class MainActivity extends Activity {
     private boolean isStacking = false;
     private boolean isDestroyed = false;
     private boolean isZoomed = false;
+    private long originalShutterNs = 1000000000L;
+    private int originalIso = 1600;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,11 +111,16 @@ public class MainActivity extends Activity {
 
     public void applyFocus(float f) {
         currentFocus = f;
+        currentShutterNs = originalShutterNs;
+        currentIso = originalIso;
+        updateCamera();
+
         runOnUiThread(() -> {
             valFocus.setText(f == 0 ? "INF" : String.format("%.2f", f));
+            valExp.setText(String.format("%.1fs", currentShutterNs / 1e9));
+            valIso.setText(String.valueOf(currentIso));
             addLog("Focus Applied: " + String.format("%.2f", f));
         });
-        updateCamera();
     }
 
     public void setFocusInternal(float f) {
@@ -121,12 +128,15 @@ public class MainActivity extends Activity {
         updateCamera();
         runOnUiThread(() -> {
              android.widget.SeekBar focusSlider = findViewById(R.id.focus_slider);
-             if (cameraController != null) {
-                 Float minFocus = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
-                 float maxFocus = (minFocus != null) ? minFocus : 10.0f;
-                 focusSlider.setProgress((int)(f / maxFocus * 1000));
-             }
+             float maxFocus = getMaxFocus();
+             focusSlider.setProgress((int)(f / maxFocus * 1000));
         });
+    }
+
+    public float getMaxFocus() {
+        if (cameraController == null) return 10.0f;
+        Float minFocus = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+        return (minFocus != null) ? minFocus : 10.0f;
     }
 
 
@@ -285,6 +295,17 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.btn_tune).setOnClickListener(v -> showTuneDialog());
 
+        findViewById(R.id.btn_af).setOnClickListener(v -> {
+            if (frameProcessor != null) {
+                originalShutterNs = currentShutterNs;
+                originalIso = currentIso;
+                currentShutterNs = 1000000000L;
+                currentIso = 1600;
+                updateCamera();
+                addLog("Starting Parabolic AF (1s @ ISO 1600)...");
+                frameProcessor.startParabolicAF();
+            }
+        });
 
         findViewById(R.id.btn_dark).setOnClickListener(v -> {
             if (frameProcessor != null) {

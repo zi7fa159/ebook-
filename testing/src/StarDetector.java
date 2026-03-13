@@ -21,6 +21,59 @@ public class StarDetector {
     public int getWidth() { return width; }
     public int getHeight() { return height; }
 
+    public float calculateAverageFWHM(byte[] grayData, List<float[]> stars) {
+        if (stars == null || stars.isEmpty()) return 100.0f;
+        float totalFWHM = 0;
+        int count = 0;
+        for (float[] star : stars) {
+            float fwhm = computeStarFWHM(grayData, star);
+            if (fwhm > 0) {
+                totalFWHM += fwhm;
+                count++;
+            }
+        }
+        return count > 0 ? totalFWHM / count : 100.0f;
+    }
+
+    private float computeStarFWHM(byte[] grayData, float[] star) {
+        int cx = Math.round(star[0]);
+        int cy = Math.round(star[1]);
+        if (cx < 5 || cy < 5 || cx >= width - 5 || cy >= height - 5) return -1;
+
+        int peak = grayData[cy * width + cx] & 0xFF;
+        // Estimate local background (min in 11x11)
+        int minVal = peak;
+        for (int dy = -5; dy <= 5; dy++) {
+            for (int dx = -5; dx <= 5; dx++) {
+                int val = grayData[(cy + dy) * width + (cx + dx)] & 0xFF;
+                if (val < minVal) minVal = val;
+            }
+        }
+
+        float halfMax = (peak - minVal) / 2.0f + minVal;
+        if (peak <= minVal + 10) return -1; // Not enough contrast
+
+        // Search radially for half-max
+        float totalRadius = 0;
+        int dirCount = 0;
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int[] d : dirs) {
+            for (int r = 1; r < 6; r++) {
+                int val = grayData[(cy + d[1] * r) * width + (cx + d[0] * r)] & 0xFF;
+                if (val <= halfMax) {
+                    // Linear interpolation for sub-pixel radius
+                    int prevVal = grayData[(cy + d[1] * (r - 1)) * width + (cx + d[0] * (r - 1))] & 0xFF;
+                    float subR = (r - 1) + (halfMax - prevVal) / (float)(val - prevVal);
+                    totalRadius += subR;
+                    dirCount++;
+                    break;
+                }
+            }
+        }
+
+        return (dirCount > 0) ? (totalRadius / dirCount) * 2.0f : -1;
+    }
+
     public float calculateSharpness(byte[] grayData) {
         List<float[]> stars = detectStarsCentroid(grayData);
         if (stars.isEmpty()) return 0;
