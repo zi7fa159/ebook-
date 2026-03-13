@@ -293,7 +293,18 @@ public class FrameProcessor {
             List<float[]> stars = sd.detectStarsCentroid(crop);
             float fwhm = sd.calculateAverageFWHM(crop, stars);
 
-            android.util.Log.i("FrameProcessor", "AF Sample: Pos=" + (afRefining ? "Refine" : afPointIdx) + " FWHM=" + fwhm + " Stars=" + stars.size());
+            final int currentSampleIdx = afRefining ? (AF_COARSE_POINTS + afRefineIdx - 1) : afPointIdx;
+            final float currentFocusVal = afRefining ? (afBestFocus - 0.05f + (afRefineIdx - 1) * 0.01f) : (afPointIdx * (1.0f / (AF_COARSE_POINTS - 1)));
+            final int totalSamples = 18;
+
+            new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                Context ctx = renderer.getContext();
+                if (ctx instanceof MainActivity) {
+                    ((MainActivity)ctx).addLog(String.format("AF Sample %d/%d: Focus %.3f, FWHM %.2f, Stars %d",
+                        currentSampleIdx + 1, totalSamples, currentFocusVal, fwhm, stars.size()));
+                    ((MainActivity)ctx).updateAFStatus(currentSampleIdx + 1, totalSamples, currentFocusVal);
+                }
+            });
 
             if (!afRefining) {
                 afPositions[afPointIdx] = afPointIdx * (1.0f / (AF_COARSE_POINTS - 1));
@@ -304,6 +315,14 @@ public class FrameProcessor {
                     // Fit Parabola
                     float optimal = fitParabolaAndGetMin(afPositions, afFwhm);
                     afBestFocus = Math.max(0, Math.min(1.0f, optimal));
+
+                    new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        Context ctx = renderer.getContext();
+                        if (ctx instanceof MainActivity) {
+                            ((MainActivity)ctx).addLog(String.format("PARABOLIC FIT: Optimal projected at %.3f. Starting Refinement sweep...", afBestFocus));
+                        }
+                    });
+
                     afRefining = true;
                     afRefineIdx = 0;
                     afRefineTotal = 11; // 0.01 steps around center (+/- 0.05)

@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
     private boolean isZoomed = false;
     private long originalShutterNs = 1000000000L;
     private int originalIso = 1600;
+    private long afStartTime = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +138,23 @@ public class MainActivity extends Activity {
         if (cameraController == null) return 10.0f;
         Float minFocus = cameraController.getCharacteristics().get(android.hardware.camera2.CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
         return (minFocus != null) ? minFocus : 10.0f;
+    }
+
+    public void updateAFStatus(int current, int total, float focus) {
+        if (current == 1) afStartTime = System.currentTimeMillis();
+
+        long elapsed = System.currentTimeMillis() - afStartTime;
+        long remaining = 0;
+        if (current > 0) {
+            long estimatedTotal = (elapsed / current) * total;
+            remaining = estimatedTotal - elapsed;
+        }
+
+        final long fRemaining = remaining;
+        runOnUiThread(() -> {
+            statusText.setText(String.format("AUTOFOCUS: %d/%d (%.3f) - %ds left",
+                current, total, focus, fRemaining / 1000));
+        });
     }
 
 
