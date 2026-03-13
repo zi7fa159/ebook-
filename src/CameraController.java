@@ -187,6 +187,25 @@ public class CameraController {
     }
 
     private void startCapture() {
+        applyParams();
+    }
+
+    public synchronized void updateParams(long exposureTimeNs, int iso, float focusDistance) {
+        this.exposureTimeNs = exposureTimeNs;
+        this.iso = iso;
+        this.focusDistance = focusDistance;
+        if (captureSession != null) applyParams();
+    }
+
+    public synchronized void updateParams(long exposureTimeNs, int iso, float focusDistance, long frameDurationNs) {
+        this.exposureTimeNs = exposureTimeNs;
+        this.iso = iso;
+        this.focusDistance = focusDistance;
+        this.frameDurationNs = frameDurationNs;
+        if (captureSession != null) applyParams();
+    }
+
+    private void applyParams() {
         if (cameraDevice == null || captureSession == null) return;
         try {
             CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
@@ -202,7 +221,6 @@ public class CameraController {
             builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDistance);
             builder.set(CaptureRequest.SENSOR_FRAME_DURATION, Math.max(exposureTimeNs + 100000000L, frameDurationNs));
 
-            // Force full pixel array to prevent HAL-level cropping and maximize FOV
             if (pixelArraySize != null) {
                 builder.set(CaptureRequest.SCALER_CROP_REGION, new android.graphics.Rect(0, 0, pixelArraySize.getWidth(), pixelArraySize.getHeight()));
             } else if (activeArraySize != null) {
@@ -216,23 +234,8 @@ public class CameraController {
                 }
             }, backgroundHandler);
         } catch (CameraAccessException e) {
-            Log.e(TAG, "Capture request failed", e);
+            Log.e(TAG, "Failed to apply parameters", e);
         }
-    }
-
-    public void updateParams(long exposureTimeNs, int iso, float focusDistance) {
-        this.exposureTimeNs = exposureTimeNs;
-        this.iso = iso;
-        this.focusDistance = focusDistance;
-        if (captureSession != null) startCapture();
-    }
-
-    public void updateParams(long exposureTimeNs, int iso, float focusDistance, long frameDurationNs) {
-        this.exposureTimeNs = exposureTimeNs;
-        this.iso = iso;
-        this.focusDistance = focusDistance;
-        this.frameDurationNs = frameDurationNs;
-        if (captureSession != null) startCapture();
     }
 
     public void close() {

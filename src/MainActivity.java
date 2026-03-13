@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private TextView statusText;
     private TextView frameCounter;
     private android.view.View captureProgress;
+    private android.widget.ProgressBar opProgress;
 
     private TextView valExp, valIso, valFocus, valLimit, valTimer, logText;
     private Button btnMainAction;
@@ -111,6 +112,7 @@ public class MainActivity extends Activity {
         runOnUiThread(() -> {
             valFocus.setText(f == 0 ? "INF" : String.format("%.2f", f));
             addLog("Focus Applied: " + String.format("%.2f", f));
+            if (opProgress != null) opProgress.setVisibility(View.GONE);
         });
         updateCamera();
     }
@@ -118,6 +120,16 @@ public class MainActivity extends Activity {
     public void setFocusInternal(float f) {
         currentFocus = f;
         updateCamera();
+    }
+
+    public void setOpProgress(int progress, int max) {
+        runOnUiThread(() -> {
+            if (opProgress != null) {
+                opProgress.setVisibility(View.VISIBLE);
+                opProgress.setMax(max);
+                opProgress.setProgress(progress);
+            }
+        });
     }
 
     private void initUI() {
@@ -128,6 +140,7 @@ public class MainActivity extends Activity {
         statusText.setText("LIVE VIEW");
         frameCounter = findViewById(R.id.frame_counter);
         captureProgress = findViewById(R.id.capture_progress);
+        opProgress = findViewById(R.id.op_progress);
 
         valExp = findViewById(R.id.val_exp);
         valIso = findViewById(R.id.val_iso);

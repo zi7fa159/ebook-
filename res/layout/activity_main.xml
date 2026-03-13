@@ -39,6 +39,16 @@
         android:layout_alignParentTop="true"
         android:background="#FFFFFFFF" />
 
+    <ProgressBar
+        android:id="@+id/op_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:indeterminate="false"
+        android:visibility="gone" />
+
     <ScrollView
         android:id="@+id/log_scroll"
         android:layout_width="150dp"

@@ -202,6 +202,13 @@ public class FrameProcessor {
         }
 
         if (state == State.AUTOFOCUS) {
+            afSubStep++;
+            if (afSubStep < AF_SETTLE_FRAMES) {
+                renderer.updateLive(currentRaw, width, height);
+                return;
+            }
+            afSubStep = 0;
+
             // Downscale for star detection speed
             int step = (width > 6000) ? 4 : 2;
             int dw = width / step;
@@ -214,16 +221,24 @@ public class FrameProcessor {
             }
 
             float sharpness = starDetector.calculateSharpness(grayBuffer);
-            float currentFocus = (afStep * 0.01f); // Range 0.0 to 0.1
+            float currentFocusValue = (afStep * 0.005f); // Range 0.0 to 0.1 in 20 steps
 
-            android.util.Log.i("FrameProcessor", "AF Step " + afStep + " Focus " + currentFocus + " Sharpness " + sharpness);
+            android.util.Log.i("FrameProcessor", "AF Step " + afStep + " Focus " + currentFocusValue + " Sharpness " + sharpness);
 
             if (sharpness > bestSharpness) {
                 bestSharpness = sharpness;
-                bestFocus = currentFocus;
+                bestFocus = currentFocusValue;
             }
 
             afStep++;
+            final int currentStep = afStep;
+            new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                Context ctx = renderer.getContext();
+                if (ctx instanceof MainActivity) {
+                    ((MainActivity)ctx).setOpProgress(currentStep, AF_STEPS);
+                }
+            });
+
             if (afStep >= AF_STEPS) {
                 currentState = State.LIVE;
                 renderer.setDebugInfo("AF Complete: " + bestFocus);
@@ -236,7 +251,7 @@ public class FrameProcessor {
                 });
             } else {
                 renderer.setDebugInfo("AF Step " + afStep + "/" + AF_STEPS);
-                final float nextFocus = (afStep * 0.01f);
+                final float nextFocus = (afStep * 0.005f);
                 new Handler(android.os.Looper.getMainLooper()).post(() -> {
                     Context ctx = renderer.getContext();
                     if (ctx instanceof MainActivity) {
@@ -262,7 +277,10 @@ public class FrameProcessor {
                 new Handler(android.os.Looper.getMainLooper()).post(() -> {
                     Context ctx = renderer.getContext();
                     if (ctx instanceof MainActivity) {
-                        ((MainActivity)ctx).addLog("Dark Frame " + currentCount + "/20 captured");
+                        ((MainActivity)ctx).setOpProgress(currentCount, 20);
+                        if (currentCount % 5 == 0) {
+                            ((MainActivity)ctx).addLog("Dark Frame " + currentCount + "/20 captured");
+                        }
                     }
                 });
 
@@ -356,13 +374,16 @@ public class FrameProcessor {
     private float bestSharpness = -1;
     private float bestFocus = 0;
     private int afStep = 0;
-    private static final int AF_STEPS = 10;
+    private int afSubStep = 0;
+    private static final int AF_STEPS = 20; // More steps for better precision
+    private static final int AF_SETTLE_FRAMES = 2; // Wait for lens to move
 
     public void startStarAF() {
         processingHandler.post(() -> {
             bestSharpness = -1;
             bestFocus = 0;
             afStep = 0;
+            afSubStep = 0;
             currentState = State.AUTOFOCUS;
             android.util.Log.i("FrameProcessor", "Star AF Started");
         });
