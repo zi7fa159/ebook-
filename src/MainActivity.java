@@ -293,6 +293,13 @@ public class MainActivity extends Activity {
             }
         });
 
+        findViewById(R.id.btn_flat).setOnClickListener(v -> {
+            if (frameProcessor != null) {
+                addLog("Capturing 20 Flat Frames...");
+                frameProcessor.startFlatCalibration();
+            }
+        });
+
         btnMainAction.setOnClickListener(v -> {
             if (!isStacking) {
                 if (startTimerSec > 0) {
@@ -346,8 +353,8 @@ public class MainActivity extends Activity {
             if (frameProcessor != null) {
                 android.app.AlertDialog.Builder b = new android.app.AlertDialog.Builder(this);
                 b.setTitle("Clear Data");
-                b.setItems(new String[]{"Clear Stack Only", "Clear Master Dark Only", "Clear Everything"}, (dialog, which) -> {
-                    if (which == 0 || which == 2) {
+                b.setItems(new String[]{"Stack Only", "Master Dark", "Master Flat", "Everything"}, (dialog, which) -> {
+                    if (which == 0 || which == 3) {
                         frameProcessor.resetStack();
                         frameProcessor.setState(FrameProcessor.State.LIVE);
                         isStacking = false;
@@ -359,9 +366,13 @@ public class MainActivity extends Activity {
                         });
                         addLog("Stack Cleared");
                     }
-                    if (which == 1 || which == 2) {
+                    if (which == 1 || which == 3) {
                         frameProcessor.clearMasterDark();
                         addLog("Master Dark Cleared");
+                    }
+                    if (which == 2 || which == 3) {
+                        frameProcessor.clearMasterFlat();
+                        addLog("Master Flat Cleared");
                     }
                     Toast.makeText(this, "Data cleared", Toast.LENGTH_SHORT).show();
                 });
@@ -765,6 +776,8 @@ public class MainActivity extends Activity {
 
                             if (state == FrameProcessor.State.CALIBRATING_DARK) {
                                 statusText.setText("CALIBRATING DARKS (" + frameProcessor.getDarkCount() + "/30)");
+                            } else if (state == FrameProcessor.State.CALIBRATING_FLAT) {
+                                statusText.setText("CALIBRATING FLATS (" + frameProcessor.getFlatCount() + "/20)");
                             } else if (state == FrameProcessor.State.STACKING) {
                                 statusText.setText("STACKING");
                                 if (frameLimit > 0 && count >= frameLimit) {
@@ -877,6 +890,15 @@ public class MainActivity extends Activity {
         File dngFile = new File(path, "A2LS_Capture_" + System.currentTimeMillis() + ".dng");
 
         try (android.hardware.camera2.DngCreator dngCreator = new android.hardware.camera2.DngCreator(chars, result)) {
+            int orientation = 1;
+            Integer sensorOri = chars.get(android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION);
+            if (sensorOri != null) {
+                if (sensorOri == 90) orientation = 6;
+                else if (sensorOri == 180) orientation = 3;
+                else if (sensorOri == 270) orientation = 8;
+            }
+            dngCreator.setOrientation(orientation);
+
             java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocateDirect(raw.length * 2);
             buffer.order(java.nio.ByteOrder.nativeOrder());
             buffer.asShortBuffer().put(raw);

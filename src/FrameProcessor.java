@@ -19,7 +19,7 @@ public class FrameProcessor {
     private final HandlerThread processingThread;
     private final Handler processingHandler;
 
-    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK }
+    public enum State { IDLE, LIVE, STACKING, PAUSED, CALIBRATING_DARK, CALIBRATING_FLAT }
     private volatile State currentState = State.IDLE;
     private boolean showStack = false;
     private final int width, height;
@@ -35,7 +35,9 @@ public class FrameProcessor {
     private int hotAggression = 50;
 
     private float[] masterDark;
+    private float[] masterFlat;
     private volatile int darkCount = 0;
+    private volatile int flatCount = 0;
     private volatile boolean isProcessing = false;
 
     public FrameProcessor(int width, int height, Renderer renderer) {
@@ -118,6 +120,23 @@ public class FrameProcessor {
         });
     }
 
+    public void startFlatCalibration() {
+        processingHandler.post(() -> {
+            if (masterFlat == null) {
+                try {
+                    masterFlat = new float[width * height];
+                } catch (OutOfMemoryError e) {
+                    android.util.Log.e("FrameProcessor", "OOM Allocating Flat Buffer");
+                    return;
+                }
+            }
+            java.util.Arrays.fill(masterFlat, 0.0f);
+            flatCount = 0;
+            currentState = State.CALIBRATING_FLAT;
+            android.util.Log.i("FrameProcessor", "Flat Calibration Started");
+        });
+    }
+
     public void clearMasterDark() {
         processingHandler.post(() -> {
             masterDark = null;
@@ -125,6 +144,16 @@ public class FrameProcessor {
             isProcessing = false;
             currentState = State.LIVE;
             android.util.Log.i("FrameProcessor", "Master Dark Cleared");
+        });
+    }
+
+    public void clearMasterFlat() {
+        processingHandler.post(() -> {
+            masterFlat = null;
+            flatCount = 0;
+            isProcessing = false;
+            currentState = State.LIVE;
+            android.util.Log.i("FrameProcessor", "Master Flat Cleared");
         });
     }
 
@@ -204,6 +233,48 @@ public class FrameProcessor {
             return;
         }
 
+        if (state == State.CALIBRATING_FLAT) {
+            if (masterFlat != null) {
+                for (int i = 0; i < width * height; i++) {
+                    masterFlat[i] += (currentRaw[i] & 0xFFFF);
+                }
+                flatCount++;
+                final int currentCount = flatCount;
+                new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    Context ctx = renderer.getContext();
+                    if (ctx instanceof MainActivity) {
+                        if (currentCount % 5 == 0) {
+                            ((MainActivity)ctx).addLog("Flat Frame " + currentCount + "/20 captured");
+                        }
+                    }
+                });
+
+                renderer.setDebugInfo("Flat: " + currentCount + "/20");
+                if (currentCount >= 20) {
+                    float maxFlat = 0;
+                    for (int i = 0; i < width * height; i++) {
+                        masterFlat[i] /= 20.0f;
+                        if (masterFlat[i] > maxFlat) maxFlat = masterFlat[i];
+                    }
+                    if (maxFlat > 0) {
+                        for (int i = 0; i < width * height; i++) {
+                            masterFlat[i] /= maxFlat;
+                            if (masterFlat[i] < 0.1f) masterFlat[i] = 0.1f;
+                        }
+                    }
+                    currentState = State.LIVE;
+                    renderer.setDebugInfo("Flats Ready");
+                    new Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        Context ctx = renderer.getContext();
+                        if (ctx instanceof MainActivity) {
+                            ((MainActivity)ctx).addLog("Master Flat Ready");
+                        }
+                    });
+                }
+            }
+            return;
+        }
+
         if (state == State.CALIBRATING_DARK) {
             if (masterDark != null) {
                 for (int i = 0; i < width * height; i++) {
@@ -254,6 +325,13 @@ public class FrameProcessor {
                 renderer.setBlackLevel(defaultBlackLevel);
             }
 
+            if (masterFlat != null) {
+                for (int i = 0; i < width * height; i++) {
+                    int val = (int)((currentRaw[i] & 0xFFFF) / masterFlat[i]);
+                    currentRaw[i] = (short) Math.max(0, Math.min(65535, val));
+                }
+            }
+
             int step = (width > 6000) ? 4 : 2;
             int dw = width / step;
             int dh = height / step;
@@ -302,8 +380,16 @@ public class FrameProcessor {
         return darkCount;
     }
 
+    public int getFlatCount() {
+        return flatCount;
+    }
+
     public boolean hasMasterDark() {
         return masterDark != null;
+    }
+
+    public boolean hasMasterFlat() {
+        return masterFlat != null;
     }
 
     public float[] getResultBuffer() {
