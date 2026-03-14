@@ -785,7 +785,8 @@ public class MainActivity extends Activity {
                         }
 
                         frameProcessor = new FrameProcessor(size.getWidth(), size.getHeight(), renderer);
-                        if (cfa != null) frameProcessor.setCfaPattern(cfa);
+                        float wlFloat = (wl != null) ? wl.floatValue() : 1023.0f;
+                        frameProcessor.setSensorLevels(currentBlackLevel, wlFloat);
                         frameProcessor.setState(FrameProcessor.State.LIVE);
                         cameraController.setFrameProcessor(frameProcessor);
                         updateCamera();

@@ -8,7 +8,7 @@ public class FrameAligner {
     private List<float[]> referenceStars;
     private int width, height;
     private int[] hist;
-    private static final int LIMIT = 200;
+    private static final int LIMIT = 400; // Increased for 50MP
     private static final int HIST_SIZE = LIMIT * 2 + 1;
 
     public static class Alignment {
@@ -29,7 +29,6 @@ public class FrameAligner {
             return new Alignment(0, 0, 0);
         }
 
-        // 1. Initial translation guess using histogram (translation only)
         if (hist == null) {
             hist = new int[HIST_SIZE * HIST_SIZE];
         } else {
@@ -41,7 +40,9 @@ public class FrameAligner {
                 int dx = Math.round(r[0] - c[0]);
                 int dy = Math.round(r[1] - c[1]);
                 if (Math.abs(dx) <= LIMIT && Math.abs(dy) <= LIMIT) {
-                    hist[(dy + LIMIT) * HIST_SIZE + (dx + LIMIT)]++;
+                    // Weighted vote by brightness to prioritize reliable stars
+                    int weight = (int)(Math.min(r[2], c[2]) / 5) + 1;
+                    hist[(dy + LIMIT) * HIST_SIZE + (dx + LIMIT)] += weight;
                 }
             }
         }
@@ -49,11 +50,12 @@ public class FrameAligner {
         int maxVotes = 0;
         int bestDx = 0;
         int bestDy = 0;
-        for (int y = 1; y < HIST_SIZE - 1; y++) {
-            for (int x = 1; x < HIST_SIZE - 1; x++) {
+        for (int y = 2; y < HIST_SIZE - 2; y++) {
+            for (int x = 2; x < HIST_SIZE - 2; x++) {
+                // 5x5 kernel for peak detection
                 int votes = 0;
-                for (int dy = -1; dy <= 1; dy++) {
-                    for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -2; dy <= 2; dy++) {
+                    for (int dx = -2; dx <= 2; dx++) {
                         votes += hist[(y + dy) * HIST_SIZE + (x + dx)];
                     }
                 }
@@ -69,12 +71,11 @@ public class FrameAligner {
             return new Alignment(0, 0, 0);
         }
 
-        // Sub-pixel centroid estimation on the histogram peak
         float sumX = 0, sumY = 0, sumV = 0;
         int bx = bestDx + LIMIT;
         int by = bestDy + LIMIT;
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
+        for (int dy = -2; dy <= 2; dy++) {
+            for (int dx = -2; dx <= 2; dx++) {
                 int v = hist[(by + dy) * HIST_SIZE + (bx + dx)];
                 sumX += (bestDx + dx) * v;
                 sumY += (bestDy + dy) * v;
@@ -90,8 +91,6 @@ public class FrameAligner {
         }
 
         // 2. Rotation estimation
-        // For rotation, we need at least 2 matching pairs.
-        // We'll find pairs that match the translation guess.
         List<float[][]> pairs = new ArrayList<>();
         float tol = 5.0f;
         for (float[] r : referenceStars) {
@@ -108,8 +107,6 @@ public class FrameAligner {
         if (pairs.size() >= 2) {
             float totalWeight = 0;
             float sumAngle = 0;
-            float cx = width / 2.0f;
-            float cy = height / 2.0f;
 
             for (int i = 0; i < pairs.size(); i++) {
                 for (int j = i + 1; j < pairs.size(); j++) {
@@ -125,10 +122,11 @@ public class FrameAligner {
                     if (dAngle > 180) dAngle -= 360;
                     if (dAngle < -180) dAngle += 360;
 
-                    if (Math.abs(dAngle) < 5.0f) { // Reject extreme rotations
+                    if (Math.abs(dAngle) < 5.0f) {
                         float dist = (float) Math.sqrt(Math.pow(r2[0]-r1[0],2) + Math.pow(r2[1]-r1[1],2));
-                        sumAngle += dAngle * dist;
-                        totalWeight += dist;
+                        float pairWeight = dist * Math.min(r1[2], Math.min(c1[2], Math.min(r2[2], c2[2])));
+                        sumAngle += dAngle * pairWeight;
+                        totalWeight += pairWeight;
                     }
                 }
             }

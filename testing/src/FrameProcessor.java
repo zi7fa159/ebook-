@@ -14,6 +14,7 @@ public class FrameProcessor {
     private final FrameAligner frameAligner;
     private final Renderer renderer;
     private int defaultBlackLevel = 64;
+    private float whiteLevel = 1023f;
     private StarDetector downscaledStarDetector;
 
     private final HandlerThread processingThread;
@@ -99,8 +100,9 @@ public class FrameProcessor {
         // stackEngine.setCfaPattern(cfa);
     }
 
-    public void setDefaultBlackLevel(int bl) {
+    public void setSensorLevels(int bl, float wl) {
         this.defaultBlackLevel = bl;
+        this.whiteLevel = wl;
     }
 
     public void setHotAggression(int aggression) {
@@ -278,14 +280,16 @@ public class FrameProcessor {
                 return;
             }
 
-            // Detect stars in center crop for speed (2000x2000)
+            // Detect stars in center crop for speed (1000x1000)
             int cs = 1000;
-            int startX = (width/2 - cs) / 2 * 2;
-            int startY = (height/2 - cs) / 2 * 2;
+            int startX = (width - cs) / 2 / 2 * 2;
+            int startY = (height - cs) / 2 / 2 * 2;
             byte[] crop = new byte[cs * cs];
+            float signalScale = 255.0f / Math.max(1.0f, (whiteLevel - defaultBlackLevel));
             for (int y = 0; y < cs; y++) {
                 for (int x = 0; x < cs; x++) {
-                    crop[y * cs + x] = (byte) ((currentRaw[(startY + y) * width + (startX + x)] & 0xFFFF) >> 8);
+                    int val = (currentRaw[(startY + y) * width + (startX + x)] & 0xFFFF) - defaultBlackLevel;
+                    crop[y * cs + x] = (byte) Math.max(0, Math.min(255, (int)(val * signalScale * 4.0f))); // 4x boost
                 }
             }
 
@@ -486,9 +490,11 @@ public class FrameProcessor {
             int dh = height / step;
             if (grayBuffer == null || grayBuffer.length != dw * dh) grayBuffer = new byte[dw * dh];
 
+            float signalScaleStack = 255.0f / Math.max(1.0f, (whiteLevel - defaultBlackLevel));
             for (int y = 0; y < dh; y++) {
                 for (int x = 0; x < dw; x++) {
-                    grayBuffer[y * dw + x] = (byte) ((currentRaw[(y * step) * width + (x * step)] & 0xFFFF) >> 8);
+                    int val = (currentRaw[(y * step) * width + (x * step)] & 0xFFFF) - defaultBlackLevel;
+                    grayBuffer[y * dw + x] = (byte) Math.max(0, Math.min(255, (int)(val * signalScaleStack * 2.0f))); // 2x boost
                 }
             }
 

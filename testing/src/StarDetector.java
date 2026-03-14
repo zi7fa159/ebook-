@@ -15,7 +15,7 @@ public class StarDetector {
     public StarDetector(int width, int height) {
         this.width = width;
         this.height = height;
-        this.threshold = 40; // Basic brightness threshold, can be adjusted
+        this.threshold = 25; // Lowered for better sensitivity
     }
 
     public int getWidth() { return width; }
@@ -51,7 +51,7 @@ public class StarDetector {
         }
 
         float halfMax = (peak - minVal) / 2.0f + minVal;
-        if (peak <= minVal + 10) return -1; // Not enough contrast
+        if (peak <= minVal + 5) return -1; // Contrast check
 
         // Search radially for half-max
         float totalRadius = 0;
@@ -63,7 +63,7 @@ public class StarDetector {
                 if (val <= halfMax) {
                     // Linear interpolation for sub-pixel radius
                     int prevVal = grayData[(cy + d[1] * (r - 1)) * width + (cx + d[0] * (r - 1))] & 0xFF;
-                    float subR = (r - 1) + (halfMax - prevVal) / (float)(val - prevVal);
+                    float subR = (r - 1) + (halfMax - prevVal) / (float)Math.max(1, (val - prevVal));
                     totalRadius += subR;
                     dirCount++;
                     break;
@@ -102,28 +102,44 @@ public class StarDetector {
     }
 
     public List<float[]> detectStarsCentroid(byte[] grayData) {
-        // 1. Simple 3x3 Blur (Box filter) to reduce noise
+        // 1. Simple 3x3 Blur and Background Subtraction
         if (blurred == null || blurred.length != width * height) {
             blurred = new byte[width * height];
         }
+
+        // Dynamic background estimation (min in 16x16 blocks)
+        int block = 16;
+        int bw = width / block;
+        int bh = height / block;
+        byte[] bgMap = new byte[bw * bh];
+        for (int by = 0; by < bh; by++) {
+            for (int bx = 0; bx < bw; bx++) {
+                int min = 255;
+                for (int y = 0; y < block; y++) {
+                    for (int x = 0; x < block; x++) {
+                        int v = grayData[(by * block + y) * width + (bx * block + x)] & 0xFF;
+                        if (v < min) min = v;
+                    }
+                }
+                bgMap[by * bw + bx] = (byte) min;
+            }
+        }
+
         for (int y = 1; y < height - 1; y++) {
             for (int x = 1; x < width - 1; x++) {
+                int bg = bgMap[(y / block) * bw + (x / block)] & 0xFF;
                 int sum = (grayData[(y-1)*width + (x-1)] & 0xFF) + (grayData[(y-1)*width + x] & 0xFF) + (grayData[(y-1)*width + (x+1)] & 0xFF) +
                           (grayData[y*width + (x-1)] & 0xFF) + (grayData[y*width + x] & 0xFF) + (grayData[y*width + (x+1)] & 0xFF) +
                           ((y+1)*width + (x-1) < grayData.length ? (grayData[(y+1)*width + (x-1)] & 0xFF) : 0) +
                           ((y+1)*width + x < grayData.length ? (grayData[(y+1)*width + x] & 0xFF) : 0) +
                           ((y+1)*width + (x+1) < grayData.length ? (grayData[(y+1)*width + (x+1)] & 0xFF) : 0);
-                blurred[y * width + x] = (byte)(sum / 9);
+                int val = Math.max(0, (sum / 9) - bg);
+                blurred[y * width + x] = (byte)val;
             }
         }
 
         List<StarCandidate> candidates = new ArrayList<>();
-
-        // Very basic star detection:
-        // 1. Grid search for local maxima above threshold
-        // 2. Simple 3x3 or 5x5 check
-
-        int step = 4; // Skip some pixels for speed during initial scan
+        int step = 4;
         int radius = 5;
         for (int y = radius; y < height - radius; y += step) {
             for (int x = radius; x < width - radius; x += step) {
@@ -136,14 +152,12 @@ public class StarDetector {
             }
         }
 
-        // Sort by brightness and take top 50
         Collections.sort(candidates, (o1, o2) -> Integer.compare(o2.brightness, o1.brightness));
 
         List<float[]> stars = new ArrayList<>();
         int limit = Math.min(candidates.size(), 50);
         for (int i = 0; i < limit; i++) {
             StarCandidate c = candidates.get(i);
-            // Calculate sub-pixel centroid
             float sumX = 0, sumY = 0, sumW = 0;
             int r = 3;
             for (int dy = -r; dy <= r; dy++) {
@@ -151,7 +165,7 @@ public class StarDetector {
                     int ix = c.x + dx;
                     int iy = c.y + dy;
                     if (ix >= 0 && ix < width && iy >= 0 && iy < height) {
-                        float w = (grayData[iy * width + ix] & 0xFF);
+                        float w = (blurred[iy * width + ix] & 0xFF);
                         sumX += ix * w;
                         sumY += iy * w;
                         sumW += w;
