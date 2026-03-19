@@ -14,6 +14,7 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class CameraController {
     private static final String TAG = "ManualCam_Controller";
@@ -32,8 +33,11 @@ public class CameraController {
     private float focusDist = 0.0f;
     private int wbKelvin = 5000;
 
+    private boolean isAdjustmentMode = true;
+    private String cameraId;
+
     public interface CaptureListener {
-        void onRawAvailable(Image img, TotalCaptureResult result);
+        void onRawFrame(Image img, TotalCaptureResult result, boolean isPreview);
     }
 
     public CameraController(Context context, TextureView textureView, CaptureListener listener) {
@@ -53,7 +57,6 @@ public class CameraController {
     private void openCamera() {
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         try {
-            String cameraId = null;
             for (String id : manager.getCameraIdList()) {
                 CameraCharacteristics chars = manager.getCameraCharacteristics(id);
                 Integer facing = chars.get(CameraCharacteristics.LENS_FACING);
@@ -62,19 +65,16 @@ public class CameraController {
                     break;
                 }
             }
-
             if (cameraId == null) return;
 
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            Size[] rawSizes = map.getOutputSizes(ImageFormat.RAW_SENSOR);
-            Size bestRaw = rawSizes[0];
-            for (Size s : rawSizes) if (s.getWidth() * s.getHeight() > bestRaw.getWidth() * bestRaw.getHeight()) bestRaw = s;
+            Size bestRaw = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.RAW_SENSOR)),
+                (a, b) -> Long.compare(a.getWidth() * (long)a.getHeight(), b.getWidth() * (long)b.getHeight()));
 
-            rawReader = ImageReader.newInstance(bestRaw.getWidth(), bestRaw.getHeight(), ImageFormat.RAW_SENSOR, 2);
+            rawReader = ImageReader.newInstance(bestRaw.getWidth(), bestRaw.getHeight(), ImageFormat.RAW_SENSOR, 3);
             rawReader.setOnImageAvailableListener(reader -> {
-                Image img = reader.acquireLatestImage();
-                // Handled in capture session callback to get metadata
+                // We'll acquire in the capture callback to sync with metadata
             }, camHandler);
 
             manager.openCamera(cameraId, new CameraDevice.StateCallback() {
@@ -82,48 +82,69 @@ public class CameraController {
                     cameraDevice = camera;
                     createSession();
                 }
-                @Override public void onDisconnected(CameraDevice camera) { camera.close(); }
-                @Override public void onError(CameraDevice camera, int error) { camera.close(); }
+                @Override public void onDisconnected(CameraDevice camera) { stop(); }
+                @Override public void onError(CameraDevice camera, int error) { stop(); }
             }, camHandler);
         } catch (Exception e) { Log.e(TAG, "Error opening camera", e); }
     }
 
     private void createSession() {
         try {
-            Surface previewSurface = new Surface(textureView.getSurfaceTexture());
             Surface rawSurface = rawReader.getSurface();
-            cameraDevice.createCaptureSession(Arrays.asList(previewSurface, rawSurface), new CameraCaptureSession.StateCallback() {
+            // We don't necessarily need a preview surface if we render RAW manually,
+            // but Camera2 often prefers having one.
+            Surface dummySurface = new Surface(textureView.getSurfaceTexture());
+
+            cameraDevice.createCaptureSession(Arrays.asList(dummySurface, rawSurface), new CameraCaptureSession.StateCallback() {
                 @Override public void onConfigured(CameraCaptureSession session) {
                     captureSession = session;
-                    startPreview();
+                    updateRepeatingRequest();
                 }
                 @Override public void onConfigureFailed(CameraCaptureSession session) {}
             }, camHandler);
-        } catch (Exception e) {}
+        } catch (Exception e) { Log.e(TAG, "Session creation failed", e); }
     }
 
-    private void startPreview() {
+    public void setAdjustmentMode(boolean active) {
+        this.isAdjustmentMode = active;
+        updateRepeatingRequest();
+    }
+
+    private void updateRepeatingRequest() {
+        if (captureSession == null) return;
         try {
-            CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            builder.addTarget(new Surface(textureView.getSurfaceTexture()));
-            applyManualParams(builder);
-            captureSession.setRepeatingRequest(builder.build(), null, camHandler);
-        } catch (Exception e) {}
+            captureSession.stopRepeating();
+            if (isAdjustmentMode) {
+                CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                builder.addTarget(rawReader.getSurface());
+                // For preview, we "cap" the exposure to 500ms to keep UI responsive
+                long previewExp = Math.min(exposureNs, 500_000_000L);
+                applyManualParams(builder, previewExp, iso, focusDist);
+                captureSession.setRepeatingRequest(builder.build(), new CameraCaptureSession.CaptureCallback() {
+                    @Override
+                    public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                        Image img = rawReader.acquireLatestImage();
+                        if (img != null) listener.onRawFrame(img, result, true);
+                    }
+                }, camHandler);
+            }
+        } catch (Exception e) { Log.e(TAG, "Update repeating failed", e); }
     }
 
-    public void takeRaw() {
+    public void takeStill() {
+        if (captureSession == null) return;
         try {
             CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             builder.addTarget(rawReader.getSurface());
-            applyManualParams(builder);
+            applyManualParams(builder, exposureNs, iso, focusDist);
             captureSession.capture(builder.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     Image img = rawReader.acquireLatestImage();
-                    if (img != null) listener.onRawAvailable(img, result);
+                    if (img != null) listener.onRawFrame(img, result, false);
                 }
             }, camHandler);
-        } catch (Exception e) {}
+        } catch (Exception e) { Log.e(TAG, "Still capture failed", e); }
     }
 
     public void updateParams(long exp, int isoVal, float focus, int wb) {
@@ -131,28 +152,32 @@ public class CameraController {
         this.iso = isoVal;
         this.focusDist = focus;
         this.wbKelvin = wb;
-        startPreview();
+        if (isAdjustmentMode) updateRepeatingRequest();
     }
 
-    private void applyManualParams(CaptureRequest.Builder builder) {
+    private void applyManualParams(CaptureRequest.Builder builder, long exp, int sensitivity, float focus) {
         builder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
         builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
         builder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
         builder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
-
-        builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureNs);
-        builder.set(CaptureRequest.SENSOR_SENSITIVITY, iso);
-        builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focusDist);
-        // WB is handled via gains in Camera2, but for DNG export the Kelvin value is used in DngCreator
+        builder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exp);
+        builder.set(CaptureRequest.SENSOR_SENSITIVITY, sensitivity);
+        builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focus);
     }
 
     public CameraCharacteristics getCharacteristics() throws Exception {
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
-        return manager.getCameraCharacteristics(cameraDevice.getId());
+        return manager.getCameraCharacteristics(cameraId);
     }
 
     public void stop() {
-        if (cameraDevice != null) cameraDevice.close();
+        try {
+            if (captureSession != null) { captureSession.stopRepeating(); captureSession.close(); }
+            if (cameraDevice != null) cameraDevice.close();
+            if (rawReader != null) rawReader.close();
+        } catch (Exception e) {}
         if (camThread != null) camThread.quitSafely();
+        captureSession = null;
+        cameraDevice = null;
     }
 }

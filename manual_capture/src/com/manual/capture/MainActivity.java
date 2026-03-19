@@ -3,7 +3,9 @@ package com.manual.capture;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.DngCreator;
@@ -12,6 +14,7 @@ import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.util.Log;
@@ -23,6 +26,10 @@ import java.io.OutputStream;
 public class MainActivity extends Activity implements CameraController.CaptureListener {
     private static final String TAG = "ManualRaw_Main";
     private CameraController cameraController;
+    private Renderer renderer;
+    private FrameProcessor frameProcessor;
+    private ColorEngine colorEngine;
+
     private TextureView preview;
     private TextView statusText, storageInfo;
     private ProgressBar progress;
@@ -32,31 +39,66 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
     private SeekBar seekShutter, seekIso, seekFocus, seekWb;
     private TextView valShutter, valIso, valFocus, valWb;
 
-    private float minShutter = 0.01f, maxShutter = 2.0f;
-    private int minIso = 100, maxIso = 3200;
+    private float minShutter = 0.0001f, maxShutter = 32.0f;
+    private int minIso = 100, maxIso = 6400;
     private float minFocus = 0.0f, maxFocus = 10.0f;
-    private int minWb = 3000, maxWb = 7000;
+    private int minWb = 2000, maxWb = 10000;
 
     private Uri saveFolderUri;
-    private boolean isContinuous = false;
     private boolean isRunning = false;
-    private long startTime = 0;
     private int captureCount = 0;
+    private int targetFrames = 1;
 
-    interface LimitCallback {
-        void onLimitSet(float min, float max);
-    }
+    private SharedPreferences prefs;
+    private HandlerThread saveThread;
+    private Handler saveHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(com.manual.capture.R.layout.activity_main);
+
+        saveThread = new HandlerThread("SaveThread");
+        saveThread.start();
+        saveHandler = new Handler(saveThread.getLooper());
+
+        prefs = getSharedPreferences("manual_raw_prefs", Context.MODE_PRIVATE);
+        loadPrefs();
         initUI();
         if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, 1);
         } else {
             initCamera();
         }
+    }
+
+    private void loadPrefs() {
+        minShutter = prefs.getFloat("minShutter", 0.0001f);
+        maxShutter = prefs.getFloat("maxShutter", 32.0f);
+        minIso = prefs.getInt("minIso", 100);
+        maxIso = prefs.getInt("maxIso", 6400);
+        minFocus = prefs.getFloat("minFocus", 0.0f);
+        maxFocus = prefs.getFloat("maxFocus", 10.0f);
+        minWb = prefs.getInt("minWb", 2000);
+        maxWb = prefs.getInt("maxWb", 10000);
+        String uriStr = prefs.getString("saveFolderUri", null);
+        if (uriStr != null) {
+            try { saveFolderUri = Uri.parse(uriStr); } catch (Exception e) {}
+        }
+    }
+
+    private void savePrefs() {
+        SharedPreferences.Editor ed = prefs.edit();
+        ed.putFloat("minShutter", minShutter);
+        ed.putFloat("maxShutter", maxShutter);
+        ed.putInt("minIso", minIso);
+        ed.putInt("maxIso", maxIso);
+        ed.putFloat("minFocus", minFocus);
+        ed.putFloat("maxFocus", maxFocus);
+        ed.putInt("minWb", minWb);
+        ed.putInt("maxWb", maxWb);
+        if (saveFolderUri != null) ed.putString("saveFolderUri", saveFolderUri.toString());
+        ed.apply();
     }
 
     private void initUI() {
@@ -73,7 +115,7 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
         seekWb = findViewById(com.manual.capture.R.id.seek_wb); valWb = findViewById(com.manual.capture.R.id.val_wb);
 
         setupSlider(seekShutter, valShutter, "s", p -> {
-            float val = minShutter + (maxShutter - minShutter) * (p / 1000.0f);
+            float val = minShutter + (maxShutter - minShutter) * (p / 10000.0f);
             return String.format("%.4f", val);
         });
         setupSlider(seekIso, valIso, "", p -> String.valueOf(minIso + (int)((maxIso - minIso) * (p / 1000.0f))));
@@ -93,10 +135,34 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
             else startCapture();
         });
 
-        setLimitAction(valShutter, "Shutter Range", (min, max) -> { minShutter = min; maxShutter = max; });
-        setLimitAction(valIso, "ISO Range", (min, max) -> { minIso = (int)min; maxIso = (int)max; });
-        setLimitAction(valFocus, "Focus Range", (min, max) -> { minFocus = min; maxFocus = max; });
-        setLimitAction(valWb, "WB Range", (min, max) -> { minWb = (int)min; maxWb = (int)max; });
+        btnMode.setOnCheckedChangeListener((b, checked) -> {
+            if (cameraController != null) cameraController.setAdjustmentMode(!checked);
+            if (checked) {
+                showFrameCountDialog();
+            }
+        });
+
+        setLimitAction(valShutter, "Shutter Range", (min, max) -> { minShutter = min; maxShutter = max; savePrefs(); });
+        setLimitAction(valIso, "ISO Range", (min, max) -> { minIso = (int)min; maxIso = (int)max; savePrefs(); });
+        setLimitAction(valFocus, "Focus Range", (min, max) -> { minFocus = min; maxFocus = max; savePrefs(); });
+        setLimitAction(valWb, "WB Range", (min, max) -> { minWb = (int)min; maxWb = (int)max; savePrefs(); });
+
+        if (saveFolderUri != null) storageInfo.setText("FOLDER: OK");
+    }
+
+    private void showFrameCountDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Continuous Frames");
+        final EditText input = new EditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        input.setText(String.valueOf(targetFrames));
+        builder.setView(input);
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            try {
+                targetFrames = Integer.parseInt(input.getText().toString());
+            } catch (Exception e) {}
+        });
+        builder.show();
     }
 
     private void setupSlider(SeekBar seek, TextView valTxt, String suffix, java.util.function.Function<Integer, String> mapper) {
@@ -108,6 +174,42 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+
+        valTxt.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Manual Value");
+            final EditText input = new EditText(this);
+            input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            builder.setView(input);
+            builder.setPositiveButton("OK", (dialog, which) -> {
+                try {
+                    float val = Float.parseFloat(input.getText().toString());
+                    updateCamParamsManual(valTxt.getId(), val);
+                } catch (Exception e) {}
+            });
+            builder.show();
+        });
+    }
+
+    private void updateCamParamsManual(int viewId, float val) {
+        if (cameraController == null) return;
+        long exp = (long) (Float.parseFloat(valShutter.getText().toString().replace("s", "")) * 1e9);
+        int iso = Integer.parseInt(valIso.getText().toString());
+        float focus = Float.parseFloat(valFocus.getText().toString().replace("INF", "0"));
+        int wb = Integer.parseInt(valWb.getText().toString().replace("K", ""));
+
+        if (viewId == valShutter.getId()) exp = (long)(val * 1e9);
+        else if (viewId == valIso.getId()) iso = (int)val;
+        else if (viewId == valFocus.getId()) focus = val;
+        else if (viewId == valWb.getId()) wb = (int)val;
+
+        cameraController.updateParams(exp, iso, focus, wb);
+        if (colorEngine != null) colorEngine.setTemperature(wb);
+
+        if (viewId == valShutter.getId()) valShutter.setText(String.format("%.4fs", val));
+        else if (viewId == valIso.getId()) valIso.setText(String.valueOf((int)val));
+        else if (viewId == valFocus.getId()) valFocus.setText(val == 0 ? "INF" : String.format("%.2f", val));
+        else if (viewId == valWb.getId()) valWb.setText((int)val + "K");
     }
 
     private void setLimitAction(View view, String title, final LimitCallback callback) {
@@ -132,11 +234,12 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
 
     private void updateCamParams() {
         if (cameraController == null) return;
-        float s = minShutter + (maxShutter - minShutter) * (seekShutter.getProgress() / 1000.0f);
+        float s = minShutter + (maxShutter - minShutter) * (seekShutter.getProgress() / 10000.0f);
         int i = minIso + (int)((maxIso - minIso) * (seekIso.getProgress() / 1000.0f));
         float f = minFocus + (maxFocus - minFocus) * (seekFocus.getProgress() / 1000.0f);
         int w = minWb + (int)((maxWb - minWb) * (seekWb.getProgress() / 1000.0f));
         cameraController.updateParams((long)(s * 1e9), i, f, w);
+        if (colorEngine != null) colorEngine.setTemperature(w);
     }
 
     private void startCapture() {
@@ -144,16 +247,17 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
             Toast.makeText(this, "Select folder first!", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (!btnMode.isChecked()) {
+            Toast.makeText(this, "Adjustment mode active. Switch to CONT for saving.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         isRunning = true;
-        isContinuous = btnMode.isChecked();
-        startTime = System.currentTimeMillis();
         captureCount = 0;
         btnShoot.setText("STOP");
-        if (isContinuous) {
-            progress.setVisibility(View.VISIBLE);
-            progress.setIndeterminate(true);
-        }
-        captureCycle();
+        progress.setVisibility(View.VISIBLE);
+        progress.setMax(targetFrames);
+        progress.setProgress(0);
+        cameraController.takeStill();
     }
 
     private void stopCapture() {
@@ -165,38 +269,73 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
         });
     }
 
-    private void captureCycle() {
-        if (!isRunning) return;
-        cameraController.takeRaw();
-    }
-
     @Override
-    public void onRawAvailable(Image img, TotalCaptureResult result) {
-        captureCount++;
-        saveDng(img, result);
-        final long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-        runOnUiThread(() -> statusText.setText("SAVED: " + captureCount + " (" + elapsed + "s)"));
-
-        if (isContinuous && isRunning) {
-            new Handler(Looper.getMainLooper()).postDelayed(this::captureCycle, 100);
+    public void onRawFrame(Image img, TotalCaptureResult result, boolean isPreview) {
+        if (isPreview) {
+            if (frameProcessor != null) frameProcessor.processFrame(img);
         } else {
-            stopCapture();
+            if (isRunning) {
+                captureCount++;
+                final int currentCount = captureCount;
+                // Move save logic to background thread and wait for completion to avoid OOM
+                saveHandler.post(() -> {
+                    try {
+                        saveDng(img, result);
+                    } finally {
+                        img.close(); // Explicitly close here
+                    }
+
+                    runOnUiThread(() -> {
+                        progress.setProgress(currentCount);
+                        statusText.setText("SAVED: " + currentCount + "/" + targetFrames);
+
+                        // Trigger next frame ONLY after saving is done to avoid memory spikes
+                        if (currentCount < targetFrames && isRunning) {
+                            cameraController.takeStill();
+                        } else if (currentCount >= targetFrames) {
+                            stopCapture();
+                        }
+                    });
+                });
+            } else {
+                img.close();
+            }
         }
     }
 
     private void saveDng(Image img, TotalCaptureResult result) {
         try {
-            String filename = "IMG_" + System.currentTimeMillis() + ".dng";
+            String filename = "RAW_" + System.currentTimeMillis() + ".dng";
             Uri fileUri = DocumentsContract.createDocument(getContentResolver(), saveFolderUri, "image/x-adobe-dng", filename);
-
-            try (OutputStream out = getContentResolver().openOutputStream(fileUri)) {
-                DngCreator creator = new DngCreator(cameraController.getCharacteristics(), result);
-                creator.writeImage(out, img);
+            if (fileUri != null) {
+                try (OutputStream out = getContentResolver().openOutputStream(fileUri)) {
+                    DngCreator creator = new DngCreator(cameraController.getCharacteristics(), result);
+                    creator.setOrientation(android.media.ExifInterface.ORIENTATION_NORMAL);
+                    creator.writeImage(out, img);
+                }
             }
-            img.close();
         } catch (Exception e) {
             Log.e(TAG, "Save failed", e);
         }
+    }
+
+    private void initCamera() {
+        renderer = new Renderer(preview);
+        colorEngine = new ColorEngine();
+        renderer.setColorEngine(colorEngine);
+
+        cameraController = new CameraController(this, preview, this);
+        cameraController.start();
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            try {
+                CameraCharacteristics chars = cameraController.getCharacteristics();
+                android.util.Size size = chars.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+                frameProcessor = new FrameProcessor(size.getWidth(), size.getHeight(), renderer);
+                frameProcessor.setSensorLevels(64, 1023);
+                updateCamParams();
+            } catch (Exception e) {}
+        }, 2000);
     }
 
     @Override
@@ -205,17 +344,19 @@ public class MainActivity extends Activity implements CameraController.CaptureLi
             Uri treeUri = data.getData();
             saveFolderUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri));
             getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            storageInfo.setText("FOLDER: " + treeUri.getLastPathSegment());
+            storageInfo.setText("FOLDER: OK");
+            savePrefs();
         }
-    }
-
-    private void initCamera() {
-        cameraController = new CameraController(this, preview, this);
-        cameraController.start();
     }
 
     @Override protected void onDestroy() {
         super.onDestroy();
         if (cameraController != null) cameraController.stop();
+        if (frameProcessor != null) frameProcessor.stop();
+        if (saveThread != null) saveThread.quitSafely();
+    }
+
+    interface LimitCallback {
+        void onLimitSet(float min, float max);
     }
 }
