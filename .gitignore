@@ -1,0 +1,7 @@
+gen/
+obj/
+bin/
+*.keystore
+*.dex
+# *.apk
+*.zip
