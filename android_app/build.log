@@ -1,0 +1,26 @@
+Cloning into 'python-for-android'...
+[0m[1;34m# Check configuration tokens[0m
+[0m[1;31m# WARNING: Config token app android.sdk is deprecated and ignored, but you set value 33[0m
+[0m[1;34m# Ensure build layout[0m
+[0m[1;34m# Check configuration tokens[0m
+[0m[1;34m# Preparing build[0m
+[0m[1;34m# Check requirements for android[0m
+[0m[1;30m# Search for Git (git)[0m
+[0m[1;30m#  -> found at /usr/bin/git[0m
+[0m[1;30m# Search for Cython (cython)[0m
+[0m[1;30m#  -> found at /home/jules/.pyenv/versions/3.12.12/bin/cython[0m
+[0m[1;30m# Search for Java compiler (javac)[0m
+[0m[1;30m#  -> found at /usr/lib/jvm/java-21-openjdk-amd64/bin/javac[0m
+[0m[1;30m# Search for Java keytool (keytool)[0m
+[0m[1;30m#  -> found at /usr/lib/jvm/java-21-openjdk-amd64/bin/keytool[0m
+[0m[1;34m# Install platform[0m
+[0m[1;30m# Run ['git', 'clone', '-b', 'master', '--single-branch', 'https://github.com/kivy/python-for-android.git', 'python-for-android'][0m
+[0m[1;30m# Cwd /app/android_app/.buildozer/android/platform[0m
+[0m[1;30m# Run ['/home/jules/.pyenv/versions/3.12.12/bin/python3.12', '-m', 'pip', 'install', '-q', '--user', 'appdirs', 'colorama>=0.3.3', 'jinja2', 'sh>=1.10, <2.0; sys_platform!="win32"', 'build', 'toml', 'packaging', 'setuptools'][0m
+[0m[1;30m# Cwd None[0m
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: pip install --upgrade pip
+[0m[1;34m# Android ANT is missing, downloading[0m
+[0m[1;30m# Downloading https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.4-bin.tar.gz[0m
+- Download 0.00%- Download 0.15%- Download 0.29%- Download 0.44%- Download 0.59%- Download 0.74%- Download 0.88%- Download 1.03%- Download 1.18%- Download 1.32%- Download 1.47%- Download 1.62%- Download 1.77%- Download 1.91%- Download 2.06%- Download 2.21%- Download 2.36%- Download 2.50%- Download 2.65%- Download 2.80%- Download 2.94%- Download 3.09%- Download 3.24%- Download 3.39%- Download 3.53%- Download 3.68%- Download 3.83%- Download 3.97%- Download 4.12%- Download 4.27%- Download 4.42%- Download 4.56%- Download 4.71%- Download 4.86%- Download 5.01%- Download 5.15%- Download 5.30%- Download 5.45%- Download 5.59%- Download 5.74%- Download 5.89%- Download 6.04%- Download 6.18%- Download 6.33%- Download 6.48%- Download 6.62%- Download 6.77%- Download 6.92%- Download 7.07%- Download 7.21%- Download 7.36%- Download 7.51%- Download 7.66%- Download 7.80%- Download 7.95%- Download 8.10%- Download 8.24%- Download 8.39%- Download 8.54%- Download 8.69%- Download 8.83%- Download 8.98%- Download 9.13%- Download 9.27%- Download 9.42%- Download 9.57%- Download 9.72%- Download 9.86%- Download 10.01%- Download 10.16%- Download 10.31%- Download 10.45%- Download 10.60%- Download 10.75%- Download 10.89%- Download 11.04%- Download 11.19%- Download 11.34%- Download 11.48%- Download 11.63%- Download 11.78%- Download 11.92%- Download 12.07%- Download 12.22%- Download 12.37%- Download 12.51%- Download 12.66%- Download 12.81%- Download 12.96%- Download 13.10%- Download 13.25%- Download 13.40%- Download 13.54%- Download 13.69%- Download 13.84%- Download 13.99%- Download 14.13%- Download 14.28%- Download 14.43%- Download 14.57%- Download 14.72%- Download 14.87%- Download 15.02%- Download 15.16%- Download 15.31%- Download 15.46%- Download 15.60%- Download 15.75%- Download 15.90%- Download 16.05%- Download 16.19%- Download 16.34%- Download 16.49%- Download 16.64%- Download 16.78%- Download 16.93%- Download 17.08%- Download 17.22%- Download 17.37%- Download 17.52%- Download 17.67%- Download 17.81%- Download 17.96%- Download 18.11%- Download 18.25%- Download 18.40%- Download 18.55%- Download 18.70%- Download 18.84%- Download 18.99%- Download 19.14%- Download 19.29%- Download 19.43%- Download 19.58%- Download 19.73%- Download 19.87%- Download 20.02%- Download 20.17%- Download 20.32%- Download 20.46%- Download 20.61%
