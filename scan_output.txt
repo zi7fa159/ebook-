@@ -1,0 +1,759 @@
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+
+--- Scanning Galactic (l=100, b=0) -> ICRS (RA=330.00, Dec=55.05) ---
+Fetching data for RA=330.00353903714, Dec=55.04986525706472, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=330.9427, Dec=54.8301
+Stars: 21
+Mean PM: (-5.71, -4.78)
+Mean Parallax: 0.40
+Novelty Score: 2.33
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=330.0521, Dec=54.7809
+Stars: 3040
+Mean PM: (-2.83, -2.91)
+Mean Parallax: 0.39
+Novelty Score: 61.41
+
+--- Scanning Galactic (l=102, b=0) -> ICRS (RA=332.87, Dec=56.23) ---
+Fetching data for RA=332.86791400438676, Dec=56.22774973868714, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=333.1689, Dec=55.8338
+Stars: 23
+Mean PM: (-7.32, -6.30)
+Mean Parallax: 0.62
+Novelty Score: 1.72
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/joblib/externals/loky/backend/resource_tracker.py:359: UserWarning: resource_tracker: There appear to be 10 leaked semlock objects to clean up at shutdown
+  warnings.warn(
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/joblib/externals/loky/backend/resource_tracker.py:359: UserWarning: resource_tracker: There appear to be 3 leaked folder objects to clean up at shutdown
+  warnings.warn(
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=333.1267, Dec=55.9050
+Stars: 6076
+Mean PM: (-2.66, -2.64)
+Mean Parallax: 0.43
+Novelty Score: 121.97
+
+--- Scanning Galactic (l=104, b=0) -> ICRS (RA=335.91, Dec=57.34) ---
+Fetching data for RA=335.9083399895893, Dec=57.3353481911067, radius=0.7...
+Fetched 10000 stars.
+Detected 4 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=336.3130, Dec=57.2526
+Stars: 27
+Mean PM: (-1.85, -1.45)
+Mean Parallax: 0.38
+Novelty Score: 2.80
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=335.6104, Dec=56.9025
+Stars: 23
+Mean PM: (-0.63, -1.68)
+Mean Parallax: 0.46
+Novelty Score: 2.54
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=335.4837, Dec=56.9982
+Stars: 24
+Mean PM: (-1.73, -2.13)
+Mean Parallax: 0.35
+Novelty Score: 2.76
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=335.9063, Dec=57.0231
+Stars: 1016
+Mean PM: (-3.21, -2.58)
+Mean Parallax: 0.28
+Novelty Score: 21.52
+
+--- Scanning Galactic (l=106, b=0) -> ICRS (RA=339.13, Dec=58.37) ---
+Fetching data for RA=339.1309117363828, Dec=58.36518470855962, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=338.6146, Dec=58.0964
+Stars: 25
+Mean PM: (-6.84, -4.93)
+Mean Parallax: 0.45
+Novelty Score: 2.29
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=339.0231, Dec=58.1749
+Stars: 5166
+Mean PM: (-2.72, -2.26)
+Mean Parallax: 0.38
+Novelty Score: 103.85
+
+--- Scanning Galactic (l=108, b=0) -> ICRS (RA=342.54, Dec=59.31) ---
+Fetching data for RA=342.5388060930252, Dec=59.30934540743785, radius=0.7...
+Gaia query failed: Error 408:
+Job timeout/aborted.
+
+
+--- Scanning Galactic (l=110, b=0) -> ICRS (RA=346.13, Dec=60.16) ---
+Fetching data for RA=346.1312935040781, Dec=60.159619863691375, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=346.0920, Dec=59.7907
+Stars: 33
+Mean PM: (5.77, -1.71)
+Mean Parallax: 2.06
+Novelty Score: 2.79
+
+--- Scanning Galactic (l=112, b=0) -> ICRS (RA=349.90, Dec=60.91) ---
+Fetching data for RA=349.9027260988443, Dec=60.90770653023389, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=349.8494, Dec=60.5969
+Stars: 46
+Mean PM: (-3.28, -4.47)
+Mean Parallax: 0.98
+Novelty Score: 3.56
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=349.9675, Dec=60.7567
+Stars: 5603
+Mean PM: (-2.48, -1.67)
+Mean Parallax: 0.43
+Novelty Score: 112.53
+
+--- Scanning Galactic (l=114, b=0) -> ICRS (RA=353.84, Dec=61.55) ---
+Fetching data for RA=353.8416279127953, Dec=61.54548504540375, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=353.6466, Dec=61.7635
+Stars: 22
+Mean PM: (-3.00, -4.06)
+Mean Parallax: 0.95
+Novelty Score: 3.15
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=353.8420, Dec=61.3847
+Stars: 5582
+Mean PM: (-2.38, -1.49)
+Mean Parallax: 0.43
+Novelty Score: 112.11
+
+--- Scanning Galactic (l=116, b=0) -> ICRS (RA=357.93, Dec=62.07) ---
+Fetching data for RA=357.9300536270824, Dec=62.065348884312066, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=358.5197, Dec=61.9344
+Stars: 26
+Mean PM: (1.87, -2.21)
+Mean Parallax: 0.57
+Novelty Score: 2.23
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=358.0855, Dec=61.8773
+Stars: 5230
+Mean PM: (-2.49, -1.21)
+Mean Parallax: 0.38
+Novelty Score: 105.17
+
+--- Scanning Galactic (l=118, b=0) -> ICRS (RA=2.14, Dec=62.46) ---
+Fetching data for RA=2.1434001609122855, Dec=62.46057916216024, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=2.2350, Dec=62.2476
+Stars: 22
+Mean PM: (0.94, -2.62)
+Mean Parallax: 0.62
+Novelty Score: 2.68
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=1.9927, Dec=62.4140
+Stars: 4791
+Mean PM: (-2.27, -0.95)
+Mean Parallax: 0.37
+Novelty Score: 96.43
+
+--- Scanning Galactic (l=120, b=0) -> ICRS (RA=6.45, Dec=62.73) ---
+Fetching data for RA=6.450831136239271, Dec=62.72572675402354, radius=0.7...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=6.3237, Dec=62.4160
+Stars: 26
+Mean PM: (4.31, -1.00)
+Mean Parallax: 0.74
+Novelty Score: 1.81
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=6.4958, Dec=62.4786
+Stars: 21
+Mean PM: (0.94, -0.50)
+Mean Parallax: 0.97
+Novelty Score: 3.11
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=6.5082, Dec=62.6470
+Stars: 5865
+Mean PM: (-2.10, -0.84)
+Mean Parallax: 0.39
+Novelty Score: 117.83
+
+--- Scanning Galactic (l=122, b=0) -> ICRS (RA=10.82, Dec=62.86) ---
+Fetching data for RA=10.816395750803327, Dec=62.85695904358512, radius=0.7...
+Fetched 10000 stars.
+Detected 4 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=10.6633, Dec=62.6890
+Stars: 29
+Mean PM: (-4.57, -3.40)
+Mean Parallax: 1.33
+Novelty Score: 1.91
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=10.5773, Dec=62.5487
+Stars: 21
+Mean PM: (-5.32, -0.03)
+Mean Parallax: 1.45
+Novelty Score: 2.70
+Known cluster [I81] M 425 detected at RA=10.2659, Dec=62.7068
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=10.6981, Dec=62.7797
+Stars: 5327
+Mean PM: (-1.83, -0.65)
+Mean Parallax: 0.41
+Novelty Score: 107.10
+
+--- Scanning Galactic (l=124, b=0) -> ICRS (RA=15.20, Dec=62.85) ---
+Fetching data for RA=15.200797493950706, Dec=62.852324008669775, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+
+--- Scanning Galactic (l=126, b=0) -> ICRS (RA=19.56, Dec=62.71) ---
+Fetching data for RA=19.563624804571653, Dec=62.711891229705465, radius=0.7...
+Fetched 9618 stars.
+Detected 3 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=19.5039, Dec=62.6802
+Stars: 2018
+Mean PM: (-1.65, -0.43)
+Mean Parallax: 0.34
+Novelty Score: 41.57
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=19.4220, Dec=62.6382
+Stars: 30
+Mean PM: (-0.80, 0.49)
+Mean Parallax: 0.29
+Novelty Score: 2.82
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=19.1053, Dec=62.3948
+Stars: 26
+Mean PM: (-1.49, 0.75)
+Mean Parallax: 0.35
+Novelty Score: 2.92
+
+--- Scanning Galactic (l=128, b=0) -> ICRS (RA=23.87, Dec=62.44) ---
+Fetching data for RA=23.865741937774335, Dec=62.437746787449136, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=23.7112, Dec=62.2938
+Stars: 27
+Mean PM: (7.61, -7.68)
+Mean Parallax: 1.04
+Novelty Score: 1.20
+
+--- Scanning Galactic (l=130, b=0) -> ICRS (RA=28.07, Dec=62.03) ---
+Fetching data for RA=28.071496779329273, Dec=62.03384290051913, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=28.3249, Dec=61.9406
+Stars: 26
+Mean PM: (5.17, -3.30)
+Mean Parallax: 0.80
+Novelty Score: 1.44
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=28.2175, Dec=61.9632
+Stars: 7141
+Mean PM: (-0.80, -0.53)
+Mean Parallax: 0.45
+Novelty Score: 143.27
+
+--- Scanning Galactic (l=132, b=0) -> ICRS (RA=32.15, Dec=61.51) ---
+Fetching data for RA=32.15044971302584, Dec=61.50572679123267, radius=0.7...
+Fetched 10000 stars.
+Detected 5 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=31.5335, Dec=61.4995
+Stars: 23
+Mean PM: (5.06, -1.82)
+Mean Parallax: 0.77
+Novelty Score: 1.68
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=31.5495, Dec=61.7026
+Stars: 61
+Mean PM: (-2.24, 0.77)
+Mean Parallax: 1.03
+Novelty Score: 4.15
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=31.9995, Dec=61.2974
+Stars: 25
+Mean PM: (-0.19, -1.67)
+Mean Parallax: 0.97
+Novelty Score: 2.27
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=32.1778, Dec=61.3567
+Stars: 77
+Mean PM: (1.91, -1.84)
+Mean Parallax: 0.56
+Novelty Score: 2.80
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=32.0118, Dec=61.4599
+Stars: 3684
+Mean PM: (-0.93, -0.30)
+Mean Parallax: 0.39
+Novelty Score: 74.48
+
+--- Scanning Galactic (l=134, b=0) -> ICRS (RA=36.08, Dec=60.86) ---
+Fetching data for RA=36.07844502375453, Dec=60.860190016986536, radius=0.7...
+Fetched 7615 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=35.9484, Dec=60.6555
+Stars: 39
+Mean PM: (15.21, -14.45)
+Mean Parallax: 2.72
+Novelty Score: 1.63
+
+--- Scanning Galactic (l=136, b=0) -> ICRS (RA=39.84, Dec=60.10) ---
+Fetching data for RA=39.83798986773295, Dec=60.104885623630636, radius=0.7...
+Fetched 9679 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=39.7554, Dec=59.9987
+Stars: 25
+Mean PM: (14.33, -15.02)
+Mean Parallax: 2.57
+Novelty Score: 1.39
+
+--- Scanning Galactic (l=138, b=0) -> ICRS (RA=43.42, Dec=59.25) ---
+Fetching data for RA=43.41802940255799, Dec=59.247956250878055, radius=0.7...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=43.4109, Dec=59.2150
+Stars: 3542
+Mean PM: (-0.25, -0.47)
+Mean Parallax: 0.40
+Novelty Score: 71.66
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=43.9400, Dec=59.4500
+Stars: 26
+Mean PM: (1.19, -3.08)
+Mean Parallax: 0.61
+Novelty Score: 2.37
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=43.0544, Dec=59.0006
+Stars: 45
+Mean PM: (1.58, -2.57)
+Mean Parallax: 0.60
+Novelty Score: 2.81
+
+--- Scanning Galactic (l=140, b=0) -> ICRS (RA=46.81, Dec=58.30) ---
+Fetching data for RA=46.81328141339645, Dec=58.29770513517474, radius=0.7...
+Fetched 7465 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=46.9350, Dec=58.1184
+Stars: 29
+Mean PM: (0.88, -5.10)
+Mean Parallax: 1.33
+Novelty Score: 3.39
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=46.6830, Dec=58.2995
+Stars: 3600
+Mean PM: (0.21, -0.92)
+Mean Parallax: 0.51
+Novelty Score: 72.53
+
+--- Scanning Galactic (l=142, b=0) -> ICRS (RA=50.02, Dec=57.26) ---
+Fetching data for RA=50.02331468532076, Dec=57.26232827418857, radius=0.7...
+Fetched 4427 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=50.0583, Dec=57.0921
+Stars: 26
+Mean PM: (5.38, -6.22)
+Mean Parallax: 0.99
+Novelty Score: 1.50
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=49.8669, Dec=57.1622
+Stars: 1758
+Mean PM: (0.57, -1.47)
+Mean Parallax: 0.68
+Novelty Score: 35.62
+
+--- Scanning Galactic (l=144, b=0) -> ICRS (RA=53.05, Dec=56.15) ---
+Fetching data for RA=53.051535228736306, Dec=56.14971354179039, radius=0.7...
+Fetched 5414 stars.
+Detected 4 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=52.1483, Dec=56.3904
+Stars: 202
+Mean PM: (3.83, -1.91)
+Mean Parallax: 1.36
+Novelty Score: 6.35
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=53.0903, Dec=56.3172
+Stars: 53
+Mean PM: (-1.63, -1.20)
+Mean Parallax: 0.90
+Novelty Score: 3.34
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=52.9690, Dec=55.9812
+Stars: 101
+Mean PM: (2.29, -3.42)
+Mean Parallax: 0.70
+Novelty Score: 3.31
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=53.0118, Dec=56.0350
+Stars: 884
+Mean PM: (0.27, -1.05)
+Mean Parallax: 0.47
+Novelty Score: 18.52
+
+--- Scanning Galactic (l=146, b=0) -> ICRS (RA=55.90, Dec=54.97) ---
+Fetching data for RA=55.90420275268769, Dec=54.967303336406275, radius=0.7...
+Fetched 4709 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=55.6073, Dec=54.7491
+Stars: 38
+Mean PM: (-2.04, -1.91)
+Mean Parallax: 1.08
+Novelty Score: 3.50
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=55.9297, Dec=55.0685
+Stars: 1392
+Mean PM: (0.65, -1.52)
+Mean Parallax: 0.58
+Novelty Score: 28.38
+
+--- Scanning Galactic (l=148, b=0) -> ICRS (RA=58.59, Dec=53.72) ---
+Fetching data for RA=58.589553691078216, Dec=53.722011890359155, radius=0.7...
+Fetched 5424 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=58.6865, Dec=53.7888
+Stars: 2465
+Mean PM: (0.82, -1.78)
+Mean Parallax: 0.62
+Novelty Score: 49.73
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=58.3383, Dec=53.4295
+Stars: 39
+Mean PM: (0.38, -5.74)
+Mean Parallax: 0.94
+Novelty Score: 1.64
+
+--- Scanning Galactic (l=150, b=0) -> ICRS (RA=61.12, Dec=52.42) ---
+Fetching data for RA=61.11706742313294, Dec=52.42018611699205, radius=0.7...
+Fetched 8683 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=61.1467, Dec=52.4269
+Stars: 25
+Mean PM: (4.69, -7.66)
+Mean Parallax: 0.97
+Novelty Score: 1.35
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=61.1491, Dec=52.4625
+Stars: 5123
+Mean PM: (0.72, -1.70)
+Mean Parallax: 0.55
+Novelty Score: 102.90
+
+--- Scanning Galactic (l=152, b=0) -> ICRS (RA=63.50, Dec=51.07) ---
+Fetching data for RA=63.496883524744476, Dec=51.06759886117136, radius=0.7...
+Fetched 9614 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=63.8426, Dec=51.0008
+Stars: 27
+Mean PM: (5.79, -8.79)
+Mean Parallax: 1.12
+Novelty Score: 1.74
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=63.5470, Dec=51.1083
+Stars: 6795
+Mean PM: (0.91, -1.96)
+Mean Parallax: 0.58
+Novelty Score: 136.30
+
+--- Scanning Galactic (l=154, b=0) -> ICRS (RA=65.74, Dec=49.67) ---
+Fetching data for RA=65.73935998937387, Dec=49.66946469202701, radius=0.7...
+Fetched 7967 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=65.6088, Dec=49.5309
+Stars: 30
+Mean PM: (6.45, -12.29)
+Mean Parallax: 1.40
+Novelty Score: 1.21
+
+--- Scanning Galactic (l=156, b=0) -> ICRS (RA=67.85, Dec=48.23) ---
+Fetching data for RA=67.85475323815824, Dec=48.230470195172785, radius=0.7...
+Fetched 6804 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=67.8966, Dec=48.2682
+Stars: 2528
+Mean PM: (0.66, -1.67)
+Mean Parallax: 0.47
+Novelty Score: 51.21
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=67.5250, Dec=48.5330
+Stars: 30
+Mean PM: (2.79, -4.43)
+Mean Parallax: 0.88
+Novelty Score: 1.51
+
+--- Scanning Galactic (l=158, b=0) -> ICRS (RA=69.85, Dec=46.75) ---
+Fetching data for RA=69.85299769978135, Dec=46.75481260566141, radius=0.7...
+Fetched 6247 stars.
+Detected 4 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=69.9215, Dec=46.6983
+Stars: 85
+Mean PM: (2.75, -5.09)
+Mean Parallax: 0.79
+Novelty Score: 2.92
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=69.7977, Dec=46.5005
+Stars: 46
+Mean PM: (-0.96, -2.27)
+Mean Parallax: 0.95
+Novelty Score: 3.19
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=70.0138, Dec=47.2275
+Stars: 73
+Mean PM: (1.52, -4.06)
+Mean Parallax: 1.11
+Novelty Score: 4.06
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=69.8783, Dec=46.7437
+Stars: 2183
+Mean PM: (0.70, -1.69)
+Mean Parallax: 0.46
+Novelty Score: 44.37
+
+--- Scanning Galactic (l=100, b=2) -> ICRS (RA=327.80, Dec=56.62) ---
+Fetching data for RA=327.8028418812886, Dec=56.622630099960574, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=327.7222, Dec=56.5738
+Stars: 22
+Mean PM: (-9.07, -8.08)
+Mean Parallax: 0.61
+Novelty Score: 1.66
+
+--- Scanning Galactic (l=102, b=2) -> ICRS (RA=330.72, Dec=57.85) ---
+Fetching data for RA=330.71810785355973, Dec=57.850340392551445, radius=0.7...
+Gaia query failed: Error 408:
+Job timeout/aborted.
+
+
+--- Scanning Galactic (l=104, b=2) -> ICRS (RA=333.83, Dec=59.01) ---
+Fetching data for RA=333.83026314047805, Dec=59.00861096406866, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=334.1094, Dec=58.9444
+Stars: 30
+Mean PM: (1.01, 4.96)
+Mean Parallax: 0.84
+Novelty Score: 1.33
+
+--- Scanning Galactic (l=106, b=2) -> ICRS (RA=337.15, Dec=60.09) ---
+Fetching data for RA=337.14887197874464, Dec=60.08926447915822, radius=0.7...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=337.2164, Dec=59.9911
+Stars: 38
+Mean PM: (-3.02, -2.76)
+Mean Parallax: 1.01
+Novelty Score: 3.97
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=337.5054, Dec=60.0907
+Stars: 26
+Mean PM: (0.91, -0.19)
+Mean Parallax: 0.56
+Novelty Score: 1.78
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=337.1769, Dec=60.0736
+Stars: 2538
+Mean PM: (-2.62, -2.20)
+Mean Parallax: 0.37
+Novelty Score: 51.35
+
+--- Scanning Galactic (l=108, b=2) -> ICRS (RA=340.68, Dec=61.08) ---
+Fetching data for RA=340.6804556284099, Dec=61.08349699075124, radius=0.7...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=340.4833, Dec=61.0333
+Stars: 41
+Mean PM: (0.63, -2.41)
+Mean Parallax: 0.64
+Novelty Score: 3.12
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=339.8409, Dec=61.0010
+Stars: 35
+Mean PM: (-0.02, -0.54)
+Mean Parallax: 0.45
+Novelty Score: 2.53
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=340.5735, Dec=60.9514
+Stars: 1826
+Mean PM: (-2.83, -2.00)
+Mean Parallax: 0.33
+Novelty Score: 37.31
+
+--- Scanning Galactic (l=110, b=2) -> ICRS (RA=344.43, Dec=61.98) ---
+Fetching data for RA=344.4271595686705, Dec=61.982015460502744, radius=0.7...
+Fetched 5542 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=344.6633, Dec=62.0635
+Stars: 20
+Mean PM: (7.01, -2.17)
+Mean Parallax: 2.65
+Novelty Score: 1.38
+
+--- Scanning Galactic (l=112, b=2) -> ICRS (RA=348.39, Dec=62.78) ---
+Fetching data for RA=348.3852994054511, Dec=62.775259829779955, radius=0.7...
+Fetched 9758 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=348.0474, Dec=62.6633
+Stars: 21
+Mean PM: (7.44, -2.44)
+Mean Parallax: 2.66
+Novelty Score: 1.42
+
+--- Scanning Galactic (l=114, b=2) -> ICRS (RA=352.54, Dec=63.45) ---
+Fetching data for RA=352.5439483792846, Dec=63.453719941705785, radius=0.7...
+Fetched 9661 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=352.5556, Dec=63.8866
+Stars: 39
+Mean PM: (-4.97, -4.75)
+Mean Parallax: 1.26
+Novelty Score: 2.73
+
+--- Scanning Galactic (l=116, b=2) -> ICRS (RA=356.88, Dec=64.01) ---
+Fetching data for RA=356.88381031818074, Dec=64.00834541304634, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=356.6950, Dec=63.9070
+Stars: 31
+Mean PM: (-0.21, -2.07)
+Mean Parallax: 0.71
+Novelty Score: 1.51
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=357.0725, Dec=64.0330
+Stars: 3612
+Mean PM: (-2.42, -0.98)
+Mean Parallax: 0.36
+Novelty Score: 72.87
+
+--- Scanning Galactic (l=118, b=2) -> ICRS (RA=1.38, Dec=64.43) ---
+Fetching data for RA=1.376677138392784, Dec=64.43102792409248, radius=0.7...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+
+--- Scanning Galactic (l=120, b=2) -> ICRS (RA=5.99, Dec=64.72) ---
+Fetching data for RA=5.98576016602644, Dec=64.71511297712811, radius=0.7...
+Fetched 10000 stars.
+Detected 7 potential clusters.
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=5.6852, Dec=65.0309
+Stars: 26
+Mean PM: (-0.60, -3.74)
+Mean Parallax: 1.29
+Novelty Score: 2.59
