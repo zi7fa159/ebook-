@@ -66,6 +66,74 @@ Remaining Candidates: 0
 Confidence Scores: N/A
 Next Planned Action: Scan region 7
 --------------
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+STARTING DISCOVERY LOOP: Continuous Sky Scanning...
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 1
+Sky Region: RA=260.05, Dec=57.91, Radius=0.5
+Stars Processed: 6097
+Overdensities Detected: 37
+Rejected: 11
+Remaining Candidates: 26
+Confidence Scores: 0.21, 0.29, 0.25, 0.27, 0.23, 0.28, 0.24, 0.25, 0.24, 0.28, 0.27, 0.33, 0.26, 0.28, 0.35, 0.40, 0.28, 0.33, 0.27, 0.27, 0.28, 0.40, 0.29, 0.32, 0.33, 0.50
+Next Planned Action: Scan region 2
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 2
+Sky Region: RA=227.28, Dec=67.22, Radius=0.5
+Stars Processed: 4381
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 3
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 3
+Sky Region: RA=210.03, Dec=14.50, Radius=0.5
+Stars Processed: 2321
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 4
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 4
+Sky Region: RA=158.07, Dec=51.92, Radius=0.5
+Stars Processed: 1755
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 5
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 5
+Sky Region: RA=153.26, Dec=-0.26, Radius=0.5
+Stars Processed: 2250
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 6
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 6
+Sky Region: RA=34.75, Dec=-54.05, Radius=0.5
+Stars Processed: 2369
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 7
+--------------
 INFO: Query finished. [astroquery.utils.tap.core]
 --- REPORT ---
 Iteration: 7
@@ -87,4 +155,2756 @@ Rejected: 2
 Remaining Candidates: 0
 Confidence Scores: N/A
 Next Planned Action: Scan region 9
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 9
+Sky Region: RA=239.58, Dec=27.23, Radius=0.5
+Stars Processed: 3777
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 10
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 10
+Sky Region: RA=0.00, Dec=-61.55, Radius=0.5
+Stars Processed: 3401
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 11
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 11
+Sky Region: RA=0.00, Dec=-55.69, Radius=0.5
+Stars Processed: 2806
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 12
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 12
+Sky Region: RA=0.00, Dec=-49.83, Radius=0.5
+Stars Processed: 2485
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 13
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 13
+Sky Region: RA=0.00, Dec=-43.97, Radius=0.5
+Stars Processed: 2208
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 14
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 14
+Sky Region: RA=0.00, Dec=-38.10, Radius=0.5
+Stars Processed: 1990
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 15
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 15
+Sky Region: RA=0.00, Dec=-32.24, Radius=0.5
+Stars Processed: 1907
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 16
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 16
+Sky Region: RA=0.00, Dec=-26.38, Radius=0.5
+Stars Processed: 1817
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 17
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 17
+Sky Region: RA=0.00, Dec=-20.52, Radius=0.5
+Stars Processed: 1853
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 18
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 18
+Sky Region: RA=0.00, Dec=-14.66, Radius=0.5
+Stars Processed: 1914
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 19
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 19
+Sky Region: RA=0.00, Dec=-8.79, Radius=0.5
+Stars Processed: 1792
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 20
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 20
+Sky Region: RA=0.00, Dec=-2.93, Radius=0.5
+Stars Processed: 1843
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 21
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 21
+Sky Region: RA=0.00, Dec=2.93, Radius=0.5
+Stars Processed: 1950
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 22
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 22
+Sky Region: RA=0.00, Dec=8.79, Radius=0.5
+Stars Processed: 2139
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 23
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 23
+Sky Region: RA=6.10, Dec=-61.55, Radius=0.5
+Stars Processed: 3044
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 24
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 24
+Sky Region: RA=6.10, Dec=-55.69, Radius=0.5
+Stars Processed: 2801
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 25
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 25
+Sky Region: RA=6.10, Dec=-49.83, Radius=0.5
+Stars Processed: 2216
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 26
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 26
+Sky Region: RA=6.10, Dec=-43.97, Radius=0.5
+Stars Processed: 2075
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 27
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 27
+Sky Region: RA=6.10, Dec=-38.10, Radius=0.5
+Stars Processed: 1887
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 28
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 28
+Sky Region: RA=6.10, Dec=-32.24, Radius=0.5
+Stars Processed: 1721
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 29
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 29
+Sky Region: RA=6.10, Dec=-26.38, Radius=0.5
+Stars Processed: 1654
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 30
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 30
+Sky Region: RA=6.10, Dec=-20.52, Radius=0.5
+Stars Processed: 1735
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 31
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 31
+Sky Region: RA=6.10, Dec=-14.66, Radius=0.5
+Stars Processed: 1777
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 32
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 32
+Sky Region: RA=6.10, Dec=-8.79, Radius=0.5
+Stars Processed: 1620
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 33
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 33
+Sky Region: RA=6.10, Dec=-2.93, Radius=0.5
+Stars Processed: 1732
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 34
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 34
+Sky Region: RA=6.10, Dec=2.93, Radius=0.5
+Stars Processed: 1834
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 35
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 35
+Sky Region: RA=6.10, Dec=8.79, Radius=0.5
+Stars Processed: 1935
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 36
+--------------
+  Gaia query failed: 500
+--- REPORT ---
+Iteration: 36
+Sky Region: RA=12.20, Dec=-61.55, Radius=0.5
+Stars Processed: 0
+Overdensities Detected: 0
+Rejected: 0
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 37
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 37
+Sky Region: RA=12.20, Dec=-55.69, Radius=0.5
+Stars Processed: 2614
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 38
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 38
+Sky Region: RA=12.20, Dec=-49.83, Radius=0.5
+Stars Processed: 2221
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 39
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 39
+Sky Region: RA=12.20, Dec=-43.97, Radius=0.5
+Stars Processed: 1944
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 40
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 40
+Sky Region: RA=12.20, Dec=-38.10, Radius=0.5
+Stars Processed: 1728
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 41
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 41
+Sky Region: RA=12.20, Dec=-32.24, Radius=0.5
+Stars Processed: 1662
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 42
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 42
+Sky Region: RA=12.20, Dec=-26.38, Radius=0.5
+Stars Processed: 1699
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 43
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 43
+Sky Region: RA=12.20, Dec=-20.52, Radius=0.5
+Stars Processed: 1773
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 44
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 44
+Sky Region: RA=12.20, Dec=-14.66, Radius=0.5
+Stars Processed: 1726
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 45
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 45
+Sky Region: RA=12.20, Dec=-8.79, Radius=0.5
+Stars Processed: 1581
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 46
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 46
+Sky Region: RA=12.20, Dec=-2.93, Radius=0.5
+Stars Processed: 1715
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 47
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 47
+Sky Region: RA=12.20, Dec=2.93, Radius=0.5
+Stars Processed: 1774
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 48
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 48
+Sky Region: RA=12.20, Dec=8.79, Radius=0.5
+Stars Processed: 1730
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 49
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 49
+Sky Region: RA=18.31, Dec=-61.55, Radius=0.5
+Stars Processed: 2954
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 50
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 50
+Sky Region: RA=18.31, Dec=-55.69, Radius=0.5
+Stars Processed: 2446
+Overdensities Detected: 7
+Rejected: 7
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 51
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 51
+Sky Region: RA=18.31, Dec=-49.83, Radius=0.5
+Stars Processed: 2155
+Overdensities Detected: 7
+Rejected: 7
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 52
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 52
+Sky Region: RA=18.31, Dec=-43.97, Radius=0.5
+Stars Processed: 1925
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 53
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 53
+Sky Region: RA=18.31, Dec=-38.10, Radius=0.5
+Stars Processed: 1737
+Overdensities Detected: 14
+Rejected: 14
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 54
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 54
+Sky Region: RA=18.31, Dec=-32.24, Radius=0.5
+Stars Processed: 1658
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 55
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 55
+Sky Region: RA=18.31, Dec=-26.38, Radius=0.5
+Stars Processed: 1593
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 56
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 56
+Sky Region: RA=18.31, Dec=-20.52, Radius=0.5
+Stars Processed: 1582
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 57
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 57
+Sky Region: RA=18.31, Dec=-14.66, Radius=0.5
+Stars Processed: 1595
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 58
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 58
+Sky Region: RA=18.31, Dec=-8.79, Radius=0.5
+Stars Processed: 1490
+Overdensities Detected: 13
+Rejected: 9
+Remaining Candidates: 4
+Confidence Scores: 0.22, 0.22, 0.22, 0.24
+Next Planned Action: Scan region 59
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 59
+Sky Region: RA=18.31, Dec=-2.93, Radius=0.5
+Stars Processed: 1600
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 60
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 60
+Sky Region: RA=18.31, Dec=2.93, Radius=0.5
+Stars Processed: 1696
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 61
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 61
+Sky Region: RA=18.31, Dec=8.79, Radius=0.5
+Stars Processed: 1770
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 62
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 62
+Sky Region: RA=24.41, Dec=-61.55, Radius=0.5
+Stars Processed: 2877
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 63
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 63
+Sky Region: RA=24.41, Dec=-55.69, Radius=0.5
+Stars Processed: 2438
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 64
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 64
+Sky Region: RA=24.41, Dec=-49.83, Radius=0.5
+Stars Processed: 2110
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 65
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 65
+Sky Region: RA=24.41, Dec=-43.97, Radius=0.5
+Stars Processed: 2008
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 66
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 66
+Sky Region: RA=24.41, Dec=-38.10, Radius=0.5
+Stars Processed: 1784
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 67
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 67
+Sky Region: RA=24.41, Dec=-32.24, Radius=0.5
+Stars Processed: 1607
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 68
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 68
+Sky Region: RA=24.41, Dec=-26.38, Radius=0.5
+Stars Processed: 1532
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 69
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 69
+Sky Region: RA=24.41, Dec=-20.52, Radius=0.5
+Stars Processed: 1530
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 70
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 70
+Sky Region: RA=24.41, Dec=-14.66, Radius=0.5
+Stars Processed: 1618
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 71
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 71
+Sky Region: RA=24.41, Dec=-8.79, Radius=0.5
+Stars Processed: 1723
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 72
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 72
+Sky Region: RA=24.41, Dec=-2.93, Radius=0.5
+Stars Processed: 1602
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 73
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 73
+Sky Region: RA=24.41, Dec=2.93, Radius=0.5
+Stars Processed: 1717
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 74
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 74
+Sky Region: RA=24.41, Dec=8.79, Radius=0.5
+Stars Processed: 1759
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 75
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 75
+Sky Region: RA=30.51, Dec=-61.55, Radius=0.5
+Stars Processed: 2834
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 76
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 76
+Sky Region: RA=30.51, Dec=-55.69, Radius=0.5
+Stars Processed: 2402
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 77
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 77
+Sky Region: RA=30.51, Dec=-49.83, Radius=0.5
+Stars Processed: 2129
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 78
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 78
+Sky Region: RA=30.51, Dec=-43.97, Radius=0.5
+Stars Processed: 1860
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 79
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 79
+Sky Region: RA=30.51, Dec=-38.10, Radius=0.5
+Stars Processed: 1775
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 80
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 80
+Sky Region: RA=30.51, Dec=-32.24, Radius=0.5
+Stars Processed: 1559
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 81
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 81
+Sky Region: RA=30.51, Dec=-26.38, Radius=0.5
+Stars Processed: 1553
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 82
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 82
+Sky Region: RA=30.51, Dec=-20.52, Radius=0.5
+Stars Processed: 1469
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 83
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 83
+Sky Region: RA=30.51, Dec=-14.66, Radius=0.5
+Stars Processed: 1489
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 84
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 84
+Sky Region: RA=30.51, Dec=-8.79, Radius=0.5
+Stars Processed: 1521
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 85
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 85
+Sky Region: RA=30.51, Dec=-2.93, Radius=0.5
+Stars Processed: 1695
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 86
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 86
+Sky Region: RA=30.51, Dec=2.93, Radius=0.5
+Stars Processed: 1731
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 87
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 87
+Sky Region: RA=30.51, Dec=8.79, Radius=0.5
+Stars Processed: 1822
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 88
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 88
+Sky Region: RA=36.61, Dec=-61.55, Radius=0.5
+Stars Processed: 2798
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 89
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 89
+Sky Region: RA=36.61, Dec=-55.69, Radius=0.5
+Stars Processed: 2418
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 90
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 90
+Sky Region: RA=36.61, Dec=-49.83, Radius=0.5
+Stars Processed: 2190
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 91
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 91
+Sky Region: RA=36.61, Dec=-43.97, Radius=0.5
+Stars Processed: 1961
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 92
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 92
+Sky Region: RA=36.61, Dec=-38.10, Radius=0.5
+Stars Processed: 1829
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 93
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 93
+Sky Region: RA=36.61, Dec=-32.24, Radius=0.5
+Stars Processed: 1662
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 94
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 94
+Sky Region: RA=36.61, Dec=-26.38, Radius=0.5
+Stars Processed: 1502
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 95
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 95
+Sky Region: RA=36.61, Dec=-20.52, Radius=0.5
+Stars Processed: 1507
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 96
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 96
+Sky Region: RA=36.61, Dec=-14.66, Radius=0.5
+Stars Processed: 1523
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 97
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 97
+Sky Region: RA=36.61, Dec=-8.79, Radius=0.5
+Stars Processed: 1602
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 98
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 98
+Sky Region: RA=36.61, Dec=-2.93, Radius=0.5
+Stars Processed: 1726
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 99
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 99
+Sky Region: RA=36.61, Dec=2.93, Radius=0.5
+Stars Processed: 1790
+Overdensities Detected: 18
+Rejected: 15
+Remaining Candidates: 3
+Confidence Scores: 0.23, 0.25, 0.21
+Next Planned Action: Scan region 100
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 100
+Sky Region: RA=42.71, Dec=-61.55, Radius=0.5
+Stars Processed: 3017
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 101
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 101
+Sky Region: RA=42.71, Dec=-55.69, Radius=0.5
+Stars Processed: 2666
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 102
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 102
+Sky Region: RA=42.71, Dec=-49.83, Radius=0.5
+Stars Processed: 2194
+Overdensities Detected: 4
+Rejected: 3
+Remaining Candidates: 1
+Confidence Scores: 0.21
+Next Planned Action: Scan region 103
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 103
+Sky Region: RA=42.71, Dec=-43.97, Radius=0.5
+Stars Processed: 2014
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 104
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 104
+Sky Region: RA=42.71, Dec=-38.10, Radius=0.5
+Stars Processed: 1874
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 105
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 105
+Sky Region: RA=42.71, Dec=-32.24, Radius=0.5
+Stars Processed: 1713
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 106
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 106
+Sky Region: RA=42.71, Dec=-26.38, Radius=0.5
+Stars Processed: 1597
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 107
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 107
+Sky Region: RA=42.71, Dec=-20.52, Radius=0.5
+Stars Processed: 1450
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 108
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 108
+Sky Region: RA=42.71, Dec=-14.66, Radius=0.5
+Stars Processed: 1636
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 109
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 109
+Sky Region: RA=42.71, Dec=-8.79, Radius=0.5
+Stars Processed: 1655
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 110
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 110
+Sky Region: RA=42.71, Dec=-2.93, Radius=0.5
+Stars Processed: 1743
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 111
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 111
+Sky Region: RA=48.81, Dec=-55.69, Radius=0.5
+Stars Processed: 2683
+Overdensities Detected: 4
+Rejected: 3
+Remaining Candidates: 1
+Confidence Scores: 0.22
+Next Planned Action: Scan region 112
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 112
+Sky Region: RA=48.81, Dec=-49.83, Radius=0.5
+Stars Processed: 2313
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 113
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 113
+Sky Region: RA=48.81, Dec=-43.97, Radius=0.5
+Stars Processed: 2093
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 114
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 114
+Sky Region: RA=48.81, Dec=-38.10, Radius=0.5
+Stars Processed: 1834
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 115
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 115
+Sky Region: RA=48.81, Dec=-32.24, Radius=0.5
+Stars Processed: 1841
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 116
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 116
+Sky Region: RA=48.81, Dec=-26.38, Radius=0.5
+Stars Processed: 1743
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 117
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 117
+Sky Region: RA=48.81, Dec=-20.52, Radius=0.5
+Stars Processed: 1605
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 118
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 118
+Sky Region: RA=48.81, Dec=-14.66, Radius=0.5
+Stars Processed: 1664
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 119
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 119
+Sky Region: RA=48.81, Dec=-8.79, Radius=0.5
+Stars Processed: 1815
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 120
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 120
+Sky Region: RA=54.92, Dec=-49.83, Radius=0.5
+Stars Processed: 2499
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 121
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 121
+Sky Region: RA=54.92, Dec=-43.97, Radius=0.5
+Stars Processed: 2322
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 122
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 122
+Sky Region: RA=54.92, Dec=-38.10, Radius=0.5
+Stars Processed: 2140
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 123
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 123
+Sky Region: RA=54.92, Dec=-32.24, Radius=0.5
+Stars Processed: 2118
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 124
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 124
+Sky Region: RA=54.92, Dec=-26.38, Radius=0.5
+Stars Processed: 2011
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 125
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 125
+Sky Region: RA=54.92, Dec=-20.52, Radius=0.5
+Stars Processed: 1929
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 126
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 126
+Sky Region: RA=152.54, Dec=14.66, Radius=0.5
+Stars Processed: 1977
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 127
+--------------
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+STARTING DISCOVERY LOOP: Continuous Sky Scanning...
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 127
+Sky Region: RA=152.54, Dec=20.52, Radius=0.5
+Stars Processed: 1894
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 128
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 128
+Sky Region: RA=152.54, Dec=26.38, Radius=0.5
+Stars Processed: 1601
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 129
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 129
+Sky Region: RA=152.54, Dec=32.24, Radius=0.5
+Stars Processed: 1659
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 130
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 1
+Sky Region: RA=260.05, Dec=57.91, Radius=0.5
+Stars Processed: 6097
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 2
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 130
+Sky Region: RA=152.54, Dec=38.10, Radius=0.5
+Stars Processed: 1716
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 131
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 2
+Sky Region: RA=227.28, Dec=67.22, Radius=0.5
+Stars Processed: 4381
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 3
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 131
+Sky Region: RA=152.54, Dec=43.97, Radius=0.5
+Stars Processed: 1707
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 132
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 3
+Sky Region: RA=210.03, Dec=14.50, Radius=0.5
+Stars Processed: 2321
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 4
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 132
+Sky Region: RA=152.54, Dec=49.83, Radius=0.5
+Stars Processed: 1888
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 133
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 4
+Sky Region: RA=158.07, Dec=51.92, Radius=0.5
+Stars Processed: 1755
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 5
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 133
+Sky Region: RA=158.64, Dec=8.79, Radius=0.5
+Stars Processed: 1898
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 134
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 5
+Sky Region: RA=153.26, Dec=-0.26, Radius=0.5
+Stars Processed: 2250
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 6
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 134
+Sky Region: RA=158.64, Dec=14.66, Radius=0.5
+Stars Processed: 1652
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 135
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 6
+Sky Region: RA=34.75, Dec=-54.05, Radius=0.5
+Stars Processed: 2369
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 7
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 135
+Sky Region: RA=158.64, Dec=20.52, Radius=0.5
+Stars Processed: 1617
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 136
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 7
+Sky Region: RA=132.87, Dec=45.40, Radius=0.5
+Stars Processed: 2347
+Overdensities Detected: 3
+Rejected: 2
+Remaining Candidates: 1
+Confidence Scores: 0.31
+Next Planned Action: Scan region 8
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 136
+Sky Region: RA=158.64, Dec=26.38, Radius=0.5
+Stars Processed: 1614
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 137
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 8
+Sky Region: RA=202.48, Dec=12.04, Radius=0.5
+Stars Processed: 2175
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 9
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 137
+Sky Region: RA=158.64, Dec=32.24, Radius=0.5
+Stars Processed: 1565
+Overdensities Detected: 12
+Rejected: 11
+Remaining Candidates: 1
+Confidence Scores: 0.23
+Next Planned Action: Scan region 138
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 138
+Sky Region: RA=158.64, Dec=38.10, Radius=0.5
+Stars Processed: 1523
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 139
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 9
+Sky Region: RA=239.58, Dec=27.23, Radius=0.5
+Stars Processed: 3777
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 10
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 139
+Sky Region: RA=158.64, Dec=43.97, Radius=0.5
+Stars Processed: 1650
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 140
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 10
+Sky Region: RA=0.00, Dec=-61.55, Radius=0.5
+Stars Processed: 3401
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 11
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 140
+Sky Region: RA=158.64, Dec=49.83, Radius=0.5
+Stars Processed: 1692
+Overdensities Detected: 14
+Rejected: 12
+Remaining Candidates: 2
+Confidence Scores: 0.33, 0.24
+Next Planned Action: Scan region 141
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 11
+Sky Region: RA=0.00, Dec=-55.69, Radius=0.5
+Stars Processed: 2806
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 12
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 141
+Sky Region: RA=158.64, Dec=55.69, Radius=0.5
+Stars Processed: 1781
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 142
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 12
+Sky Region: RA=0.00, Dec=-49.83, Radius=0.5
+Stars Processed: 2485
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 13
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 142
+Sky Region: RA=164.75, Dec=2.93, Radius=0.5
+Stars Processed: 1906
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 143
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 13
+Sky Region: RA=0.00, Dec=-43.97, Radius=0.5
+Stars Processed: 2208
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 14
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 143
+Sky Region: RA=164.75, Dec=8.79, Radius=0.5
+Stars Processed: 1820
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 144
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 14
+Sky Region: RA=0.00, Dec=-38.10, Radius=0.5
+Stars Processed: 1990
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 15
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 144
+Sky Region: RA=164.75, Dec=14.66, Radius=0.5
+Stars Processed: 1608
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 145
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 15
+Sky Region: RA=0.00, Dec=-32.24, Radius=0.5
+Stars Processed: 1907
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 16
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 145
+Sky Region: RA=164.75, Dec=20.52, Radius=0.5
+Stars Processed: 1551
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 146
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 16
+Sky Region: RA=0.00, Dec=-26.38, Radius=0.5
+Stars Processed: 1817
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 17
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 146
+Sky Region: RA=164.75, Dec=26.38, Radius=0.5
+Stars Processed: 1522
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 147
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 17
+Sky Region: RA=0.00, Dec=-20.52, Radius=0.5
+Stars Processed: 1853
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 18
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 147
+Sky Region: RA=164.75, Dec=32.24, Radius=0.5
+Stars Processed: 1441
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 148
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 18
+Sky Region: RA=0.00, Dec=-14.66, Radius=0.5
+Stars Processed: 1914
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 19
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 148
+Sky Region: RA=164.75, Dec=38.10, Radius=0.5
+Stars Processed: 1480
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 149
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 19
+Sky Region: RA=0.00, Dec=-8.79, Radius=0.5
+Stars Processed: 1792
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 20
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 149
+Sky Region: RA=164.75, Dec=43.97, Radius=0.5
+Stars Processed: 1518
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 150
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 20
+Sky Region: RA=0.00, Dec=-2.93, Radius=0.5
+Stars Processed: 1843
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 21
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 150
+Sky Region: RA=164.75, Dec=49.83, Radius=0.5
+Stars Processed: 1659
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 151
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 21
+Sky Region: RA=0.00, Dec=2.93, Radius=0.5
+Stars Processed: 1950
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 22
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 151
+Sky Region: RA=164.75, Dec=55.69, Radius=0.5
+Stars Processed: 1755
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 152
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 22
+Sky Region: RA=0.00, Dec=8.79, Radius=0.5
+Stars Processed: 2139
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 23
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 152
+Sky Region: RA=164.75, Dec=61.55, Radius=0.5
+Stars Processed: 1960
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 153
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 23
+Sky Region: RA=6.10, Dec=-61.55, Radius=0.5
+Stars Processed: 3044
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 24
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 153
+Sky Region: RA=170.85, Dec=-2.93, Radius=0.5
+Stars Processed: 2118
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 154
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 24
+Sky Region: RA=6.10, Dec=-55.69, Radius=0.5
+Stars Processed: 2801
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 25
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 154
+Sky Region: RA=170.85, Dec=2.93, Radius=0.5
+Stars Processed: 1960
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 155
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 25
+Sky Region: RA=6.10, Dec=-49.83, Radius=0.5
+Stars Processed: 2216
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 26
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 155
+Sky Region: RA=170.85, Dec=8.79, Radius=0.5
+Stars Processed: 1658
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 156
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 156
+Sky Region: RA=170.85, Dec=14.66, Radius=0.5
+Stars Processed: 1545
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 157
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 26
+Sky Region: RA=6.10, Dec=-43.97, Radius=0.5
+Stars Processed: 2075
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 27
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 157
+Sky Region: RA=170.85, Dec=20.52, Radius=0.5
+Stars Processed: 1391
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 158
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 27
+Sky Region: RA=6.10, Dec=-38.10, Radius=0.5
+Stars Processed: 1887
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 28
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 158
+Sky Region: RA=170.85, Dec=26.38, Radius=0.5
+Stars Processed: 1403
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 159
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 28
+Sky Region: RA=6.10, Dec=-32.24, Radius=0.5
+Stars Processed: 1721
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 29
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 159
+Sky Region: RA=170.85, Dec=32.24, Radius=0.5
+Stars Processed: 1362
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 160
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 29
+Sky Region: RA=6.10, Dec=-26.38, Radius=0.5
+Stars Processed: 1654
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 30
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 160
+Sky Region: RA=170.85, Dec=38.10, Radius=0.5
+Stars Processed: 1363
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 161
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 30
+Sky Region: RA=6.10, Dec=-20.52, Radius=0.5
+Stars Processed: 1735
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 31
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 161
+Sky Region: RA=170.85, Dec=43.97, Radius=0.5
+Stars Processed: 1468
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 162
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 162
+Sky Region: RA=170.85, Dec=49.83, Radius=0.5
+Stars Processed: 1658
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 163
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 31
+Sky Region: RA=6.10, Dec=-14.66, Radius=0.5
+Stars Processed: 1777
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 32
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 32
+Sky Region: RA=6.10, Dec=-8.79, Radius=0.5
+Stars Processed: 1620
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 33
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 163
+Sky Region: RA=170.85, Dec=55.69, Radius=0.5
+Stars Processed: 1749
+Overdensities Detected: 15
+Rejected: 10
+Remaining Candidates: 5
+Confidence Scores: 0.27, 0.25, 0.23, 0.21, 0.23
+Next Planned Action: Scan region 164
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 33
+Sky Region: RA=6.10, Dec=-2.93, Radius=0.5
+Stars Processed: 1732
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 34
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 164
+Sky Region: RA=170.85, Dec=61.55, Radius=0.5
+Stars Processed: 1861
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 165
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 34
+Sky Region: RA=6.10, Dec=2.93, Radius=0.5
+Stars Processed: 1834
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 35
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 165
+Sky Region: RA=176.95, Dec=-8.79, Radius=0.5
+Stars Processed: 2768
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 166
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 35
+Sky Region: RA=6.10, Dec=8.79, Radius=0.5
+Stars Processed: 1935
+Overdensities Detected: 3
+Rejected: 2
+Remaining Candidates: 1
+Confidence Scores: 0.27
+Next Planned Action: Scan region 36
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 166
+Sky Region: RA=176.95, Dec=-2.93, Radius=0.5
+Stars Processed: 2278
+Overdensities Detected: 5
+Rejected: 5
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 167
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 36
+Sky Region: RA=12.20, Dec=-61.55, Radius=0.5
+Stars Processed: 2964
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 37
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 167
+Sky Region: RA=176.95, Dec=2.93, Radius=0.5
+Stars Processed: 1996
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 168
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 37
+Sky Region: RA=12.20, Dec=-55.69, Radius=0.5
+Stars Processed: 2614
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 38
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 168
+Sky Region: RA=176.95, Dec=8.79, Radius=0.5
+Stars Processed: 1756
+Overdensities Detected: 23
+Rejected: 21
+Remaining Candidates: 2
+Confidence Scores: 0.36, 0.25
+Next Planned Action: Scan region 169
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 38
+Sky Region: RA=12.20, Dec=-49.83, Radius=0.5
+Stars Processed: 2221
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 39
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 169
+Sky Region: RA=176.95, Dec=14.66, Radius=0.5
+Stars Processed: 1557
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 170
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 39
+Sky Region: RA=12.20, Dec=-43.97, Radius=0.5
+Stars Processed: 1944
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 40
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 170
+Sky Region: RA=176.95, Dec=20.52, Radius=0.5
+Stars Processed: 1429
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 171
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 40
+Sky Region: RA=12.20, Dec=-38.10, Radius=0.5
+Stars Processed: 1728
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 41
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 171
+Sky Region: RA=176.95, Dec=26.38, Radius=0.5
+Stars Processed: 1382
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 172
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 172
+Sky Region: RA=176.95, Dec=32.24, Radius=0.5
+Stars Processed: 1431
+Overdensities Detected: 14
+Rejected: 14
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 173
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 41
+Sky Region: RA=12.20, Dec=-32.24, Radius=0.5
+Stars Processed: 1662
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 42
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 173
+Sky Region: RA=176.95, Dec=38.10, Radius=0.5
+Stars Processed: 1389
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 174
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 42
+Sky Region: RA=12.20, Dec=-26.38, Radius=0.5
+Stars Processed: 1699
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 43
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 174
+Sky Region: RA=176.95, Dec=43.97, Radius=0.5
+Stars Processed: 1401
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 175
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 43
+Sky Region: RA=12.20, Dec=-20.52, Radius=0.5
+Stars Processed: 1773
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 44
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 175
+Sky Region: RA=176.95, Dec=49.83, Radius=0.5
+Stars Processed: 1560
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 176
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 44
+Sky Region: RA=12.20, Dec=-14.66, Radius=0.5
+Stars Processed: 1726
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 45
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 176
+Sky Region: RA=176.95, Dec=55.69, Radius=0.5
+Stars Processed: 1656
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 177
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 45
+Sky Region: RA=12.20, Dec=-8.79, Radius=0.5
+Stars Processed: 1581
+Overdensities Detected: 13
+Rejected: 11
+Remaining Candidates: 2
+Confidence Scores: 0.28, 0.26
+Next Planned Action: Scan region 46
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 177
+Sky Region: RA=176.95, Dec=61.55, Radius=0.5
+Stars Processed: 1749
+Overdensities Detected: 21
+Rejected: 17
+Remaining Candidates: 4
+Confidence Scores: 0.28, 0.23, 0.21, 0.26
+Next Planned Action: Scan region 178
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 178
+Sky Region: RA=183.05, Dec=-8.79, Radius=0.5
+Stars Processed: 2695
+Overdensities Detected: 5
+Rejected: 4
+Remaining Candidates: 1
+Confidence Scores: 0.23
+Next Planned Action: Scan region 179
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 179
+Sky Region: RA=183.05, Dec=-2.93, Radius=0.5
+Stars Processed: 2390
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 180
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 180
+Sky Region: RA=183.05, Dec=2.93, Radius=0.5
+Stars Processed: 2051
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 181
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 181
+Sky Region: RA=183.05, Dec=8.79, Radius=0.5
+Stars Processed: 1979
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 182
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 182
+Sky Region: RA=183.05, Dec=14.66, Radius=0.5
+Stars Processed: 1777
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 183
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 183
+Sky Region: RA=183.05, Dec=20.52, Radius=0.5
+Stars Processed: 1595
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 184
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 184
+Sky Region: RA=183.05, Dec=26.38, Radius=0.5
+Stars Processed: 1475
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 185
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 185
+Sky Region: RA=183.05, Dec=32.24, Radius=0.5
+Stars Processed: 1430
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 186
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 186
+Sky Region: RA=183.05, Dec=38.10, Radius=0.5
+Stars Processed: 1412
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 187
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 187
+Sky Region: RA=183.05, Dec=43.97, Radius=0.5
+Stars Processed: 1460
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 188
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 188
+Sky Region: RA=183.05, Dec=49.83, Radius=0.5
+Stars Processed: 1523
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 189
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 189
+Sky Region: RA=183.05, Dec=55.69, Radius=0.5
+Stars Processed: 1769
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 190
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 190
+Sky Region: RA=183.05, Dec=61.55, Radius=0.5
+Stars Processed: 1766
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 191
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 191
+Sky Region: RA=189.15, Dec=-8.79, Radius=0.5
+Stars Processed: 2962
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 192
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 192
+Sky Region: RA=189.15, Dec=-2.93, Radius=0.5
+Stars Processed: 2464
+Overdensities Detected: 5
+Rejected: 4
+Remaining Candidates: 1
+Confidence Scores: 0.24
+Next Planned Action: Scan region 193
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 46
+Sky Region: RA=12.20, Dec=-2.93, Radius=0.5
+Stars Processed: 1715
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 47
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 47
+Sky Region: RA=12.20, Dec=2.93, Radius=0.5
+Stars Processed: 1774
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 48
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 193
+Sky Region: RA=189.15, Dec=2.93, Radius=0.5
+Stars Processed: 2232
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 194
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 48
+Sky Region: RA=12.20, Dec=8.79, Radius=0.5
+Stars Processed: 1730
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 49
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 194
+Sky Region: RA=189.15, Dec=8.79, Radius=0.5
+Stars Processed: 1930
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 195
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 195
+Sky Region: RA=189.15, Dec=14.66, Radius=0.5
+Stars Processed: 1780
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 196
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 49
+Sky Region: RA=18.31, Dec=-61.55, Radius=0.5
+Stars Processed: 2954
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 50
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 196
+Sky Region: RA=189.15, Dec=20.52, Radius=0.5
+Stars Processed: 1648
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 197
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 50
+Sky Region: RA=18.31, Dec=-55.69, Radius=0.5
+Stars Processed: 2446
+Overdensities Detected: 7
+Rejected: 7
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 51
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 197
+Sky Region: RA=189.15, Dec=26.38, Radius=0.5
+Stars Processed: 1659
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 198
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 51
+Sky Region: RA=18.31, Dec=-49.83, Radius=0.5
+Stars Processed: 2155
+Overdensities Detected: 7
+Rejected: 7
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 52
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 198
+Sky Region: RA=189.15, Dec=32.24, Radius=0.5
+Stars Processed: 1444
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 199
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 52
+Sky Region: RA=18.31, Dec=-43.97, Radius=0.5
+Stars Processed: 1925
+Overdensities Detected: 6
+Rejected: 6
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 53
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 199
+Sky Region: RA=189.15, Dec=38.10, Radius=0.5
+Stars Processed: 1539
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 200
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 200
+Sky Region: RA=189.15, Dec=43.97, Radius=0.5
+Stars Processed: 1597
+Overdensities Detected: 5
+Rejected: 4
+Remaining Candidates: 1
+Confidence Scores: 0.22
+Next Planned Action: Scan region 201
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 201
+Sky Region: RA=189.15, Dec=49.83, Radius=0.5
+Stars Processed: 1596
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 202
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 202
+Sky Region: RA=189.15, Dec=55.69, Radius=0.5
+Stars Processed: 1644
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 203
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 203
+Sky Region: RA=189.15, Dec=61.55, Radius=0.5
+Stars Processed: 1853
+Overdensities Detected: 4
+Rejected: 4
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 204
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 204
+Sky Region: RA=195.25, Dec=-8.79, Radius=0.5
+Stars Processed: 2991
+Overdensities Detected: 2
+Rejected: 2
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 205
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 205
+Sky Region: RA=195.25, Dec=-2.93, Radius=0.5
+Stars Processed: 2595
+Overdensities Detected: 3
+Rejected: 2
+Remaining Candidates: 1
+Confidence Scores: 0.29
+Next Planned Action: Scan region 206
+--------------
+INFO: Query finished. [astroquery.utils.tap.core]
+--- REPORT ---
+Iteration: 206
+Sky Region: RA=195.25, Dec=2.93, Radius=0.5
+Stars Processed: 2331
+Overdensities Detected: 3
+Rejected: 3
+Remaining Candidates: 0
+Confidence Scores: N/A
+Next Planned Action: Scan region 207
 --------------

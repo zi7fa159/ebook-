@@ -189,11 +189,13 @@ def run_discovery():
     sys.stdout.flush()
 
     iteration = 0
-    while True:
-        regions = get_scan_regions(n_regions=100)
-        offset = (iteration // 100) * 0.1
+    # Generate the full grid once
+    all_grid_regions = get_scan_regions(n_regions=2000)
 
-        for region in regions:
+    while True:
+        offset = (iteration // len(all_grid_regions)) * 0.1
+
+        for region in all_grid_regions:
             iteration += 1
             ra = (region['ra'] + offset) % 360
             dec = region['dec']
