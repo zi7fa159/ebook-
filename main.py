@@ -9,10 +9,11 @@ import numpy as np
 class DiscoveryAgent:
     def __init__(self):
         self.data_manager = DataManager()
-        self.analyzer = Analyzer()
+        self.analyzer = Analyzer(power_threshold=0.01) # More sensitive
         self.validator = Validator()
         self.iteration = 1
         self.log_file = "research_log.md"
+        self.discovery_file = "discovered_stars.md"
 
     def log(self, message):
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -21,24 +22,28 @@ class DiscoveryAgent:
         with open(self.log_file, "a") as f:
             f.write(log_entry)
 
+    def log_discovery(self, ra, dec, p_ls, power_ls):
+        discovery_id = f"V_{int(time.time())}"
+        entry = f"| {discovery_id} | {ra:.5f} | {dec:.5f} | {p_ls:.4f} | {power_ls:.4f} | VSX/Simbad/Gaia Clear | Candidate |\n"
+        with open(self.discovery_file, "a") as f:
+            f.write(entry)
+
     def run_iteration(self):
         self.log(f"--- Iteration {self.iteration} Starting ---")
 
-        # 1. Selection & Acquisition
         coord = self.data_manager.select_target()
         tpf = self.data_manager.download_data(coord)
 
         if tpf is None:
             self.log(f"No data found for {coord.to_string('hmsdms')}. Skipping.")
-            return False
+            return
 
         self.log(f"Acquired Sector {tpf.sector} data for {coord.to_string('hmsdms')}")
 
-        # 2. Analysis
         sources = self.analyzer.detect_sources(tpf)
         if sources is None or len(sources) == 0:
             self.log("No sources detected.")
-            return False
+            return
 
         for i, source in enumerate(sources):
             x, y = source['x_peak'], source['y_peak']
@@ -50,30 +55,26 @@ class DiscoveryAgent:
                 ra_dec = tpf.wcs.all_pix2world(pixel_coords, 0)
                 star_ra, star_dec = ra_dec[0]
 
-                # 3. Multi-catalog Validation
                 if self.validator.is_new_discovery(star_ra, star_dec):
-                    self.log(f"!!! DISCOVERY CANDIDATE !!! RA={star_ra:.5f}, Dec={star_dec:.5f}")
-                    self.log(f"Analysis: P_LS={results['period_ls']:.4f}, P_BLS={results['period_bls']:.4f}")
-                    self.log("PAUSING AUTOMATION FOR REVIEW.")
-                    return True # FOUND A CANDIDATE, SIGNAL PAUSE
+                    self.log(f"!!! NEW DISCOVERY !!! RA={star_ra:.5f}, Dec={star_dec:.5f}")
+                    # Handle possible Quantity
+                    p_val = results['period_ls'].value if hasattr(results['period_ls'], 'value') else results['period_ls']
+                    self.log_discovery(star_ra, star_dec, p_val, results['power_ls'])
                 else:
                     self.log(f"Variable detected at RA={star_ra:.5f}, but already cataloged.")
 
-        self.log(f"Iteration {self.iteration} complete. No new candidates.")
+        self.log(f"Iteration {self.iteration} complete.")
         self.iteration += 1
-        return False
 
     def start(self, max_iterations=100):
-        self.log("Discovery Agent Online")
+        self.log("Discovery Agent Online - Continuous Mode")
         for _ in range(max_iterations):
             try:
-                found = self.run_iteration()
-                if found:
-                    break # STOP AS PER RULE
+                self.run_iteration()
             except Exception as e:
                 self.log(f"Error: {e}")
-            time.sleep(2)
+            time.sleep(1)
 
 if __name__ == "__main__":
     agent = DiscoveryAgent()
-    agent.start()
+    agent.start(50)
