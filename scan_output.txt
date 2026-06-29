@@ -757,3 +757,17 @@ Stars: 26
 Mean PM: (-0.60, -3.74)
 Mean Parallax: 1.29
 Novelty Score: 2.59
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=5.6599, Dec=64.6419
+Stars: 24
+Mean PM: (-7.41, 0.73)
+Mean Parallax: 0.58
+Novelty Score: 1.80
+Simbad query failed: argument of type 'int' is not iterable
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=5.8224, Dec=64.5267
+Stars: 31
+Mean PM: (1.45, -2.72)
+Mean Parallax: 0.70
+Novelty Score: 2.29
