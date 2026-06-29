@@ -1,0 +1,66 @@
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+
+--- SCANNING: l=0, b=0 (RA=266.40, Dec=-28.94) ---
+Fetching data for RA=266.4049882865447, Dec=-28.936177761791473, radius=0.8...
+Fetched 10000 stars.
+Detected 4 potential clusters.
+Known cluster [HSS84]  4 detected at RA=266.3831, Dec=-29.3971
+Known cluster [RHI84] 10-474 detected at RA=266.2001, Dec=-29.3011
+Known cluster [RHI84] 10-474 detected at RA=266.1777, Dec=-29.3398
+
+--- SCANNING: l=10, b=0 (RA=271.94, Dec=-20.29) ---
+Fetching data for RA=271.9404223189431, Dec=-20.290029497760873, radius=0.8...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Known cluster [LPH96] 010.068-0.176 detected at RA=272.0280, Dec=-20.3112
+
+--- SCANNING: l=20, b=0 (RA=276.88, Dec=-11.49) ---
+Fetching data for RA=276.88229207387474, Dec=-11.488619730151909, radius=0.8...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Known cluster [SHK2000] 18264-1152 detected at RA=277.2859, Dec=-11.9514
+Known cluster [HSS84] 32 detected at RA=276.8777, Dec=-11.8299
+
+--- SCANNING: l=30, b=0 (RA=281.52, Dec=-2.61) ---
+Fetching data for RA=281.5216424751636, Dec=-2.609141524131001, radius=0.8...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Known cluster [GGV99] J184455.11-025536.9 detected at RA=281.2439, Dec=-2.7757
+Known cluster [KC97c] G030.2-00.1 detected at RA=281.9140, Dec=-2.4828
+
+--- SCANNING: l=40, b=0 (RA=286.10, Dec=6.29) ---
+Fetching data for RA=286.09540954925956, Dec=6.287169313873169, radius=0.8...
+Fetched 9632 stars.
+Detected 2 potential clusters.
+Known cluster [GPD88] 040.284+0.026 detected at RA=286.2467, Dec=6.4974
+
+--- SCANNING: l=50, b=0 (RA=290.83, Dec=15.14) ---
+Fetching data for RA=290.8291368771373, Dec=15.142367637493548, radius=0.8...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Known cluster [JSA2009] G50.271 VLA 1 detected at RA=291.2158, Dec=15.3298
+Known cluster [ABG85] 84 detected at RA=290.8625, Dec=14.9218
+Known cluster [KB94] 65 detected at RA=290.8367, Dec=15.0130
+
+--- SCANNING: l=60, b=0 (RA=295.98, Dec=23.89) ---
+Fetching data for RA=295.976374947429, Dec=23.89037583177886, radius=0.8...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+Known cluster [MJD95] J194407.97+232538.6 detected at RA=296.1472, Dec=23.3965
+
+--- SCANNING: l=70, b=0 (RA=301.87, Dec=32.44) ---
+Fetching data for RA=301.8661880262955, Dec=32.44245685954953, radius=0.8...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Known cluster [GPD88] 069.490+0.115 detected at RA=301.4759, Dec=32.1769
+Known cluster [GPD88] 069.490+0.115 detected at RA=301.5728, Dec=32.0541
+
+--- SCANNING: l=80, b=0 (RA=308.97, Dec=40.66) ---
+Fetching data for RA=308.97121783181626, Dec=40.663610400057635, radius=0.8...
+Fetched 8434 stars.
+Detected 2 potential clusters.
+
+--- SCANNING: l=90, b=0 (RA=318.00, Dec=48.33) ---
+Fetching data for RA=318.00438150701746, Dec=48.329637206840914, radius=0.8...
+Fetched 10000 stars.
+Detected 5 potential clusters.

@@ -1,0 +1,57 @@
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+
+--- SCANNING: l=0, b=5 (RA=261.65, Dec=-26.25) ---
+Fetching data for RA=261.6472392078039, Dec=-26.247677004892967, radius=0.8...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=261.4402, Dec=-26.3226
+Stars: 16
+Mean PM: (-1.14, -12.80)
+Mean Parallax: 1.03
+Novelty Score: 1.42
+
+--- SCANNING: l=20, b=5 (RA=272.40, Dec=-9.13) ---
+Fetching data for RA=272.40087448787625, Dec=-9.12992560624741, radius=0.8...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=272.2079, Dec=-8.9617
+Stars: 17
+Mean PM: (-4.86, -5.84)
+Mean Parallax: 0.80
+Novelty Score: 2.30
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=272.2577, Dec=-9.3159
+Stars: 23
+Mean PM: (-1.77, 1.11)
+Mean Parallax: 0.74
+Novelty Score: 1.48
+
+--- SCANNING: l=40, b=5 (RA=281.60, Dec=8.56) ---
+Fetching data for RA=281.60362239553933, Dec=8.559512187584014, radius=0.8...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=281.4780, Dec=8.2325
+Stars: 18
+Mean PM: (3.76, -7.77)
+Mean Parallax: 0.79
+Novelty Score: 1.15
+
+--- SCANNING: l=60, b=5 (RA=291.14, Dec=26.31) ---
+Fetching data for RA=291.1422151325966, Dec=26.307498733458235, radius=0.8...
+Fetched 10000 stars.
+Detected 2 potential clusters.
+*** POTENTIAL NEW OPEN CLUSTER CANDIDATE ***
+Location: RA=290.9631, Dec=25.9039
+Stars: 23
+Mean PM: (-5.62, -11.38)
+Mean Parallax: 0.46
+Novelty Score: 1.94
+
+--- SCANNING: l=80, b=5 (RA=303.46, Dec=43.54) ---
+Fetching data for RA=303.4573622551335, Dec=43.5414197389081, radius=0.8...
+Fetched 10000 stars.
+Detected 3 potential clusters.
+Known cluster [D75] 100 detected at RA=303.6360, Dec=43.3859
