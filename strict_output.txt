@@ -1,0 +1,33 @@
+Strict validation of current candidates...
+
+Validating TYC 1214-213-1:
+  M_G = 7.64
+  M_J = 5.96
+  v_t = 514.46 km/s
+  W1-W2 = 0.90
+  RUWE = 1.07
+  Result: Likely M dwarf (reject UCD interpretation)
+
+Validating 2MASS J22011098+7417528:
+  M_G = 13.04
+  M_J = 10.31
+  v_t = 356.94 km/s
+  W1-W2 = 0.77
+  RUWE = 1.05
+  Result: Likely M dwarf (reject UCD interpretation)
+
+Validating Gaia DR3 3442744801203149952:
+  M_G = 12.69
+  M_J = 11.72
+  v_t = 318.32 km/s
+  W1-W2 = 0.90
+  RUWE = 0.97
+  Result: Likely M dwarf (reject UCD interpretation)
+
+Validating 2MASS J02441116+3011190:
+  M_G = 10.90
+  M_J = 8.40
+  v_t = 634.48 km/s
+  W1-W2 = 0.92
+  RUWE = 0.97
+  Result: Likely M dwarf (reject UCD interpretation)

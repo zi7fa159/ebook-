@@ -1,0 +1,24 @@
+Final Validation for SIPS J0145-3729B:
+  RA, Dec: 26.433777007279804, -37.500493941312
+  Parallax: 29.60 +/- 0.25 mas
+  Distance: 33.8 pc
+  M_G: 15.89
+  M_J: 9.80
+  W1-W2: 1.32
+  RUWE: 0.96
+  Excess Noise: 0.87
+  v_t: 69.85 km/s
+  Status: PASSED STRICT UCD VALIDATION
+--------------------
+Final Validation for 1RXS J065612.9+684122:
+  RA, Dec: 104.04012509545193, 68.6836258155403
+  Parallax: 25.20 +/- 0.12 mas
+  Distance: 39.7 pc
+  M_G: 14.54
+  M_J: 11.71
+  W1-W2: 0.80
+  RUWE: 0.98
+  Excess Noise: 0.70
+  v_t: 12.56 km/s
+  Status: PASSED STRICT UCD VALIDATION
+--------------------
