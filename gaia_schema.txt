@@ -1,0 +1,4 @@
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+INFO: Retrieving tables... [astroquery.utils.tap.core]
+INFO: Parsing tables... [astroquery.utils.tap.core]
+INFO: Done. [astroquery.utils.tap.core]

@@ -1,0 +1,348 @@
+    name              description             type
+----------- -------------------------------- -----
+mesDiameter Collection of stellar diameters. table
+ name          description           type
+----- ----------------------------- -----
+mesPM Collection of proper motions. table
+ name                    description                    type
+------ ----------------------------------------------- -----
+mesISO Infrared Space Observatory (ISO) observing log. table
+ name           description           type
+------ ----------------------------- -----
+mesSpT Collection of spectral types. table
+   name                     description                     type
+--------- ------------------------------------------------ -----
+allfluxes all flux/magnitudes U,B,V,I,J,H,K,u_,g_,r_,i_,z_ table
+ name              description               type
+----- ------------------------------------- -----
+ident Identifiers of an astronomical object table
+name                       description                        type
+---- ------------------------------------------------------- -----
+flux Magnitude/Flux information about an astronomical object table
+  name                          description                         type
+-------- --------------------------------------------------------- -----
+mesOtype Other object types associated with an object with origins table
+ name                description                type
+------ --------------------------------------- -----
+mesPLX Collection of trigonometric parallaxes. table
+  name                    description                    type
+-------- ---------------------------------------------- -----
+otypedef all names and definitions for the object types table
+    name                           description                          type
+----------- ---------------------------------------------------------- -----
+mesDistance Collection of distances (pc, kpc or Mpc) by several means. table
+ name                     description                      type
+------ -------------------------------------------------- -----
+otypes List of all object types associated with an object table
+ name                      description                       type
+------ ---------------------------------------------------- -----
+mesVar Collection of stellar variability types and periods. table
+ name     description      type
+------ ------------------ -----
+mesXmm XMM observing log. table
+     name                    description                  type
+------------- ------------------------------------------ -----
+mesVelocities Collection of HRV, Vlsr, cz and redshifts. table
+  name                                  description                                   type
+------- ---------------------------------------------------------------------------- -----
+has_ref Associations between astronomical objects and their bibliographic references table
+ name           description            type
+------ ------------------------------ -----
+mesRot Stellar Rotational Velocities. table
+ name  description   type
+------ ------------ -----
+biblio Bibliography table
+name           description             type
+---- -------------------------------- -----
+ ids all names concatenated with pipe table
+    name           description          type
+----------- -------------------------- -----
+mesHerschel The Herschel observing Log table
+ name                     description                     type
+------ ------------------------------------------------- -----
+mesIUE International Ultraviolet Explorer observing log. table
+  name                          description                          type
+------- ----------------------------------------------------------- -----
+mesFe_h Collection of metallicity, as well as Teff, logg for stars. table
+  name                 description                type
+-------- --------------------------------------- -----
+alltypes all object types concatenated with pipe table
+ name                description                 type
+----- ----------------------------------------- -----
+basic General data about an astronomical object table
+name description       type
+---- ----------- ---------------
+ dec Declination column of basic
+  name           description                type
+------- ----------------------------- ---------------
+main_id Main identifier for an object column of basic
+   name   description       type
+--------- ----------- ---------------
+otype_txt Object type column of basic
+name   description         type
+---- --------------- ---------------
+  ra Right ascension column of basic
+    name        description            type
+----------- -------------------- ---------------
+coo_bibcode Coordinate reference column of basic
+     name          description             type
+------------- ---------------------- ---------------
+coo_err_angle Coordinate error angle column of basic
+    name            description               type
+----------- --------------------------- ---------------
+coo_err_maj Coordinate error major axis column of basic
+      name                    description                    type
+---------------- ------------------------------------- ---------------
+coo_err_maj_prec Coordinate error major axis precision column of basic
+    name            description               type
+----------- --------------------------- ---------------
+coo_err_min Coordinate error minor axis column of basic
+      name                    description                    type
+---------------- ------------------------------------- ---------------
+coo_err_min_prec Coordinate error minor axis precision column of basic
+  name      description           type
+-------- ------------------ ---------------
+coo_qual Coordinate quality column of basic
+     name                                description                                  type
+-------------- ---------------------------------------------------------------- ---------------
+coo_wavelength Wavelength class for the origin of the coordinates (R,I,V,U,X,G) column of basic
+  name        description            type
+-------- --------------------- ---------------
+dec_prec Declination precision column of basic
+    name         description            type
+------------ -------------------- ---------------
+galdim_angle Galaxy ellipse angle column of basic
+     name             description               type
+-------------- -------------------------- ---------------
+galdim_bibcode Galaxy dimension reference column of basic
+     name            description             type
+-------------- ----------------------- ---------------
+galdim_majaxis Angular size major axis column of basic
+        name                   description                  type
+------------------- --------------------------------- ---------------
+galdim_majaxis_prec Angular size major axis precision column of basic
+     name            description             type
+-------------- ----------------------- ---------------
+galdim_minaxis Angular size minor axis column of basic
+        name                   description                  type
+------------------- --------------------------------- ---------------
+galdim_minaxis_prec Angular size minor axis precision column of basic
+    name          description              type
+----------- ------------------------ ---------------
+galdim_qual Galaxy dimension quality column of basic
+       name                             description                             type
+----------------- ------------------------------------------------------- ---------------
+galdim_wavelength Wavelength class for the origin of the Galaxy dimension column of basic
+name        description               type
+---- -------------------------- ---------------
+ hpx Healpix number at ORDER=10 column of basic
+     name             description                type
+------------- ---------------------------- ---------------
+morph_bibcode morphological type reference column of basic
+   name           description               type
+---------- -------------------------- ---------------
+morph_qual Morphological type quality column of basic
+   name       description           type
+---------- ------------------ ---------------
+morph_type Morphological type column of basic
+ name     description            type
+----- -------------------- ---------------
+nbref number of references column of basic
+name        description               type
+---- -------------------------- ---------------
+ oid Object internal identifier column of basic
+ name description       type
+----- ----------- ---------------
+otype Object type column of basic
+    name       description           type
+----------- ------------------ ---------------
+plx_bibcode Parallax reference column of basic
+  name   description         type
+------- -------------- ---------------
+plx_err Parallax error column of basic
+    name           description              type
+------------ ------------------------ ---------------
+plx_err_prec Parallax error precision column of basic
+  name      description           type
+-------- ------------------ ---------------
+plx_prec Parallax precision column of basic
+  name     description          type
+-------- ---------------- ---------------
+plx_qual Parallax quality column of basic
+   name   description       type
+--------- ----------- ---------------
+plx_value    Parallax column of basic
+   name          description             type
+---------- ----------------------- ---------------
+pm_bibcode Proper motion reference column of basic
+ name     description            type
+----- -------------------- ---------------
+pmdec Proper motion in DEC column of basic
+   name             description                 type
+---------- ------------------------------ ---------------
+pmdec_prec Proper motion in DEC precision column of basic
+    name            description              type
+------------ ------------------------- ---------------
+pm_err_angle Proper motion error angle column of basic
+   name             description                 type
+---------- ------------------------------ ---------------
+pm_err_maj Proper motion error major axis column of basic
+      name                    description                      type
+--------------- ---------------------------------------- ---------------
+pm_err_maj_prec Proper motion error major axis precision column of basic
+   name             description                 type
+---------- ------------------------------ ---------------
+pm_err_min Proper motion error minor axis column of basic
+      name                    description                      type
+--------------- ---------------------------------------- ---------------
+pm_err_min_prec Proper motion error minor axis precision column of basic
+  name       description            type
+------- --------------------- ---------------
+pm_qual Proper motion quality column of basic
+name     description           type
+---- ------------------- ---------------
+pmra Proper motion in RA column of basic
+   name            description                type
+--------- ----------------------------- ---------------
+pmra_prec Proper motion in RA precision column of basic
+  name         description              type
+------- ------------------------- ---------------
+ra_prec Right ascension precision column of basic
+    name                description                    type
+----------- ------------------------------------ ---------------
+rvz_bibcode Radial velocity / redshift reference column of basic
+  name            description                  type
+------- -------------------------------- ---------------
+rvz_err Radial velocity / redshift error column of basic
+    name                    description                       type
+------------ ------------------------------------------ ---------------
+rvz_err_prec Radial velocity / redshift error precision column of basic
+   name           description               type
+---------- -------------------------- ---------------
+rvz_nature velocity / redshift nature column of basic
+  name              description                   type
+-------- ---------------------------------- ---------------
+rvz_qual Radial velocity / redshift quality column of basic
+   name      description         type
+---------- --------------- ---------------
+rvz_radvel Radial Velocity column of basic
+      name             description              type
+--------------- ------------------------- ---------------
+rvz_radvel_prec Radial velocity precision column of basic
+    name     description       type
+------------ ----------- ---------------
+rvz_redshift    redshift column of basic
+       name          description           type
+----------------- ------------------ ---------------
+rvz_redshift_prec redshift precision column of basic
+  name             description                 type
+-------- ------------------------------- ---------------
+rvz_type Radial velocity / redshift type column of basic
+     name                               description                                 type
+-------------- -------------------------------------------------------------- ---------------
+rvz_wavelength Wavelength class for the origin of the radial velocity/reshift column of basic
+   name          description             type
+---------- ----------------------- ---------------
+sp_bibcode spectral type reference column of basic
+  name       description            type
+------- --------------------- ---------------
+sp_qual Spectral type quality column of basic
+  name    description          type
+------- ---------------- ---------------
+sp_type MK spectral type column of basic
+    name           description              type
+----------- ------------------------- ---------------
+update_date Date of last modification column of basic
+name                    description                           type
+---- -------------------------------------------------- ---------------
+vlsr velocity in Local Standard of Rest reference frame column of basic
+    name                     description                        type
+------------ -------------------------------------------- ---------------
+vlsr_bibcode Reference for the origin of the LSR velocity column of basic
+  name                description                     type
+-------- -------------------------------------- ---------------
+vlsr_err Error incertainty of the VLSR velocity column of basic
+  name                    description                         type
+-------- ---------------------------------------------- ---------------
+vlsr_max Maximum for the mean value of the LSR velocity column of basic
+  name                    description                         type
+-------- ---------------------------------------------- ---------------
+vlsr_min Minimum for the mean value of the LSR velocity column of basic
+      name                          description                           type
+--------------- --------------------------------------------------- ---------------
+vlsr_wavelength Wavelength class for the origin of the LSR velocity column of basic
+    name                description                       type
+----------- ----------------------------------- -----------------------
+coordinates all fields related with coordinates bundle of basic columns
+name                 description                           type
+---- ------------------------------------------- -----------------------
+ dim major and minor axis, angle and inclination bundle of basic columns
+   name                  description                         type
+---------- --------------------------------------- -----------------------
+dimensions all fields related to object dimensions bundle of basic columns
+   name                   description                            type
+--------- -------------------------------------------- -----------------------
+morphtype all fields related to the morphological type bundle of basic columns
+  name             description                      type
+-------- -------------------------------- -----------------------
+parallax all fields related to parallaxes bundle of basic columns
+     name                    description                           type
+------------- ------------------------------------------ -----------------------
+propermotions all fields related with the proper motions bundle of basic columns
+name                description                          type
+---- ----------------------------------------- -----------------------
+  sp all fields related with the spectral type bundle of basic columns
+  name                       description                                type
+-------- ---------------------------------------------------- -----------------------
+velocity all fields related with radial velocity and redshift bundle of basic columns
+name description     type
+---- ----------- -----------
+   U Magnitude U filter name
+name description     type
+---- ----------- -----------
+   B Magnitude B filter name
+name description     type
+---- ----------- -----------
+   V Magnitude V filter name
+name description     type
+---- ----------- -----------
+   R Magnitude R filter name
+name description     type
+---- ----------- -----------
+   I Magnitude I filter name
+name description     type
+---- ----------- -----------
+   J Magnitude J filter name
+name description     type
+---- ----------- -----------
+   H Magnitude H filter name
+name description     type
+---- ----------- -----------
+   K Magnitude K filter name
+name   description        type
+---- ---------------- -----------
+   u Magnitude SDSS u filter name
+name   description        type
+---- ---------------- -----------
+   g Magnitude SDSS g filter name
+name   description        type
+---- ---------------- -----------
+   r Magnitude SDSS r filter name
+name   description        type
+---- ---------------- -----------
+   i Magnitude SDSS i filter name
+name   description        type
+---- ---------------- -----------
+   z Magnitude SDSS z filter name
+name   description        type
+---- ---------------- -----------
+   G Magnitude Gaia G filter name
+ name    description        type
+----- ----------------- -----------
+F150W JWST NIRCam F150W filter name
+ name    description        type
+----- ----------------- -----------
+F200W JWST NIRCam F200W filter name
+ name    description        type
+----- ----------------- -----------
+F444W JWST NIRCan F444W filter name

@@ -1,0 +1,12 @@
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+Launching Gaia query...
+Retrieved 2000 candidates.
+First 5 candidates:
+            source_id         ra  ...  astrometric_excess_noise      ruwe
+0  208396421707959808  78.743259  ...                  0.419599  1.027462
+1  214657178351426688  88.823076  ...                  0.035347  1.174401
+2  231113736385994624  56.762351  ...                  0.146085  1.050799
+3  254503754619088512  72.934971  ...                  0.605926  1.347819
+4  258996015538087680  71.583983  ...                  0.376151  1.384399
+
+[5 rows x 14 columns]
