@@ -1,0 +1,11 @@
+Maintenance with possible short-time disconnections: 29 June 2026 18:00–20:00 CEST
+Launching strict Gaia query for true UCDs...
+Retrieved 2000 candidates.
+            source_id         ra  ...  astrometric_excess_noise      ruwe
+0  211172478109586432  87.950172  ...                  0.996271  0.971062
+1  232852717106942080  63.342956  ...                  0.959503  0.998902
+2  246775562271434752  60.622580  ...                  0.340786  1.100973
+3  261069144711056384  73.798383  ...                  0.816216  1.078635
+4  269226279739467904  83.847577  ...                  0.000000  0.994378
+
+[5 rows x 14 columns]

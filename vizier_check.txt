@@ -1,0 +1,13 @@
+CatWISE2020:
+II/365/catwise
+
+CatWISE2020 columns:
+['RA_ICRS', 'e_RA_ICRS', 'DE_ICRS', 'e_DE_ICRS', 'Name', 'nW1', 'mW1', 'nW2', 'mW2', 'RAPMdeg', 'e_RAPMdeg', 'DEPMdeg', 'e_DEPMdeg', 'pmRA', 'e_pmRA', 'pmDE', 'e_pmDE', 'snrW1pm', 'snrW2pm', 'FW1pm', 'e_FW1pm', 'FW2pm', 'e_FW2pm', 'W1mproPM', 'W2mproPM', 'pmQual', 'Dist', 'snrdELON', 'snrdELAT', 'chi2pmRA', 'chi2pmDE', 'ka', 'k1', 'k2', 'km', 'Sep', 'abf', 'WISEA']
+
+2MASS:
+II/246
+II/281
+VII/233
+
+2MASS columns:
+['RAJ2000', 'DEJ2000', '2MASS', 'Jmag', 'e_Jmag', 'Hmag', 'e_Hmag', 'Kmag', 'e_Kmag', 'Qflg', 'Rflg', 'Bflg', 'Cflg', 'Xflg', 'Aflg']
