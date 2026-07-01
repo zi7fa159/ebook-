@@ -1,14 +1,12 @@
-import { PixelFormat, Endianness, ImageMetadata, Frame } from '../core/types';
+import { PixelFormat, Endianness } from '../core/types.js';
 
 export class SERParser {
-  private file: File;
-  private header: SERHeader | null = null;
-
-  constructor(file: File) {
+  constructor(file) {
     this.file = file;
+    this.header = null;
   }
 
-  async parseHeader(): Promise<SERHeader> {
+  async parseHeader() {
     const buffer = await this.file.slice(0, 178).arrayBuffer();
     const view = new DataView(buffer);
 
@@ -51,12 +49,12 @@ export class SERParser {
     return this.header;
   }
 
-  private readNullTerminatedString(bytes: Uint8Array): string {
+  readNullTerminatedString(bytes) {
     const end = bytes.indexOf(0);
     return new TextDecoder().decode(bytes.slice(0, end === -1 ? undefined : end));
   }
 
-  private mapColorID(colorID: number): PixelFormat {
+  mapColorID(colorID) {
     switch (colorID) {
       case 0: return PixelFormat.Mono;
       case 8: return PixelFormat.BayerRGGB;
@@ -64,17 +62,17 @@ export class SERParser {
       case 10: return PixelFormat.BayerGBRG;
       case 11: return PixelFormat.BayerBGGR;
       case 100: return PixelFormat.RGB;
-      case 101: return PixelFormat.RGB; // BGR -> convert or handle?
+      case 101: return PixelFormat.RGB;
       default: return PixelFormat.Mono;
     }
   }
 
-  async getFrame(index: number): Promise<Frame> {
+  async getFrame(index) {
     if (!this.header) await this.parseHeader();
-    const h = this.header!;
+    const h = this.header;
 
     if (index < 0 || index >= h.frameCount) {
-      throw new Error(`Frame index ${index} out of bounds (0-${h.frameCount - 1})`);
+      throw new Error(`Frame index ${index} out of bounds`);
     }
 
     const bytesPerPixel = h.bitDepth > 8 ? 2 : 1;
@@ -84,13 +82,12 @@ export class SERParser {
 
     const buffer = await this.file.slice(offset, offset + frameSize).arrayBuffer();
 
-    let data: Uint8Array | Uint16Array;
+    let data;
     if (h.bitDepth <= 8) {
         data = new Uint8Array(buffer);
     } else {
         data = new Uint16Array(buffer);
         if (h.endianness === Endianness.Big) {
-            // Swap bytes
             const view = new DataView(buffer);
             for (let i = 0; i < data.length; i++) {
                 data[i] = view.getUint16(i * 2, false);
@@ -109,20 +106,4 @@ export class SERParser {
       }
     };
   }
-}
-
-export interface SERHeader {
-  luID: number;
-  colorID: number;
-  endianness: Endianness;
-  width: number;
-  height: number;
-  bitDepth: number;
-  frameCount: number;
-  observer: string;
-  instrument: string;
-  telescope: string;
-  dateUTC: bigint;
-  dateLocal: bigint;
-  pixelFormat: PixelFormat;
 }

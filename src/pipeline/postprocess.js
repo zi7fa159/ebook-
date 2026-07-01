@@ -1,4 +1,4 @@
-export function unsharpMask(data: Float32Array, width: number, height: number, amount: number, radius: number): Float32Array {
+export function unsharpMask(data, width, height, amount, radius) {
     const result = new Float32Array(data.length);
     const blurred = gaussianBlur(data, width, height, radius);
 
@@ -8,9 +8,7 @@ export function unsharpMask(data: Float32Array, width: number, height: number, a
     return result;
 }
 
-function gaussianBlur(data: Float32Array, width: number, height: number, radius: number): Float32Array {
-    // Simple box blur as approximation for performance if radius is small,
-    // or implement a proper Gaussian. For now, a 3x3 box blur.
+function gaussianBlur(data, width, height, _radius) {
     const result = new Float32Array(data.length);
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
@@ -32,16 +30,16 @@ function gaussianBlur(data: Float32Array, width: number, height: number, radius:
     return result;
 }
 
-export function applyWavelets(data: Float32Array, width: number, height: number, layers: number[]): Float32Array {
-    // Basic ATrous wavelet transform
-    // Each layer represents a detail scale
-    // layers[i] is the weight for detail at 2^i scale
-
+/**
+ * Implementation of the à trous wavelet transform
+ */
+export function applyWavelets(data, width, height, layers) {
     let current = new Float32Array(data);
     const result = new Float32Array(data.length);
 
     for (let i = 0; i < layers.length; i++) {
-        const next = boxBlur(current, width, height, Math.pow(2, i));
+        // Step size increases by powers of 2 (holes)
+        const next = atrousBlur(current, width, height, Math.pow(2, i));
         for (let j = 0; j < data.length; j++) {
             const detail = current[j] - next[j];
             result[j] += detail * layers[i];
@@ -49,7 +47,7 @@ export function applyWavelets(data: Float32Array, width: number, height: number,
         current = next;
     }
 
-    // Add remaining residual
+    // Add the final residual (the smoothest layer)
     for (let j = 0; j < data.length; j++) {
         result[j] += current[j];
     }
@@ -57,25 +55,39 @@ export function applyWavelets(data: Float32Array, width: number, height: number,
     return result;
 }
 
-function boxBlur(data: Float32Array, width: number, height: number, step: number): Float32Array {
+/**
+ * 5x5 B3-Spline kernel for à trous wavelet
+ */
+function atrousBlur(data, width, height, step) {
     const result = new Float32Array(data.length);
-    const s = Math.floor(step);
+    const kernel = [1/16, 4/16, 6/16, 4/16, 1/16];
+
+    // Temporary buffer for separable convolution
+    const temp = new Float32Array(data.length);
+
+    // Horizontal pass
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             let sum = 0;
-            let count = 0;
-            // 5-point star kernel for performance in ATrous
-            const points = [[0,0], [s,0], [-s,0], [0,s], [0,-s]];
-            for (const [dx, dy] of points) {
-                const ix = x + dx;
-                const iy = y + dy;
-                if (ix >= 0 && ix < width && iy >= 0 && iy < height) {
-                    sum += data[iy * width + ix];
-                    count++;
-                }
+            for (let k = -2; k <= 2; k++) {
+                const ix = Math.min(Math.max(x + k * step, 0), width - 1);
+                sum += data[y * width + ix] * kernel[k + 2];
             }
-            result[y * width + x] = sum / count;
+            temp[y * width + x] = sum;
         }
     }
+
+    // Vertical pass
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            let sum = 0;
+            for (let k = -2; k <= 2; k++) {
+                const iy = Math.min(Math.max(y + k * step, 0), height - 1);
+                sum += temp[iy * width + x] * kernel[k + 2];
+            }
+            result[y * width + x] = sum;
+        }
+    }
+
     return result;
 }

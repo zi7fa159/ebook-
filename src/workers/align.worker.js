@@ -1,6 +1,6 @@
-import { alignFrames } from '../pipeline/registration';
+import { alignFrames } from '../pipeline/registration.js';
 
-self.onmessage = async (e: MessageEvent) => {
+self.onmessage = async (e) => {
     const { type, refData, srcData, width, height, frameIndex } = e.data;
 
     if (type === 'align') {
@@ -8,7 +8,8 @@ self.onmessage = async (e: MessageEvent) => {
         self.postMessage({
             type: 'result',
             frameIndex,
-            offset
+            offset,
+            srcData // Return the buffer back
         }, [srcData.buffer]);
     }
 };

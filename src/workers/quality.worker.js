@@ -1,6 +1,6 @@
-import { varianceOfLaplacian } from '../pipeline/quality';
+import { varianceOfLaplacian } from '../pipeline/quality.js';
 
-self.onmessage = async (e: MessageEvent) => {
+self.onmessage = async (e) => {
     const { type, data, width, height, frameIndex } = e.data;
 
     if (type === 'analyze') {
@@ -8,7 +8,8 @@ self.onmessage = async (e: MessageEvent) => {
         self.postMessage({
             type: 'result',
             frameIndex,
-            score
+            score,
+            data // Return the buffer back
         }, [data.buffer]);
     }
 };
