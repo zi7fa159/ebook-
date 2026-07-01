@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { QualityEstimators } from '../src/utils/quality.js';
+import { QualityEstimators } from '../../src/utils/quality.js';
 
 describe('QualityEstimators', () => {
     it('should calculate higher variance of laplacian for sharper images', () => {

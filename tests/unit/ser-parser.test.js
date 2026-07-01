@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SERParser, COLOR_ID } from '../src/io/ser-parser.js';
+import { SERParser, COLOR_ID } from '../../src/io/ser-parser.js';
 
 function createMockSER(width, height, frameCount, pixelDepth, colorId) {
     const headerSize = 178;

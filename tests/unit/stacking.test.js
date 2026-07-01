@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Stacking } from '../src/utils/stacking.js';
+import { Stacking } from '../../src/utils/stacking.js';
 
 describe('Stacking', () => {
     it('should calculate weighted mean correctly', () => {

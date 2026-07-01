@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PostProcessing } from '../src/utils/post-processing.js';
+import { PostProcessing } from '../../src/utils/post-processing.js';
 
 describe('PostProcessing', () => {
     it('should decompose and recompose wavelets correctly', () => {

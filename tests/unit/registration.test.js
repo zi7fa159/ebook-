@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Registration } from '../src/utils/registration.js';
-import { FFT2D } from '../src/utils/fft.js';
+import { Registration } from '../../src/utils/registration.js';
+import { FFT2D } from '../../src/utils/fft.js';
 
 describe('Registration', () => {
     it('should estimate translation correctly using Phase Correlation', () => {

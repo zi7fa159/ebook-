@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FITSParser } from '../src/io/fits-parser.js';
+import { FITSParser } from '../../src/io/fits-parser.js';
 
 function createMockFITS(width, height, bitpix) {
     const cards = [
