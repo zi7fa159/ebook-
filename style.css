@@ -1,0 +1,118 @@
+:root {
+    --bg-color: #1e1e1e;
+    --panel-bg: #2d2d2d;
+    --text-color: #e0e0e0;
+    --accent-color: #007acc;
+    --border-color: #3f3f3f;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden;
+    height: 100vh;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background-color: var(--panel-bg);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+#workspace {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+#sidebar-left, #sidebar-right {
+    width: 300px;
+    background-color: var(--panel-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+#sidebar-right {
+    border-right: none;
+    border-left: 1px solid var(--border-color);
+}
+
+#project-explorer, #quality-section, #controls, #post-processing {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+h2, h3 {
+    margin: 0;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: var(--accent-color);
+}
+
+#quality-plot {
+    margin-top: 10px;
+    background: #000;
+    width: 100%;
+}
+
+button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+#viewer-container {
+    flex: 1;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+#main-viewer {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+footer {
+    background-color: var(--panel-bg);
+    padding: 5px 10px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+.dark-theme {
+    color-scheme: dark;
+}
