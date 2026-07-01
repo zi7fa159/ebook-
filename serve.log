@@ -1,0 +1,28 @@
+npm warn exec The following package was not found and will be installed: serve@14.2.6
+ INFO  Accepting connections at http://localhost:3000
+ HTTP  7/1/2026 5:39:41 PM ::1 GET /src/index.html
+ HTTP  7/1/2026 5:39:41 PM ::1 Returned 301 in 344 ms
+ HTTP  7/1/2026 5:39:41 PM ::1 GET /src/index
+ HTTP  7/1/2026 5:39:41 PM ::1 Returned 301 in 0 ms
+ HTTP  7/1/2026 5:39:41 PM ::1 GET /src
+ HTTP  7/1/2026 5:39:41 PM ::1 Returned 200 in 15 ms
+ HTTP  7/1/2026 5:39:41 PM ::1 GET /src/style.css
+ HTTP  7/1/2026 5:39:41 PM ::1 GET /src/main.js
+ HTTP  7/1/2026 5:39:41 PM ::1 Returned 200 in 4 ms
+ HTTP  7/1/2026 5:39:41 PM ::1 Returned 200 in 4 ms
+ HTTP  7/1/2026 5:39:41 PM ::1 GET /src/io/ser-parser.js
+ HTTP  7/1/2026 5:39:41 PM ::1 GET /src/ui/image-viewer.js
+ HTTP  7/1/2026 5:39:41 PM ::1 Returned 200 in 6 ms
+ HTTP  7/1/2026 5:39:41 PM ::1 Returned 200 in 9 ms
+ HTTP  7/1/2026 5:42:44 PM ::1 GET /src/index.html
+ HTTP  7/1/2026 5:42:44 PM ::1 Returned 301 in 5 ms
+ HTTP  7/1/2026 5:42:44 PM ::1 GET /src/index
+ HTTP  7/1/2026 5:42:44 PM ::1 Returned 301 in 1 ms
+ HTTP  7/1/2026 5:42:44 PM ::1 GET /src
+ HTTP  7/1/2026 5:42:44 PM ::1 Returned 200 in 6 ms
+ HTTP  7/1/2026 5:42:44 PM ::1 GET /style.css
+ HTTP  7/1/2026 5:42:44 PM ::1 Returned 404 in 6 ms
+ HTTP  7/1/2026 5:42:44 PM ::1 GET /main.js
+ HTTP  7/1/2026 5:42:44 PM ::1 Returned 404 in 3 ms
+
+ INFO  Gracefully shutting down. Please wait...

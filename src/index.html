@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Imaging Studio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div id="app">
+        <header>
+            <h1>Lucky Imaging Studio</h1>
+            <nav id="main-nav"></nav>
+        </header>
+        <main id="workspace">
+            <aside id="sidebar-left">
+                <section id="project-explorer">
+                    <h2>Project</h2>
+                    <div id="file-info">Drop a SER/FITS file here</div>
+                    <div id="file-list"></div>
+                </section>
+                <section id="quality-section" style="display:none">
+                    <h3>Quality Analysis</h3>
+                    <button id="btn-analyze">Analyze Frames</button>
+                    <canvas id="quality-plot" width="280" height="150"></canvas>
+                </section>
+            </aside>
+            <section id="viewer-container">
+                <canvas id="main-viewer"></canvas>
+            </section>
+            <aside id="sidebar-right">
+                <section id="controls">
+                    <h2>Processing</h2>
+                    <div id="workflow-steps">
+                        <div class="step">
+                            <label>Selection: Top <input type="number" id="select-percent" value="25" min="1" max="100">%</label>
+                        </div>
+                        <button id="btn-stack" disabled>Stack Selected Frames</button>
+                    </div>
+                </section>
+                <section id="post-processing" style="display:none">
+                    <h3>Post-Processing</h3>
+                    <button id="btn-export">Export PNG</button>
+                </section>
+            </aside>
+        </main>
+        <footer>
+            <div id="status-bar">Ready</div>
+            <div id="progress-container" style="display:none; width: 200px; background: #444; height: 10px; margin-left: 20px;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: var(--accent-color);"></div>
+            </div>
+        </footer>
+    </div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

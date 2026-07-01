@@ -1,0 +1,37 @@
+ INFO  Accepting connections at http://localhost:3000
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /index.html
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 301 in 18 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /index
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 301 in 1 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 6 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /style.css
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /main.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 3 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 10 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /io/ser-parser.js
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /ui/image-viewer.js
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /core/quality-manager.js
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /utils/stacking.js
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /io/exporter.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 6 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 6 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 5 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 5 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 5 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /workers/quality-worker.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 2 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /workers/quality-worker.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 304 in 1 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /workers/quality-worker.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 304 in 1 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /workers/quality-worker.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 304 in 1 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /utils/quality.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 200 in 2 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /utils/quality.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 304 in 0 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /utils/quality.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 304 in 0 ms
+ HTTP  7/1/2026 5:43:51 PM ::1 GET /utils/quality.js
+ HTTP  7/1/2026 5:43:51 PM ::1 Returned 304 in 3 ms
