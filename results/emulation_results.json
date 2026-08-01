@@ -1,0 +1,11 @@
+{
+    "Emulated_MCU_Clock_Speed_MHz": 550,
+    "Active_Resolution_Cycles": 8,
+    "Active_Resolution_Latency_ns": 14.5455,
+    "Idle_Resolution_Cycles": 7,
+    "Idle_Resolution_Latency_ns": 12.7273,
+    "Total_Power_Cuts_Injected": 1000,
+    "Successful_Recoveries_Verified": 1000,
+    "Data_Loss_Failures": 0,
+    "System_Recovery_Rate_Percent": 100.0
+}
