@@ -12,6 +12,11 @@
 
 #define MAX_TRAINABLE_WEIGHTS 512
 
+/* Configurable partition bounds */
+#ifndef FN_CLE_LOG_PARTITION_SIZE
+#define FN_CLE_LOG_PARTITION_SIZE 65536 /**< Default log partition size: 64KB */
+#endif
+
 /**
  * @brief Log entry packed format.
  * Size: exactly 12 Bytes.

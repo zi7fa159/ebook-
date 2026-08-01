@@ -13,15 +13,21 @@ static uint32_t s_current_write_sector_base = 0;
 static uint16_t s_current_sector_offset = 0;
 static uint32_t s_global_sequence = 0;
 
-static volatile bool s_critical_section_active = false;
-
-static void portable_enter_critical(void) {
-    s_critical_section_active = true;
-}
-
-static void portable_exit_critical(void) {
-    s_critical_section_active = false;
-}
+/* Robust target-specific critical section blocks for interrupt disablement */
+#if defined(__arm__) || defined(__thumb__)
+#define PORTABLE_ENTER_CRITICAL() __asm volatile("cpsid i" : : : "memory")
+#define PORTABLE_EXIT_CRITICAL()  __asm volatile("cpsie i" : : : "memory")
+#elif defined(ESP_PLATFORM)
+// ESP-IDF specific porting lock calls
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#define PORTABLE_ENTER_CRITICAL() taskENTER_CRITICAL()
+#define PORTABLE_EXIT_CRITICAL()  taskEXIT_CRITICAL()
+#else
+// Fallback compiler optimization fence
+#define PORTABLE_ENTER_CRITICAL() __asm volatile("" : : : "memory")
+#define PORTABLE_EXIT_CRITICAL()  __asm volatile("" : : : "memory")
+#endif
 
 /* Portable Endianness utilities */
 static inline uint16_t swap_uint16(uint16_t val) {
@@ -85,12 +91,15 @@ static void deserialize_log_entry(const uint8_t *buf, fncle_log_entry_t *entry) 
 }
 
 void fncle_vwe_init(void) {
-    portable_enter_critical();
+    PORTABLE_ENTER_CRITICAL();
     memset(s_sram_map, 0, sizeof(s_sram_map));
     s_current_write_sector_base = 0;
     s_current_sector_offset = 0;
     s_global_sequence = 0;
-    portable_exit_critical();
+
+    // Pre-erase the initial active log sector before sequential programming begins!
+    fncle_flash_erase_sector(s_current_write_sector_base);
+    PORTABLE_EXIT_CRITICAL();
 }
 
 bool fncle_vwe_register_delta(uint16_t weight_id, float delta_val) {
@@ -98,8 +107,14 @@ bool fncle_vwe_register_delta(uint16_t weight_id, float delta_val) {
         return false;
     }
 
+    uint32_t local_seq;
+
+    PORTABLE_ENTER_CRITICAL();
+    local_seq = s_global_sequence++;
+    PORTABLE_EXIT_CRITICAL();
+
     fncle_log_entry_t entry;
-    entry.sequence_num = s_global_sequence++;
+    entry.sequence_num = local_seq;
     entry.delta_value = delta_val;
     entry.weight_id = weight_id;
     entry.padding = 0;
@@ -107,32 +122,40 @@ bool fncle_vwe_register_delta(uint16_t weight_id, float delta_val) {
     uint8_t packed_buf[sizeof(fncle_log_entry_t)];
     serialize_log_entry(&entry, packed_buf);
 
+    PORTABLE_ENTER_CRITICAL();
     // Check sector boundaries (NOR sector typically is 4KB)
     if (s_current_sector_offset + sizeof(fncle_log_entry_t) > FN_CLE_FLASH_SECTOR_SIZE) {
         s_current_write_sector_base += FN_CLE_FLASH_SECTOR_SIZE;
         s_current_sector_offset = 0;
 
-        // Circular buffer safety wrapping (e.g. 64KB log size)
-        if (s_current_write_sector_base + FN_CLE_FLASH_SECTOR_SIZE > 65536) {
+        // Circular buffer safety wrapping
+        if (s_current_write_sector_base + FN_CLE_FLASH_SECTOR_SIZE > FN_CLE_LOG_PARTITION_SIZE) {
             s_current_write_sector_base = 0;
+        }
+
+        // ERASE the target physical sector before sequential programming can take place!
+        if (!fncle_flash_erase_sector(s_current_write_sector_base)) {
+            PORTABLE_EXIT_CRITICAL();
+            return false;
         }
     }
 
     uint32_t target_addr = s_current_write_sector_base + s_current_sector_offset;
+    PORTABLE_EXIT_CRITICAL();
 
     // Write via hardware-agnostic HAL call
     if (!fncle_flash_write_data(target_addr, packed_buf, sizeof(fncle_log_entry_t))) {
         return false;
     }
 
-    // Update active map cleanly
-    portable_enter_critical();
+    // Update active map cleanly under critical section
+    PORTABLE_ENTER_CRITICAL();
     s_sram_map[weight_id].flash_sector_addr = s_current_write_sector_base;
     s_sram_map[weight_id].sector_offset = s_current_sector_offset;
     s_sram_map[weight_id].is_active = true;
-    portable_exit_critical();
-
     s_current_sector_offset += sizeof(fncle_log_entry_t);
+    PORTABLE_EXIT_CRITICAL();
+
     return true;
 }
 
@@ -141,10 +164,10 @@ float fncle_vwe_resolve(uint16_t weight_id, float base_weight) {
         return base_weight;
     }
 
-    portable_enter_critical();
+    PORTABLE_ENTER_CRITICAL();
     uint32_t sector_addr = s_sram_map[weight_id].flash_sector_addr;
     uint16_t offset = s_sram_map[weight_id].sector_offset;
-    portable_exit_critical();
+    PORTABLE_EXIT_CRITICAL();
 
     uint8_t packed_buf[sizeof(fncle_log_entry_t)];
 

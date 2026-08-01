@@ -1,4 +1,4 @@
-# simulations/fn_cle_simulator.py
+# scripts/fn_cle_simulator.py
 import random
 import math
 import json
@@ -60,7 +60,8 @@ class SystemBFNCLESimulator:
         self.power_failure_simulated = False
 
     def perform_weight_update(self, weight_index, delta_val):
-        entry_size = 8
+        # Cleanly use the 12-byte packed struct size
+        entry_size = 12
 
         # Check if current sector is full
         if self.current_offset_in_sector + entry_size > self.flash.sector_size:
@@ -73,7 +74,7 @@ class SystemBFNCLESimulator:
                 self.current_sector = self.log_start_sector
                 self.current_offset_in_sector = 0
 
-        # Write 8-byte entry sequentially to active log sector
+        # Write 12-byte entry sequentially to active log sector
         self.flash.bytes_written += entry_size
         self.flash.write_operations += 1
 
@@ -96,7 +97,7 @@ class SystemBFNCLESimulator:
         for sector in range(self.log_start_sector, self.current_sector + 1):
             limit = self.current_offset_in_sector if sector == self.current_sector else self.flash.sector_size
             scan_bytes += limit
-            replayed_records += limit // 8
+            replayed_records += limit // 12
 
         # Estimate scan time (120ns per read word typical SPI)
         scan_time_us = (scan_bytes / 4) * self.flash.t_read_word_us
@@ -126,7 +127,7 @@ def run_simulation():
     bytes_b = flash_b.bytes_written
 
     waf_a = bytes_a / (1500 * 500 * 4) if bytes_a > 0 else 1.0
-    waf_b = bytes_b / (1500 * 8) if bytes_b > 0 else 1.0
+    waf_b = bytes_b / (1500 * 12) if bytes_b > 0 else 1.0
 
     energy_a_joules = (erase_a * 0.1 * 0.15) + (flash_a.pages_programmed * 0.0008 * 0.08)
     energy_b_joules = (erase_b * 0.1 * 0.15) + (flash_b.pages_programmed * 0.0008 * 0.08)
