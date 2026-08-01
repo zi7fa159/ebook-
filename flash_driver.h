@@ -1,6 +1,8 @@
 /**
  * @file flash_driver.h
- * @brief Low-level NOR flash driver interface for FN-CLE.
+ * @brief Hardware-agnostic HAL definition for FN-CLE.
+ * This abstracts low-level flash operations so that the core FN-CLE logic
+ * works seamlessly across ARM Cortex-M, RISC-V, Xtensa, and AVR.
  */
 
 #ifndef FLASH_DRIVER_H
@@ -13,26 +15,32 @@
 #define FN_CLE_FLASH_PAGE_SIZE   256
 
 /**
- * @brief Low-level driver initialization.
+ * @brief Low-level HAL operations structure representing physical hardware calls.
  */
-bool fncle_flash_init(void);
+typedef struct {
+    bool (*erase_sector)(uint32_t sector_addr);
+    bool (*write_data)(uint32_t addr, const uint8_t *data, uint32_t size);
+    bool (*read_data)(uint32_t addr, uint8_t *data, uint32_t size);
+} fncle_hal_ops_t;
 
 /**
- * @brief Erase a physical 4KB sector of NOR flash.
- *
- * @param sector_addr Address of the sector (must be 4KB aligned).
- * @return true if successful, false otherwise.
+ * @brief Register the hardware-specific Flash HAL callbacks.
+ */
+void fncle_flash_register_hal(const fncle_hal_ops_t *ops);
+
+/**
+ * @brief Hardware-agnostic sector erase.
  */
 bool fncle_flash_erase_sector(uint32_t sector_addr);
 
 /**
- * @brief Write sequential data to a page without pre-erasing.
- *
- * @param addr Address to write to.
- * @param data Data buffer pointer.
- * @param size Number of bytes to write.
- * @return true if successful, false otherwise.
+ * @brief Hardware-agnostic sequential word/data write.
  */
 bool fncle_flash_write_data(uint32_t addr, const uint8_t *data, uint32_t size);
+
+/**
+ * @brief Hardware-agnostic sequential data read.
+ */
+bool fncle_flash_read_data(uint32_t addr, uint8_t *data, uint32_t size);
 
 #endif // FLASH_DRIVER_H

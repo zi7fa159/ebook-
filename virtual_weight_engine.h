@@ -1,7 +1,7 @@
 /**
  * @file virtual_weight_engine.h
  * @brief Header for the Virtual Weight Resolver in FN-CLE.
- * Designed for ESP32-S3 and STM32H7.
+ * This file is completely hardware-agnostic and alignment safe.
  */
 
 #ifndef VIRTUAL_WEIGHT_ENGINE_H
@@ -13,18 +13,20 @@
 #define MAX_TRAINABLE_WEIGHTS 512
 
 /**
- * @brief Structure representing a log-structured delta update entry in flash memory.
- * Size: 8 Bytes.
+ * @brief Log entry packed format.
+ * Size: exactly 12 Bytes.
+ * Struct member layout is ordered by descending size to prevent compiler padding
+ * across standard 16/32/64-bit platforms.
  */
 typedef struct {
-    uint16_t weight_id;      /**< Logical index of the parameter weight. */
-    uint16_t padding;        /**< 16-bit padding for perfect alignment. */
-    uint32_t sequence_num;   /**< 32-bit Sequence counter to prevent counter overflow. */
-    float delta_value;       /**< Floating point parameter update offset (delta). */
+    uint32_t sequence_num;   /**< 32-bit Monotonic sequence counter. */
+    float delta_value;       /**< 32-bit float parameter update delta. */
+    uint16_t weight_id;      /**< 16-bit Logical weight index. */
+    uint16_t padding;        /**< 16-bit padding for strict 32-bit alignment. */
 } __attribute__((packed)) fncle_log_entry_t;
 
 /**
- * @brief Structure representing the SRAM weight index map.
+ * @brief SRAM-resident pointer map structure.
  */
 typedef struct {
     uint32_t flash_sector_addr; /**< Physical flash sector address offset. */
@@ -43,11 +45,7 @@ void fncle_vwe_init(void);
 bool fncle_vwe_register_delta(uint16_t weight_id, float delta_val);
 
 /**
- * @brief Resolve a weight on-the-fly.
- *
- * @param weight_id The logical parameter index.
- * @param base_weight The initial read-only factory parameter.
- * @return Resolved floating point weight (Base + Delta).
+ * @brief Resolve a weight on-the-fly inside Multiply-Accumulate loops.
  */
 float fncle_vwe_resolve(uint16_t weight_id, float base_weight);
 
