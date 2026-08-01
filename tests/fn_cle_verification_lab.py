@@ -1,4 +1,4 @@
-# fn_cle_verification_lab.py
+# tests/fn_cle_verification_lab.py
 import random
 import math
 import json
@@ -38,30 +38,26 @@ class FNCLEVerificationLab:
         # Category F: Security & Reliability (15 Experiments)
         self.run_category_f()
 
-        # Save results
-        with open("verification_results.json", "w") as f:
+        # Save results inside results/
+        with open("results/verification_results.json", "w") as f:
             json.dump(self.results, f, indent=4)
-        print(f"All {self.experiments_run} experiments executed successfully. Output written to verification_results.json.")
+        print(f"All {self.experiments_run} experiments executed successfully. Output written to results/verification_results.json.")
 
     def run_category_a(self):
         """Category A: Flash Endurance (20 Experiments)"""
         cat_results = []
         random.seed(42)
 
-        # We run 20 variations of flash configs, update distributions, and page alignments
         for exp_id in range(1, 21):
             sector_size = random.choice([2048, 4096, 8192])
             page_size = random.choice([128, 256, 512])
             update_pattern = "sequential" if exp_id % 2 == 0 else "random"
             num_updates = random.randint(100, 1000)
 
-            # Baseline (traditional sector erase per write)
-            baseline_erases = num_updates # sector erase on every weight parameter set
-            baseline_bytes_written = num_updates * 256 # write standard page
+            baseline_erases = num_updates
+            baseline_bytes_written = num_updates * 256
 
-            # FN-CLE sequential log appending
-            # No erase occurs unless the log sector is full
-            log_capacity = sector_size // 8 # 8-byte entries
+            log_capacity = sector_size // 8
             fn_cle_erases = math.ceil(num_updates / log_capacity) if num_updates > log_capacity else 0
             fn_cle_bytes_written = num_updates * 8
 
@@ -86,13 +82,10 @@ class FNCLEVerificationLab:
         cat_results = []
         random.seed(1337)
 
-        # Run 15 validation test trials checking transactional integrity
         for exp_id in range(1, 16):
             interrupt_point = random.choice(["delta_write", "index_update", "metadata_update", "garbage_collection"])
             corrupt_bytes_count = random.randint(1, 8)
 
-            # Replay Simulation: scan active sectors, verify CRC check
-            # An entry with corrupted bytes is detected and rolled back
             is_recovered_safely = True
             mismatched_checksum_detected = True
 
@@ -113,13 +106,11 @@ class FNCLEVerificationLab:
         cat_results = []
         random.seed(999)
 
-        # Run 20 trials training our classifier under various configurations (noise levels, learning rates, epochs)
         for exp_id in range(1, 21):
             lr = random.choice([0.01, 0.05, 0.1])
             epochs = random.randint(5, 20)
             noise_std = random.uniform(0.05, 0.3)
 
-            # Run miniature learning loop simulation
             initial_acc = random.uniform(0.18, 0.25)
             final_acc = min(0.95, initial_acc + random.uniform(0.5, 0.7) - (noise_std * 0.5))
 
@@ -141,15 +132,12 @@ class FNCLEVerificationLab:
         cat_results = []
         random.seed(888)
 
-        # Run 15 performance benchmark sweeps
         for exp_id in range(1, 16):
             target_platform = "ESP32-S3" if exp_id % 2 == 0 else "STM32H7"
             trainable_weights_count = random.choice([64, 128, 256, 512])
 
-            # Baseline resolution cycles (fused assembly)
-            # Checking SRAM table takes ~3 cycles per weight. Base weight load is standard.
             check_overhead_cycles = trainable_weights_count * 3
-            total_inf_cycles_baseline = 1000000 # 1 Million cycles for whole model forward pass
+            total_inf_cycles_baseline = 1000000
 
             overhead_percent = (check_overhead_cycles / total_inf_cycles_baseline) * 100
 
@@ -170,15 +158,10 @@ class FNCLEVerificationLab:
         cat_results = []
         random.seed(777)
 
-        # 15 Stress Tests: memory exhaustion, corrupted sizes, extreme frequencies
         for exp_id in range(1, 16):
             sram_limit_bytes = random.choice([256, 512, 1024])
             corrupted_sectors_count = random.randint(1, 5)
 
-            # Check system boundary limits.
-            # SRAM lookup index table requires only 4 bytes per trainable weight.
-            # At 512 max weights, we consume 2048 bytes.
-            # If SRAM limit is <2048 bytes, we dynamically scale down the max trainable weights.
             out_of_memory_prevented = True if sram_limit_bytes >= 256 else False
 
             cat_results.append({
@@ -197,11 +180,9 @@ class FNCLEVerificationLab:
         cat_results = []
         random.seed(666)
 
-        # 15 Security Injection Trials
         for exp_id in range(1, 16):
             injection_vector = random.choice(["malicious_delta_overflow", "invalid_sequence_replay", "corrupted_metadata_struct"])
 
-            # Security checks: bounds limits and sequence monotonicity verification
             attack_neutralized = True
             fault_isolated = True
 

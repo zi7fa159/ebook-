@@ -1,6 +1,6 @@
-# fn_cle_simulator.py
+# simulations/fn_cle_simulator.py
 import random
-import time
+import math
 import json
 
 class NOREmulator:
@@ -32,20 +32,13 @@ class SystemABaselineSimulator:
         self.weight_sector_index = 0  # Weights stored starting in sector 0
 
     def perform_epochs_training(self, num_updates=1000):
-        # In a traditional system, updating weights requires writing to flash in-place.
-        # Since NOR Flash cannot overwrite bits from 0 to 1, we must:
-        # 1. Read existing sector to SRAM
-        # 2. Erase the sector (which takes ~100ms and resets all bits to 1)
-        # 3. Modify the weights in SRAM
-        # 4. Write back the updated page/sector (takes ~page_prog_ms)
-
         for _ in range(num_updates):
             # Read sector
             _ = self.flash.sector_size // 4  # words read
             # Erase sector
             self.flash.sectors_erase_count[self.weight_sector_index] += 1
             self.flash.erase_operations += 1
-            # Write back (assuming weights fit in 1 sector, which is 4KB / 4 = 1000 float32 weights)
+            # Write back
             pages_needed = (self.num_weights * 4 + self.flash.page_size - 1) // self.flash.page_size
             self.flash.bytes_written += self.num_weights * 4
             self.flash.pages_programmed += pages_needed
@@ -67,8 +60,6 @@ class SystemBFNCLESimulator:
         self.power_failure_simulated = False
 
     def perform_weight_update(self, weight_index, delta_val):
-        # In FN-CLE, we write a 64-bit log entry: (weight_index: 16-bit, delta: 32-bit float, sequence: 16-bit)
-        # Size = 8 bytes per update. No sector erase is required!
         entry_size = 8
 
         # Check if current sector is full
@@ -86,10 +77,6 @@ class SystemBFNCLESimulator:
         self.flash.bytes_written += entry_size
         self.flash.write_operations += 1
 
-        # Program pages stat: each write occupies a fraction of a page
-        # If we assume 256-byte page buffering in the driver:
-        # We only program a page when full, or on transaction commits.
-        # Let's count page programs:
         self.current_offset_in_sector += entry_size
         if self.current_offset_in_sector % self.flash.page_size == 0:
             self.flash.pages_programmed += 1
@@ -98,17 +85,12 @@ class SystemBFNCLESimulator:
         self.sram_lookup_table[weight_index] = (self.current_sector, self.current_offset_in_sector - entry_size)
 
     def trigger_garbage_collection(self):
-        # GC reads all active deltas from the circular log, consolidates them with static weights
-        # to a new base sector, and erases all log sectors.
-        # This incurs a predictable erase penalty on the log sectors, but is done infrequently.
         for sector in range(self.log_start_sector, self.log_end_sector + 1):
             self.flash.sectors_erase_count[sector] += 1
             self.flash.erase_operations += 1
         self.sram_lookup_table.clear()
 
     def simulate_power_loss_recovery(self):
-        # Recovery scans the circular log sequentially to rebuild the SRAM lookup table
-        # SCAN time: proportional to active log size
         replayed_records = 0
         scan_bytes = 0
         for sector in range(self.log_start_sector, self.current_sector + 1):
@@ -143,10 +125,9 @@ def run_simulation():
     bytes_a = flash_a.bytes_written
     bytes_b = flash_b.bytes_written
 
-    waf_a = bytes_a / (1500 * 500 * 4) if bytes_a > 0 else 1.0 # ratio of flash write to logical write
+    waf_a = bytes_a / (1500 * 500 * 4) if bytes_a > 0 else 1.0
     waf_b = bytes_b / (1500 * 8) if bytes_b > 0 else 1.0
 
-    # Energy estimate (STM32H7 typical active power: erase draw ~150mW, page program draw ~80mW)
     energy_a_joules = (erase_a * 0.1 * 0.15) + (flash_a.pages_programmed * 0.0008 * 0.08)
     energy_b_joules = (erase_b * 0.1 * 0.15) + (flash_b.pages_programmed * 0.0008 * 0.08)
 
@@ -162,17 +143,17 @@ def run_simulation():
         "Erase_Reduction_Factor": round(erase_a / erase_b, 2) if erase_b > 0 else "Infinite",
         "WAF_Baseline": round(waf_a, 4),
         "WAF_FNCLE": round(waf_b, 4),
-        "SRAM_Index_Overhead_Bytes": len(sim_b.sram_lookup_table) * 4, # 4 bytes per entry hash map
+        "SRAM_Index_Overhead_Bytes": len(sim_b.sram_lookup_table) * 4,
         "Power_Loss_Recovery_Time_us": round(recovery_us, 2),
         "Power_Loss_Recovered_Records": recovered_records
     }
 
     print(json.dumps(stats, indent=4))
 
-    with open("simulation_results.json", "w") as sf:
+    with open("results/simulation_results.json", "w") as sf:
         json.dump(stats, sf, indent=4)
 
-    print("Simulation execution complete. Results saved.")
+    print("Simulation execution complete. Results saved inside results/ folder.")
 
 if __name__ == "__main__":
     run_simulation()

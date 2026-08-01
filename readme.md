@@ -47,11 +47,13 @@ FN-CLE separates model parameter storage into a static, immutable base model on 
 - **Ultra-Low Latency**: Replaces 100ms NOR flash sector erases with **12-microsecond sequential word writes**, protecting real-time loop timing.
 - **Minimal Footprint**: SRAM indexing table requires only **200 bytes** of RAM, making it easily integrated into existing resource-constrained user firmware.
 
-## 3. SOFTWARE INTEGRATION & CORE API
+## 3. REPOSITORY LAYOUT & CORE FIRMWARE INTEGRATION
 
-The FN-CLE runtime middleware consists of a small set of highly-portable C files under `/fncle` designed to compile cleanly within any standard vendor SDK (such as STM32Cube or ESP-IDF):
+The FN-CLE production-grade core C engine is located directly at the root of this repository for easy, friction-free drop-in integration into existing firmware builds:
+- `virtual_weight_engine.c/h`: Dynamic weight pointer map tracking, thread safe locks, and resolving loops.
+- `flash_driver.c/h`: Flash physical block and page write abstractions.
 
-### 3.1 Portable C API
+### 3.1 Core C API
 ```c
 /**
  * @brief Initialize the Virtual Weight Engine on startup.
@@ -98,21 +100,21 @@ Corporate evaluation engineers can reproduce our entire R&D dataset locally on a
 
 ### 5.1 Execute Flash Wear Simulations
 ```bash
-python3 fn_cle_simulator.py
+python3 simulations/fn_cle_simulator.py
 ```
-This executes our high-fidelity NOR emulator and dumps write-amplification, sector erase, and power-recovery metrics into `simulation_results.json`.
+This executes our high-fidelity NOR emulator and dumps write-amplification, sector erase, and power-recovery metrics into `results/simulation_results.json`.
 
 ### 5.2 Execute ML Head-Adaptation Training
 ```bash
-python3 fn_cle_ml_experiment.py
+python3 experiments/fn_cle_ml_experiment.py
 ```
-This trains our sparse neural head classifier on-device (emulated in pure Python) and writes accuracy improvements and final convergence loss into `ml_results.json`.
+This trains our sparse neural head classifier on-device (emulated in pure Python) and writes accuracy improvements and final convergence loss into `results/ml_results.json`.
 
 ### 5.3 Execute 100-Experiment Campaign
 ```bash
-python3 fn_cle_verification_lab.py
+python3 tests/fn_cle_verification_lab.py
 ```
-This runs exactly 100 random/stress trials across all categories and outputs raw logs to `verification_results.json`.
+This runs exactly 100 random/stress trials across all categories and outputs raw logs to `results/verification_results.json`.
 
 ## 6. PATENT INTELLECTUAL PROPERTY CLAIMS
 

@@ -1,4 +1,4 @@
-# fn_cle_ml_experiment.py
+# experiments/fn_cle_ml_experiment.py
 import random
 import math
 import json
@@ -63,7 +63,6 @@ class FNCLEMLClassifier:
         self.z2 = sum(self.a1[j] * self.resolved_w2[j] for j in range(self.hidden_dim))
 
         # Sigmoid activation
-        # To avoid overflow, cap self.z2
         z = max(-100.0, min(100.0, self.z2))
         self.a2 = 1.0 / (1.0 + math.exp(-z))
         return self.a2
@@ -72,7 +71,7 @@ class FNCLEMLClassifier:
         # 1. Forward pass
         pred = self.forward(x)
 
-        # 2. Backward pass (Gradient calculation for trainable Layer 2 weights)
+        # 2. Backward pass
         # Loss: binary cross entropy
         loss = - (y * math.log(pred + 1e-15) + (1 - y) * math.log(1 - pred + 1e-15))
 
@@ -144,10 +143,10 @@ def run_experiment():
 
     print(json.dumps(results, indent=4))
 
-    with open("ml_results.json", "w") as mf:
+    with open("results/ml_results.json", "w") as mf:
         json.dump(results, mf, indent=4)
 
-    print("Machine learning validation complete. Results saved.")
+    print("Machine learning validation complete. Results saved inside results/ folder.")
 
 if __name__ == "__main__":
     run_experiment()
