@@ -18,7 +18,8 @@
  */
 typedef struct {
     uint16_t weight_id;      /**< Logical index of the parameter weight. */
-    int16_t sequence_num;    /**< Sequence counter to handle rollback & recovery. */
+    uint16_t padding;        /**< 16-bit padding for perfect alignment. */
+    uint32_t sequence_num;   /**< 32-bit Sequence counter to prevent counter overflow. */
     float delta_value;       /**< Floating point parameter update offset (delta). */
 } __attribute__((packed)) fncle_log_entry_t;
 
@@ -33,7 +34,6 @@ typedef struct {
 
 /**
  * @brief Initialize the Virtual Weight Engine.
- * Loads base mappings and configures memory layout.
  */
 void fncle_vwe_init(void);
 
@@ -43,7 +43,7 @@ void fncle_vwe_init(void);
 bool fncle_vwe_register_delta(uint16_t weight_id, float delta_val);
 
 /**
- * @brief Resolve a weight on-the-fly inside execution kernels.
+ * @brief Resolve a weight on-the-fly.
  *
  * @param weight_id The logical parameter index.
  * @param base_weight The initial read-only factory parameter.
