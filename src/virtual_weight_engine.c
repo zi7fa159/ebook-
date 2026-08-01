@@ -3,8 +3,8 @@
  * @brief Portable implementation of the Virtual Weight Resolver with standard alignment and endianness handling.
  */
 
-#include "virtual_weight_engine.h"
-#include "flash_driver.h"
+#include "fncle/virtual_weight_engine.h"
+#include "fncle/flash_driver.h"
 #include <string.h>
 
 static fncle_sram_entry_t s_sram_map[MAX_TRAINABLE_WEIGHTS];

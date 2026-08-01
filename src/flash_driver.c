@@ -3,7 +3,7 @@
  * @brief Hardware-agnostic low-level Flash HAL operations implementation.
  */
 
-#include "flash_driver.h"
+#include "fncle/flash_driver.h"
 #include <string.h>
 
 static const fncle_hal_ops_t *s_hal_ops = NULL;
