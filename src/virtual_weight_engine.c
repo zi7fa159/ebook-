@@ -97,8 +97,85 @@ void fncle_vwe_init(void) {
     s_current_sector_offset = 0;
     s_global_sequence = 0;
 
-    // Pre-erase the initial active log sector before sequential programming begins!
-    fncle_flash_erase_sector(s_current_write_sector_base);
+    // Walk the log partition to recover existing s_sram_map from flash
+    uint32_t addr = 0;
+    uint32_t max_seq = 0;
+    bool found_any = false;
+    uint32_t next_write_addr = 0;
+    uint8_t entry_buf[sizeof(fncle_log_entry_t)];
+
+    while (addr + sizeof(fncle_log_entry_t) <= FN_CLE_LOG_PARTITION_SIZE) {
+        if (!fncle_flash_read_data(addr, entry_buf, sizeof(fncle_log_entry_t))) {
+            break;
+        }
+
+        // Stop scanning at the first unwritten/empty record (all 0xFF)
+        bool is_empty = true;
+        for (size_t i = 0; i < sizeof(fncle_log_entry_t); ++i) {
+            if (entry_buf[i] != 0xFF) {
+                is_empty = false;
+                break;
+            }
+        }
+        if (is_empty) {
+            break;
+        }
+
+        fncle_log_entry_t entry;
+        deserialize_log_entry(entry_buf, &entry);
+
+        // Stop scanning on invalid records (e.g. corrupt or torn writes)
+        if (entry.weight_id >= MAX_TRAINABLE_WEIGHTS || entry.padding != 0) {
+            break;
+        }
+
+        // Recover entry: keep the mapped entry with the highest sequence_num
+        bool should_update = false;
+        if (!s_sram_map[entry.weight_id].is_active) {
+            should_update = true;
+        } else {
+            uint8_t temp_buf[sizeof(fncle_log_entry_t)];
+            uint32_t active_addr = s_sram_map[entry.weight_id].flash_sector_addr + s_sram_map[entry.weight_id].sector_offset;
+            if (fncle_flash_read_data(active_addr, temp_buf, sizeof(fncle_log_entry_t))) {
+                fncle_log_entry_t existing_entry;
+                deserialize_log_entry(temp_buf, &existing_entry);
+                if (entry.sequence_num > existing_entry.sequence_num) {
+                    should_update = true;
+                }
+            } else {
+                should_update = true;
+            }
+        }
+
+        if (should_update) {
+            s_sram_map[entry.weight_id].flash_sector_addr = (addr / FN_CLE_FLASH_SECTOR_SIZE) * FN_CLE_FLASH_SECTOR_SIZE;
+            s_sram_map[entry.weight_id].sector_offset = addr % FN_CLE_FLASH_SECTOR_SIZE;
+            s_sram_map[entry.weight_id].is_active = true;
+        }
+
+        if (!found_any || entry.sequence_num > max_seq) {
+            max_seq = entry.sequence_num;
+            next_write_addr = addr + sizeof(fncle_log_entry_t);
+            found_any = true;
+        }
+
+        addr += sizeof(fncle_log_entry_t);
+    }
+
+    if (found_any) {
+        s_global_sequence = max_seq + 1;
+        if (next_write_addr >= FN_CLE_LOG_PARTITION_SIZE) {
+            next_write_addr = 0;
+        }
+        s_current_write_sector_base = (next_write_addr / FN_CLE_FLASH_SECTOR_SIZE) * FN_CLE_FLASH_SECTOR_SIZE;
+        s_current_sector_offset = next_write_addr % FN_CLE_FLASH_SECTOR_SIZE;
+    } else {
+        s_global_sequence = 0;
+        s_current_write_sector_base = 0;
+        s_current_sector_offset = 0;
+        // Erase sector 0 to prepare for sequential writes on first boot
+        fncle_flash_erase_sector(0);
+    }
     PORTABLE_EXIT_CRITICAL();
 }
 
@@ -108,7 +185,6 @@ bool fncle_vwe_register_delta(uint16_t weight_id, float delta_val) {
     }
 
     uint32_t local_seq;
-
     PORTABLE_ENTER_CRITICAL();
     local_seq = s_global_sequence++;
     PORTABLE_EXIT_CRITICAL();
@@ -125,18 +201,50 @@ bool fncle_vwe_register_delta(uint16_t weight_id, float delta_val) {
     PORTABLE_ENTER_CRITICAL();
     // Check sector boundaries (NOR sector typically is 4KB)
     if (s_current_sector_offset + sizeof(fncle_log_entry_t) > FN_CLE_FLASH_SECTOR_SIZE) {
-        s_current_write_sector_base += FN_CLE_FLASH_SECTOR_SIZE;
-        s_current_sector_offset = 0;
+        uint32_t next_sector_base = s_current_write_sector_base + FN_CLE_FLASH_SECTOR_SIZE;
 
         // Circular buffer safety wrapping
-        if (s_current_write_sector_base + FN_CLE_FLASH_SECTOR_SIZE > FN_CLE_LOG_PARTITION_SIZE) {
-            s_current_write_sector_base = 0;
+        if (next_sector_base + FN_CLE_FLASH_SECTOR_SIZE > FN_CLE_LOG_PARTITION_SIZE) {
+            next_sector_base = 0;
         }
 
-        // ERASE the target physical sector before sequential programming can take place!
-        if (!fncle_flash_erase_sector(s_current_write_sector_base)) {
+        fncle_log_entry_t live_entries[MAX_TRAINABLE_WEIGHTS];
+        uint16_t live_count = 0;
+
+        for (uint16_t i = 0; i < MAX_TRAINABLE_WEIGHTS; i++) {
+            if (s_sram_map[i].is_active && s_sram_map[i].flash_sector_addr == next_sector_base) {
+                uint8_t temp_buf[sizeof(fncle_log_entry_t)];
+                uint32_t active_addr = s_sram_map[i].flash_sector_addr + s_sram_map[i].sector_offset;
+                if (fncle_flash_read_data(active_addr, temp_buf, sizeof(fncle_log_entry_t))) {
+                    deserialize_log_entry(temp_buf, &live_entries[live_count]);
+                    live_count++;
+                }
+            }
+        }
+
+        // Now safely erase the target physical sector before sequential programming starts
+        if (!fncle_flash_erase_sector(next_sector_base)) {
             PORTABLE_EXIT_CRITICAL();
             return false;
+        }
+
+        s_current_write_sector_base = next_sector_base;
+        s_current_sector_offset = 0;
+
+        // Re-write consolidated live deltas to the fresh sector
+        for (uint16_t i = 0; i < live_count; i++) {
+            uint8_t cons_packed[sizeof(fncle_log_entry_t)];
+            live_entries[i].sequence_num = s_global_sequence++;
+            serialize_log_entry(&live_entries[i], cons_packed);
+
+            uint32_t target_addr = s_current_write_sector_base + s_current_sector_offset;
+            fncle_flash_write_data(target_addr, cons_packed, sizeof(fncle_log_entry_t));
+
+            s_sram_map[live_entries[i].weight_id].flash_sector_addr = s_current_write_sector_base;
+            s_sram_map[live_entries[i].weight_id].sector_offset = s_current_sector_offset;
+            s_sram_map[live_entries[i].weight_id].is_active = true;
+
+            s_current_sector_offset += sizeof(fncle_log_entry_t);
         }
     }
 

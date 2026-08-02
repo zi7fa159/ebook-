@@ -1,10 +1,20 @@
-# experiments/fn_cle_ml_experiment.py
+# scripts/fn_cle_ml_experiment.py
+"""
+ILLUSTRATIVE SYNTHETIC BENCHMARK - NOT REPRESENTATIVE OF PRODUCTION MODELS
+
+This script implements a 3-feature synthetic Gaussian classifier in pure Python.
+It is designed to illustrate the mathematical flow of on-device neural weight updates using
+a frozen feature extractor layer and a sparse delta classifier head adaptation.
+This is a synthetic toy demo for illustrative benchmarking only.
+"""
+
 import random
 import math
 import json
 
 def generate_sensor_anomaly_data():
-    """Generate mock motor vibration data: 3-axis acceleration (frequency components).
+    """Generate illustrative synthetic 3-axis vibration data.
+    This dataset is fully synthetic and generated from random Gaussian distributions.
     Normal class (0): centered around [1.0, 0.5, 0.2]
     Anomaly class (1): centered around [2.5, 1.8, 1.2]
     """
@@ -33,7 +43,9 @@ def generate_sensor_anomaly_data():
     return data, labels
 
 class FNCLEMLClassifier:
-    """A 2-Layer Neural Classifier implementing Frozen Feature Extractor and Sparse Delta Updates in Pure Python."""
+    """A 2-Layer Neural Classifier implementing Frozen Feature Extractor and Sparse Delta Updates in Pure Python.
+    This classifier operates on synthetic 3-feature inputs for illustrative purposes.
+    """
     def __init__(self, input_dim=3, hidden_dim=8, output_dim=1):
         random.seed(42)
         # Base weights represent static factory parameters (frozen)
@@ -49,7 +61,6 @@ class FNCLEMLClassifier:
 
     def forward(self, x):
         # Layer 1: Frozen base features
-        # z1 = x * w_base_1
         self.z1 = [0.0] * self.hidden_dim
         for j in range(self.hidden_dim):
             self.z1[j] = sum(x[i] * self.w_base_1[i][j] for i in range(self.input_dim))
@@ -58,7 +69,6 @@ class FNCLEMLClassifier:
         self.a1 = [max(0.0, val) for val in self.z1]
 
         # Layer 2: Resolved Virtual Weights (Base + Delta)
-        # z2 = a1 * (w_base_2 + w_delta_2)
         self.resolved_w2 = [self.w_base_2[j][0] + self.w_delta_2[j][0] for j in range(self.hidden_dim)]
         self.z2 = sum(self.a1[j] * self.resolved_w2[j] for j in range(self.hidden_dim))
 
@@ -86,7 +96,7 @@ class FNCLEMLClassifier:
         return loss
 
 def run_experiment():
-    print("--- Running Pure Python FN-CLE Machine Learning Validation ---")
+    print("--- Running Illustrative Pure Python FN-CLE Machine Learning Validation ---")
     data, labels = generate_sensor_anomaly_data()
 
     # Split into train/test

@@ -1,0 +1,31 @@
+name: FN-CLE Continuous Integration
+
+on:
+  push:
+    branches: [ main, master, feature/** ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up GCC compiler
+      run: sudo apt-get update && sudo apt-get install -y gcc
+
+    - name: Compile and Run C Unit Tests (ASan + UBSan)
+      run: |
+        gcc -Wall -Wextra -Wpedantic -fsanitize=address,undefined -Iinclude \
+            tests/test_recovery.c src/virtual_weight_engine.c src/flash_driver.c \
+            -o test_recovery
+        ./test_recovery
+
+    - name: Run Flash Performance Simulator
+      run: python3 scripts/fn_cle_simulator.py
+
+    - name: Run Illustrative ML Experiment
+      run: python3 scripts/fn_cle_ml_experiment.py
