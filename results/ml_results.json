@@ -1,0 +1,9 @@
+{
+    "Accuracy_Before": 0.205,
+    "Accuracy_After": 0.85,
+    "Improvement": 0.645,
+    "Total_Parameters": 32,
+    "Trainable_Parameters": 8,
+    "Sparsity_Ratio": 0.25,
+    "Final_Loss": 0.616743
+}

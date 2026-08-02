@@ -1,0 +1,14 @@
+{
+    "Baseline_Erase_Ops": 1500,
+    "Baseline_Bytes_Written": 3000000,
+    "Baseline_Energy_Joules": 23.268,
+    "FNCLE_Erase_Ops": 0,
+    "FNCLE_Bytes_Written": 18000,
+    "FNCLE_Energy_Joules": 0.0014,
+    "Erase_Reduction_Factor": "Infinite",
+    "WAF_Baseline": 1.0,
+    "WAF_FNCLE": 1.0,
+    "SRAM_Index_Overhead_Bytes": 200,
+    "Power_Loss_Recovery_Time_us": 540.48,
+    "Power_Loss_Recovered_Records": 1500
+}
