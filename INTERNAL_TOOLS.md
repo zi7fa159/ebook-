@@ -46,6 +46,12 @@ This document provides a highly detailed, comprehensive guide to the internal to
    - `grep`
    - `create_file_with_block`
    - `overwrite_file_with_block`
+8. [Deep-Dive Network Traffic Analysis of Web Tools](#8-deep-dive-network-traffic-analysis-of-web-tools)
+   - `Robots.txt Pre-checking Protocol`
+   - `view_text_website Network Internals`
+   - `view_image Network Internals`
+   - `Google Search Out-of-Band Execution`
+   - `VM-Host Communication Protocol`
 
 ---
 
@@ -363,3 +369,55 @@ These tools are deprecated and should not be used. Better, more robust alternati
 * **Parameters**:
   - `filepath` (STRING, Required), `content` (STRING, Required).
 * **Alternative**: Use `write_file`.
+
+---
+
+## 8. Deep-Dive Network Traffic Analysis of Web Tools
+
+Using transparent/HTTP proxy logging via `mitmdump`, we analyzed the network footprints of the internal tools to understand their client implementations, protocols, headers, and security/check processes.
+
+### Robots.txt Pre-checking Protocol
+Any web tool fetching external URLs (e.g., `view_text_website`, `view_image`) performs an out-of-band compliance check by querying the target domain's `robots.txt` before loading the actual page.
+* **HTTP Method**: `GET`
+* **Protocol**: `HTTP/1.1`
+* **Path**: `/robots.txt`
+* **User-Agent Header**: `Google-Jules`
+* **Accept Header**: `*/*`
+* **Proxy Connection Header**: `Keep-Alive`
+* **Behavior**: If the server blocks crawling via `robots.txt` or fails in a restrictive manner, the framework blocks or restricts subsequent tool pipelines.
+
+### `view_text_website` Network Internals
+When retrieving the text representation of a web page, the framework emulates a classic text-mode Unix browser.
+* **Client Implementation**: **Lynx** (version `2.9.0` or higher)
+* **HTTP Method**: `GET`
+* **Protocol**: `HTTP/1.0`
+* **User-Agent Header**: `Lynx/2.9.0 libwww-FM/2.14 SSL-MM/1.4.1 GNUTLS/3.8.3`
+* **Accept Header**: `text/html, text/plain, text/sgml, text/css, */*;q=0.01`
+* **Accept-Language Header**: `en`
+* **Execution Layer**: The orchestrator triggers an in-sandbox shell command invoking Lynx to output a formatted page dump, capturing all textual content while discarding visual/multimedia stylesheets.
+
+### `view_image` Network Internals
+When pulling visual media files to parse, the framework uses a programmatic HTTP crawler.
+* **HTTP Method**: `GET`
+* **Protocol**: `HTTP/1.1`
+* **User-Agent Header**: `Google-Jules`
+* **Accept Header**: `*/*`
+* **Validation Check**: Prior to analyzing the image payload, the framework inspects the response's `Content-Type` header. If it does not match one of the allowed image mimetypes (`image/png`, `image/jpeg`, `image/webp`), the download is rejected.
+
+### Google Search Out-of-Band Execution
+The `default_api:google_search` tool does **not** generate any network footprints inside the guest VM's network namespace (even when all HTTP/HTTPS interfaces are aggressively proxied).
+* **Routing Design**: Google search requests bypass the guest VM interface entirely. When called, the action is intercepted and executed out-of-band directly on the orchestrator's host server (using a remote API or search index), and the high-quality text snippet results are injected back into the guest context.
+
+### VM-Host Communication Protocol
+The sandbox sandbox is isolated inside a lightweight microVM (e.g., Firecracker) and communicates with the host hypervisor through **VSOCK** (Virtual Sockets) mapped to loopback interfaces.
+* **Orchestrator Control Ports**: Port `22` (SSH) is mapped via `socat` from `VSOCK-LISTEN` to `127.0.0.1:22`.
+* **Execution Flow of `run_in_bash_session`**:
+  1. The host orchestrator establishes an SSH session as user `swebot`.
+  2. The orchestrator writes the bash command payload to `/run/devbox-session/default/command` and redirects any standard input to `/run/devbox-session/default/stdin`.
+  3. The orchestrator opens/targets a running `tmux` session named `default` and injects the commands via buffer pasting:
+     ```bash
+     tmux load-buffer -
+     tmux paste-buffer -t default
+     tmux send-keys -t default Enter
+     ```
+  4. This architecture ensures that the agent's bash session remains fully persistent, stateful, and visible to the hypervisor.
