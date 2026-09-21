@@ -1,0 +1,10 @@
+out/
+build_apk/
+libs/
+aar_res/
+.mill-version
+.bsp/
+.gradle/
+.idea/
+build/
+app/build/
